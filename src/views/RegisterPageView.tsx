@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -27,14 +27,13 @@ import {
   Heart,
   Truck,
   Gift,
-  CheckCircle2,
 } from 'lucide-react';
 
 interface RegisterPageViewProps {
   locale: Locale;
 }
 
-export function RegisterPageView({ locale }: RegisterPageViewProps) {
+function RegisterPageContent({ locale }: RegisterPageViewProps) {
   const dict = getDictionary(locale);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -398,6 +397,14 @@ export function RegisterPageView({ locale }: RegisterPageViewProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export function RegisterPageView(props: RegisterPageViewProps) {
+  return (
+    <Suspense fallback={<div className="min-h-[85vh] bg-[#FAF7F2]" />}>
+      <RegisterPageContent {...props} />
+    </Suspense>
   );
 }
 

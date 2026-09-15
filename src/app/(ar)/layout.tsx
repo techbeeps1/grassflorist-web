@@ -5,6 +5,7 @@ import { StoreProvider } from '@/store/provider';
 import { Header } from '@/components/header/Header';
 import { Footer } from '@/components/footer/Footer';
 import { ToastContainer } from '@/components/ui/ToastContainer';
+import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { seoConfig } from '@/config/seo';
 import { siteConfig } from '@/config/site';
 
@@ -26,6 +27,7 @@ export default function ArabicRootLayout({
     <html lang="ar" dir="rtl" className={`${cairo.variable} ${poppins.variable} ${cormorantGaramond.variable}`}>
       <body className="min-h-screen flex flex-col font-sans bg-background text-text-main antialiased selection:bg-primary-light selection:text-primary">
         <StoreProvider>
+          <ScrollToTop />
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-50 focus:p-3 focus:bg-primary focus:text-white focus:rounded-xl"

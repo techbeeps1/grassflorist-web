@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type Locale } from '@/config/site';
@@ -16,7 +16,7 @@ interface ResetPasswordPageViewProps {
   locale: Locale;
 }
 
-export function ResetPasswordPageView({ locale }: ResetPasswordPageViewProps) {
+function ResetPasswordPageContent({ locale }: ResetPasswordPageViewProps) {
   const dict = getDictionary(locale);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -212,4 +212,13 @@ export function ResetPasswordPageView({ locale }: ResetPasswordPageViewProps) {
     </div>
   );
 }
+
+export function ResetPasswordPageView(props: ResetPasswordPageViewProps) {
+  return (
+    <Suspense fallback={<div className="min-h-[85vh] bg-[#FAF7F2]" />}>
+      <ResetPasswordPageContent {...props} />
+    </Suspense>
+  );
+}
+
 

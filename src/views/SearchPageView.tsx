@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
@@ -14,7 +14,7 @@ interface SearchPageViewProps {
   locale: Locale;
 }
 
-export function SearchPageView({ locale }: SearchPageViewProps) {
+function SearchPageContent({ locale }: SearchPageViewProps) {
   const dict = getDictionary(locale);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -165,3 +165,12 @@ export function SearchPageView({ locale }: SearchPageViewProps) {
     </div>
   );
 }
+
+export function SearchPageView(props: SearchPageViewProps) {
+  return (
+    <Suspense fallback={<div className="py-6 min-h-[60vh] bg-surface" />}>
+      <SearchPageContent {...props} />
+    </Suspense>
+  );
+}
+

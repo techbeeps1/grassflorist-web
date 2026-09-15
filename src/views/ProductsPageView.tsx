@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { type Locale, siteConfig } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
@@ -21,7 +21,7 @@ interface ProductsPageViewProps {
   initialProducts?: Product[];
 }
 
-export function ProductsPageView({ locale, initialProducts }: ProductsPageViewProps) {
+function ProductsPageContent({ locale, initialProducts }: ProductsPageViewProps) {
   const dict = getDictionary(locale);
   const searchParams = useSearchParams();
 
@@ -188,3 +188,12 @@ export function ProductsPageView({ locale, initialProducts }: ProductsPageViewPr
     </>
   );
 }
+
+export function ProductsPageView(props: ProductsPageViewProps) {
+  return (
+    <Suspense fallback={<div className="py-6 bg-surface min-h-[80vh]" />}>
+      <ProductsPageContent {...props} />
+    </Suspense>
+  );
+}
+

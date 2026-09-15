@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -32,7 +32,7 @@ interface LoginPageViewProps {
   locale: Locale;
 }
 
-export function LoginPageView({ locale }: LoginPageViewProps) {
+function LoginPageContent({ locale }: LoginPageViewProps) {
   const dict = getDictionary(locale);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -364,3 +364,10 @@ export function LoginPageView({ locale }: LoginPageViewProps) {
   );
 }
 
+export function LoginPageView(props: LoginPageViewProps) {
+  return (
+    <Suspense fallback={<div className="min-h-[85vh] bg-[#FAF7F2]" />}>
+      <LoginPageContent {...props} />
+    </Suspense>
+  );
+}

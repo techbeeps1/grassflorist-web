@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import Image from 'next/image';
 import { notFound, useSearchParams } from 'next/navigation';
 import { type Locale, siteConfig } from '@/config/site';
@@ -26,7 +26,7 @@ interface CategoryPageViewProps {
   initialProducts?: Product[];
 }
 
-export function CategoryPageView({
+function CategoryPageContent({
   slug,
   locale,
   initialCategory,
@@ -262,3 +262,12 @@ export function CategoryPageView({
     </>
   );
 }
+
+export function CategoryPageView(props: CategoryPageViewProps) {
+  return (
+    <Suspense fallback={<div className="py-6 bg-surface min-h-[80vh]" />}>
+      <CategoryPageContent {...props} />
+    </Suspense>
+  );
+}
+
