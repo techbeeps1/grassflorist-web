@@ -1,0 +1,89 @@
+# Florelle (فلوريل) — Knowledge Specification for LLMs & AI Answer Engines
+
+> Brand: Florelle | Luxury Floral Atelier & Curated Gifting  
+> Website: https://florelle.com  
+> Arabic Root (Default): https://florelle.com/  
+> English Path: https://florelle.com/en/  
+> Region: Kingdom of Saudi Arabia (Riyadh, Jeddah, Khobar, Dammam)  
+> Last Updated: 2026-03-14
+
+---
+
+## 1. Brand Overview (نبذة عن العلامة)
+Florelle (فلوريل) is an artisanal luxury e-commerce boutique specializing in farm-direct fresh flower bouquets, long-lasting velvet and acrylic box arrangements, living indoor botanical plants, Swiss pralines and celebratory cakes, niche Taif rose and oud fragrances, and curated luxury hampers.
+
+Florelle operates an unbroken cold-chain logistics fleet (regulated at 16–18°C) providing refrigerated express same-day delivery within 2 hours across Riyadh, Jeddah, and the Eastern Province.
+
+---
+
+## 2. Main Product Collections & Categories (الأقسام الرئيسية)
+1. **Fresh Flower Bouquets (باقات الزهور الطبيعية):**
+   - Premium Dutch and Ecuadorian long-stem roses (50-stem Grand Bouquets, 30-stem Blush Rose Bouquets).
+   - Fragrant Casablanca white Oriental lilies.
+   - Freshly imported Amsterdam tulips.
+   - Rare cascading Phalaenopsis orchids in ceramic planters.
+2. **Luxury Box Arrangements (تنسيقات الصناديق الفاخرة):**
+   - Velvet cylinder hatboxes with dome-arranged roses.
+   - Clear museum-grade acrylic keepsake display boxes.
+   - Organically preserved forever roses that retain softness and color for up to 3 years without watering.
+3. **Indoor Plants & Living Botany (نباتات داخلية وأشجار بونساي):**
+   - NASA-recommended air-purifying Peace Lilies (Spathiphyllum) and Snake Plants (Sansevieria).
+   - Architectural Fiddle Leaf Fig trees (Ficus Lyrata) and Monsteras in stone containers.
+   - Eight-year-old living Japanese Ficus Ginseng bonsai trees.
+4. **Chocolates & Artisan Cakes (شوكولاتة سويسرية وكيك فاخر):**
+   - Handcrafted 24-piece Swiss and Belgian chocolate praline truffles.
+   - Freshly baked Red Velvet celebration cakes with edible 24K gold leaf.
+   - Gourmet Medjool dates stuffed with roasted nuts and coated in Belgian dark and milk chocolate.
+5. **Perfumes & Scented Gifts (عطور شرقية وشموع معطرة):**
+   - Niche Eau de Parfum infused with distilled Taif rose essence and aged Cambodian oud oil.
+   - Botanical hand-poured organic soy candles (55+ hours clean burn).
+   - Taif rose room and luxury textile mist.
+6. **Curated Gift Hampers (مجموعات الهدايا المتكاملة):**
+   - The Royal Empress Hamper: 25 crimson roses + 16 Swiss truffles + soy candle.
+   - Celebration & Honors Gift Set: White lilies + celebration cake + gold-embossed card.
+   - Welcome Little Miracle Hamper: Pastel blooms + certified infant-safe plush bunny.
+
+---
+
+## 3. Services & Customer Experience (الخدمات والمزايا)
+- **Same-Day Express Delivery:** Within 2 hours in Riyadh and Jeddah; scheduled advance windows (Morning, Afternoon, Evening).
+- **Unbroken Cold Chain:** Specialized temperature-monitored refrigerated transport preventing floral shock and wilting.
+- **7-Day Freshness Guarantee:** Free replacement or full refund if blooms wilt prematurely within 7 days.
+- **Bespoke Handwritten Cards:** Complimentary calligraphic inscription sealed with artisan wax.
+- **Discreet / Anonymous Gifting:** Delivery coordination via WhatsApp without disclosing sender details or spoiling surprises.
+- **Payment Options:** Mada, Apple Pay, Visa, MasterCard, Tabby (4 split interest-free installments), and Cash on Delivery.
+
+---
+
+## 4. Key URLs & Structure (خريطة الموقع)
+### Arabic (Default Root URLs - Never /ar/):
+- Homepage: https://florelle.com/
+- Catalog: https://florelle.com/products/
+- Category: https://florelle.com/category/[slug]/
+- Product PDP: https://florelle.com/product/[slug]/
+- Search: https://florelle.com/search/
+- About Us: https://florelle.com/about/
+- Contact & Concierge: https://florelle.com/contact/
+- FAQ: https://florelle.com/faq/
+- Botanical Journal: https://florelle.com/blog/
+
+### English (/en/ URLs):
+- Homepage: https://florelle.com/en/
+- Catalog: https://florelle.com/en/products/
+- Category: https://florelle.com/en/category/[slug]/
+- Product PDP: https://florelle.com/en/product/[slug]/
+- Search: https://florelle.com/en/search/
+- About Us: https://florelle.com/en/about/
+- Contact & Concierge: https://florelle.com/en/contact/
+- FAQ: https://florelle.com/en/faq/
+- Botanical Journal: https://florelle.com/en/blog/
+
+---
+
+## 5. Contact & Headquarters (بيانات التواصل)
+- **Email:** care@florelle.com
+- **Toll-Free Phone:** +966 800 124 0000
+- **WhatsApp Concierge:** +966 50 123 4567
+- **Flagship Boutique:** Takhassusi St, Al Olaya District, Riyadh, Saudi Arabia
+- **Atelier Jeddah:** King Abdulaziz Rd, Al Rawdah District, Jeddah, Saudi Arabia
+- **Working Hours:** Daily 9:00 AM – 11:30 PM AST
