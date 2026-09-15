@@ -12,14 +12,13 @@ import { ProductGrid } from '@/components/product/ProductGrid';
 import { ProductCarousel } from '@/components/product/ProductCarousel';
 import { Accordion } from '@/components/ui/Accordion';
 import { Button } from '@/components/ui/Button';
-import { products } from '@/data/products';
 import { faqs } from '@/data/faqs';
 import {
   generateOrganizationSchema,
   generateWebSiteSchema,
   generateFaqSchema,
 } from '@/lib/schema';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
 
 import { Product } from '@/types/product';
 import { Category } from '@/types/category';
@@ -46,20 +45,9 @@ export function HomePageView({
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
-  const featuredProducts =
-    initialFeatured && initialFeatured.length > 0
-      ? initialFeatured
-      : products.filter((p) => p.featured).slice(0, 4);
-
-  const bestsellers =
-    initialBestsellers && initialBestsellers.length > 0
-      ? initialBestsellers
-      : products.filter((p) => p.bestseller).slice(0, 8);
-
-  const newArrivals =
-    initialNewArrivals && initialNewArrivals.length > 0
-      ? initialNewArrivals
-      : products.filter((p) => p.newArrival).slice(0, 8);
+  const featuredProducts = initialFeatured || [];
+  const bestsellers = initialBestsellers || [];
+  const newArrivals = initialNewArrivals || [];
 
   const homeFaqs = faqs.slice(0, 6);
 
@@ -195,39 +183,44 @@ export function HomePageView({
         <BlogPreviewSection locale={locale} />
 
         {/* 12. FAQ Accordion Section on Homepage (Theme: White) */}
-        <section aria-label="Frequently Asked Questions" className="py-14 sm:py-20 bg-white">
+        <section aria-label="Frequently Asked Questions" className="py-16 sm:py-24 bg-white">
           <div className="site-container">
             <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-10 sm:mb-12">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18]">
-                {dict.home.faqTitle}
-              </h2>
-              <p className="text-xs sm:text-sm text-[#5A5049] mt-2">
-                {dict.home.faqSubtitle}
-              </p>
-            </div>
+              <div className="text-center mb-10 sm:mb-12">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#435849] border border-[#EAE3D7] text-xs font-bold uppercase tracking-wider mb-3.5 shadow-2xs">
+                  <Sparkles className="w-3.5 h-3.5 text-[#8CA841]" />
+                  <span>{locale === 'ar' ? 'مركز المساعدة والإرشادات' : 'HELP & FLORAL GUIDANCE'}</span>
+                </div>
+                <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1E1915] leading-tight">
+                  {dict.home.faqTitle}
+                </h2>
+                <p className="text-xs sm:text-sm text-[#6B5E52] mt-2.5 max-w-xl mx-auto leading-relaxed">
+                  {dict.home.faqSubtitle}
+                </p>
+              </div>
 
-            <div className="bg-[#FAF7F2] rounded-3xl p-6 sm:p-10 shadow-sm">
-              <Accordion
-                items={homeFaqs.map((faq) => ({
-                  id: faq.id,
-                  title: faq.question[locale],
-                  content: faq.answer[locale],
-                }))}
-              />
-            </div>
+              <div className="bg-[#FAF8F5] rounded-3xl p-4 sm:p-7 md:p-9 border border-[#EFE7DC] shadow-sm">
+                <Accordion
+                  variant="card"
+                  items={homeFaqs.map((faq) => ({
+                    id: faq.id,
+                    title: faq.question[locale],
+                    content: faq.answer[locale],
+                  }))}
+                />
+              </div>
 
-            <div className="mt-8 text-center">
-              <Link
-                href={faqUrl}
-                className="group inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white hover:bg-[#FAF3ED] text-[#201B18] border border-[#D5C6B5] shadow-2xs hover:shadow-xs text-xs font-bold whitespace-nowrap transition-all duration-200"
-              >
-                <span>{locale === 'ar' ? 'عرض جميع الأسئلة الشائعة' : 'View All FAQs'}</span>
-                <span className="w-5 h-5 rounded-full bg-[#FAF3ED] group-hover:bg-[#435849] group-hover:text-white flex items-center justify-center transition-colors duration-200 shrink-0">
-                  <ArrowIcon className="w-3 h-3 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform duration-200" />
-                </span>
-              </Link>
-            </div>
+              <div className="mt-8 sm:mt-10 text-center">
+                <Link
+                  href={faqUrl}
+                  className="group inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-white hover:bg-[#435849] text-[#1E1915] hover:text-white border border-[#E2D7CB] hover:border-[#435849] shadow-xs hover:shadow-md text-xs sm:text-[13px] font-bold whitespace-nowrap transition-all duration-300 hover:scale-105 active:scale-95"
+                >
+                  <span>{locale === 'ar' ? 'عرض جميع الأسئلة الشائعة' : 'View All FAQs'}</span>
+                  <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#FAF7F2] group-hover:bg-white/20 text-[#435849] group-hover:text-white flex items-center justify-center transition-colors duration-200 shrink-0">
+                    <ArrowIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform duration-200" />
+                  </span>
+                </Link>
+              </div>
             </div>
           </div>
         </section>

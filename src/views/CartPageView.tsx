@@ -19,6 +19,7 @@ import {
 } from '@/store/slices/cartSlice';
 import { addToast } from '@/store/slices/uiSlice';
 import { formatPrice } from '@/lib/utils';
+import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface CartPageViewProps {
@@ -178,8 +179,9 @@ export function CartPageView({ locale }: CartPageViewProps) {
                           }
                         />
 
-                        <span className="text-base font-extrabold text-primary min-w-[90px] text-end">
-                          {formatPrice(item.itemTotal, locale)}
+                        <span dir="ltr" className="text-base font-extrabold text-primary min-w-[90px] text-end inline-flex items-center justify-end gap-1">
+                          <CurrencySymbol className="w-3.5 h-3.5" />
+                          <span>{item.itemTotal}</span>
                         </span>
 
                         <button
@@ -208,7 +210,11 @@ export function CartPageView({ locale }: CartPageViewProps) {
                   <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-900">
                     <div className="flex items-center gap-2">
                       <Tag className="w-4 h-4 text-emerald-600" />
-                      <span>{couponCode} (-{formatPrice(discount, locale)})</span>
+                      <span dir="ltr" className="inline-flex items-center gap-1">
+                        <span>{couponCode} (-</span>
+                        <CurrencySymbol className="w-3 h-3" />
+                        <span>{discount})</span>
+                      </span>
                     </div>
                     <button
                       onClick={() => dispatch(removeCoupon())}
@@ -236,27 +242,45 @@ export function CartPageView({ locale }: CartPageViewProps) {
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between text-text-muted">
                     <span>{dict.cart.subtotal}</span>
-                    <span>{formatPrice(subtotal, locale)}</span>
+                    <span dir="ltr" className="inline-flex items-center gap-1 font-medium">
+                      <CurrencySymbol className="w-3 h-3" />
+                      <span>{subtotal}</span>
+                    </span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-emerald-600 font-semibold">
                       <span>{dict.cart.discount} ({couponCode})</span>
-                      <span>-{formatPrice(discount, locale)}</span>
+                      <span dir="ltr" className="inline-flex items-center gap-1">
+                        <span>-</span>
+                        <CurrencySymbol className="w-3 h-3" />
+                        <span>{discount}</span>
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between text-text-muted">
                     <span>{dict.cart.shipping}</span>
                     <span className={isFree ? 'text-emerald-600 font-bold' : ''}>
-                      {isFree ? dict.cart.freeShipping : formatPrice(shippingFee, locale)}
+                      {isFree ? dict.cart.freeShipping : (
+                        <span dir="ltr" className="inline-flex items-center gap-1">
+                          <CurrencySymbol className="w-3 h-3" />
+                          <span>{shippingFee}</span>
+                        </span>
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between text-text-muted">
                     <span>{dict.cart.vat}</span>
-                    <span>{formatPrice(vat, locale)}</span>
+                    <span dir="ltr" className="inline-flex items-center gap-1">
+                      <CurrencySymbol className="w-3 h-3" />
+                      <span>{vat}</span>
+                    </span>
                   </div>
                   <div className="flex justify-between text-lg font-black text-text-main pt-3 border-t border-border">
                     <span>{dict.cart.total}</span>
-                    <span className="text-primary">{formatPrice(total, locale)}</span>
+                    <span dir="ltr" className="text-primary inline-flex items-center gap-1.5">
+                      <CurrencySymbol className="w-4 h-4" />
+                      <span>{total}</span>
+                    </span>
                   </div>
                 </div>
 

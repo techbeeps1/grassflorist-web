@@ -18,7 +18,7 @@ export const siteConfig = {
     code: 'SAR',
     symbol: {
       ar: 'ر.س',
-      en: 'SAR',
+      en: 'ر.س',
     },
   },
   contact: {
@@ -32,22 +32,10 @@ export const siteConfig = {
   },
   locations: [
     {
-      id: 'riyadh',
-      name: { ar: 'الرياض', en: 'Riyadh' },
-      address: { ar: 'طريق التخصصي، حي العليا، الرياض', en: 'Takhassusi St, Al Olaya, Riyadh' },
-      deliveryTime: { ar: 'توصيل خلال ساعتين', en: 'Delivery within 2 hours' },
-    },
-    {
       id: 'jeddah',
       name: { ar: 'جدة', en: 'Jeddah' },
       address: { ar: 'طريق الملك عبدالعزيز، حي الروضة، جدة', en: 'King Abdulaziz Rd, Al Rawdah, Jeddah' },
       deliveryTime: { ar: 'توصيل خلال ساعتين', en: 'Delivery within 2 hours' },
-    },
-    {
-      id: 'khobar',
-      name: { ar: 'الخبر والدمام', en: 'Khobar & Dammam' },
-      address: { ar: 'شارع الأمير فيصل بن فهد، الخبر', en: 'Prince Faisal Bin Fahd St, Al Khobar' },
-      deliveryTime: { ar: 'توصيل في نفس اليوم', en: 'Same-day delivery' },
     },
   ],
   socials: {

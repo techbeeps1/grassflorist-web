@@ -10,6 +10,7 @@ import { toggleWishlist, selectIsInWishlist } from '@/store/slices/wishlistSlice
 import { addItem } from '@/store/slices/cartSlice';
 import { setCartDrawerOpen, addToast } from '@/store/slices/uiSlice';
 import { formatPrice, calculateDiscount, cn } from '@/lib/utils';
+import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 import { Heart, ShoppingBag, Check } from 'lucide-react';
 
 interface ProductCardProps {
@@ -209,13 +210,15 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
 
         {/* Price & Mobile Action Row */}
         <div className="flex items-center justify-between gap-1.5 mt-auto pt-1">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="text-sm sm:text-base font-extrabold text-[#1E1915]">
-              {formatPrice(product.price, locale)}
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span dir="ltr" className="text-sm sm:text-base font-extrabold text-[#1E1915] inline-flex items-center gap-1">
+              <CurrencySymbol className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>{product.price}</span>
             </span>
-            {product.originalPrice && (
-              <span className="text-xs sm:text-sm text-[#9E9186] line-through font-normal">
-                {formatPrice(product.originalPrice, locale)}
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span dir="ltr" className="text-xs sm:text-[13px] text-[#9E9186] line-through font-normal inline-flex items-center gap-0.5">
+                <CurrencySymbol className="w-2.5 h-2.5 opacity-60" />
+                <span>{product.originalPrice}</span>
               </span>
             )}
           </div>

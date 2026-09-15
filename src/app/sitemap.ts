@@ -1,10 +1,9 @@
 import { MetadataRoute } from 'next';
 import { siteConfig } from '@/config/site';
-import { products } from '@/data/products';
-import { categories } from '@/data/categories';
+import { getStoreCategories, getStoreProducts } from '@/lib/wordpress/store-api';
 import { blogPosts } from '@/data/blog';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url;
   const now = new Date();
 
@@ -43,37 +42,46 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
-  // 2. Categories
-  categories.forEach((cat) => {
-    entries.push({
-      url: `${baseUrl}/category/${cat.slug}`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    });
-    entries.push({
-      url: `${baseUrl}/en/category/${cat.slug}`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    });
-  });
+  try {
+    const [categories, { products }] = await Promise.all([
+      getStoreCategories('ar'),
+      getStoreProducts({ per_page: 100, locale: 'ar' }),
+    ]);
 
-  // 3. Products
-  products.forEach((prod) => {
-    entries.push({
-      url: `${baseUrl}/product/${prod.slug.ar}`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.85,
+    // 2. Dynamic Categories
+    categories.forEach((cat) => {
+      entries.push({
+        url: `${baseUrl}/category/${cat.slug}`,
+        lastModified: now,
+        changeFrequency: 'daily',
+        priority: 0.9,
+      });
+      entries.push({
+        url: `${baseUrl}/en/category/${cat.slug}`,
+        lastModified: now,
+        changeFrequency: 'daily',
+        priority: 0.9,
+      });
     });
-    entries.push({
-      url: `${baseUrl}/en/product/${prod.slug.en}`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.85,
+
+    // 3. Dynamic Products
+    products.forEach((prod) => {
+      entries.push({
+        url: `${baseUrl}/product/${prod.slug.ar}`,
+        lastModified: now,
+        changeFrequency: 'daily',
+        priority: 0.85,
+      });
+      entries.push({
+        url: `${baseUrl}/en/product/${prod.slug.en}`,
+        lastModified: now,
+        changeFrequency: 'daily',
+        priority: 0.85,
+      });
     });
-  });
+  } catch (err) {
+    console.error('[sitemap] Error loading dynamic routes:', err);
+  }
 
   // 4. Blog Posts
   blogPosts.forEach((post) => {

@@ -22,7 +22,7 @@ const initialState: UIState = {
   isMobileMenuOpen: false,
   isSearchModalOpen: false,
   isCityModalOpen: false,
-  activeCity: 'riyadh',
+  activeCity: 'jeddah',
   quickViewProduct: null,
   toasts: [],
 };

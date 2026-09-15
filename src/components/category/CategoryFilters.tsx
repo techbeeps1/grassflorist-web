@@ -43,10 +43,10 @@ export function CategoryFilters({
 
   const priceRanges = [
     { label: locale === 'ar' ? 'الكل' : 'All Prices', min: undefined, max: undefined },
-    { label: locale === 'ar' ? 'أقل من 200 ر.س' : 'Under 200 SAR', min: 0, max: 200 },
-    { label: locale === 'ar' ? '200 إلى 350 ر.س' : '200 to 350 SAR', min: 200, max: 350 },
-    { label: locale === 'ar' ? '350 إلى 500 ر.س' : '350 to 500 SAR', min: 350, max: 500 },
-    { label: locale === 'ar' ? 'أكثر من 500 ر.س' : 'Above 500 SAR', min: 500, max: undefined },
+    { label: locale === 'ar' ? 'أقل من 200 ر.س' : 'Under 200 ر.س', min: 0, max: 200 },
+    { label: locale === 'ar' ? '200 إلى 350 ر.س' : '200 to 350 ر.س', min: 200, max: 350 },
+    { label: locale === 'ar' ? '350 إلى 500 ر.س' : '350 to 500 ر.س', min: 350, max: 500 },
+    { label: locale === 'ar' ? 'أكثر من 500 ر.س' : 'Above 500 ر.س', min: 500, max: undefined },
   ];
 
   return (

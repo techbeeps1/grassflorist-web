@@ -46,24 +46,17 @@ export function Header({ locale }: HeaderProps) {
             className="flex items-center gap-2.5 group select-none shrink-0"
             aria-label="Grass Flowers"
           >
-            <div className="relative w-8 h-10 sm:w-9 sm:h-11 overflow-hidden shrink-0">
+            <div className="relative">
               <Image
                 src="/grass-logo.jpg"
                 alt="Grass غراس"
-                fill
-                sizes="44px"
-                className="object-contain group-hover:scale-105 transition-transform"
+                width={150}
+                height={80}
+                className="w-[60px]"
                 priority
               />
             </div>
-            <div className="flex flex-col">
-              <span className="font-serif text-2xl sm:text-3xl font-black tracking-tight text-primary group-hover:text-primary-hover transition-colors">
-                {locale === 'ar' ? 'غـراس' : 'GRASS'}
-              </span>
-              <span className="text-[9px] tracking-[0.2em] text-secondary font-bold uppercase -mt-1 hidden sm:block">
-                {locale === 'ar' ? 'للزهور والهدايا الفاخرة' : 'Haute Floral Atelier'}
-              </span>
-            </div>
+
           </Link>
 
           {/* Search Bar (Desktop) */}

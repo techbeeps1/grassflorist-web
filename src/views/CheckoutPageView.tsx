@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { clearCart, selectCartTotals } from '@/store/slices/cartSlice';
 import { useCreateOrderMutation } from '@/store/api/ordersApi';
 import { formatPrice } from '@/lib/utils';
+import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 import { Order } from '@/types/order';
 import {
   CheckCircle2,
@@ -41,7 +42,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const [recipientType, setRecipientType] = useState<'myself' | 'gift'>('gift');
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
-  const [city, setCity] = useState('الرياض');
+  const [city, setCity] = useState(locale === 'ar' ? 'جدة' : 'Jeddah');
   const [district, setDistrict] = useState('');
   const [street, setStreet] = useState('');
 
@@ -151,7 +152,10 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-text-muted">{dict.cart.total}:</span>
-              <span className="font-bold text-primary">{formatPrice(confirmedOrder.total, locale)}</span>
+              <span dir="ltr" className="font-bold text-primary inline-flex items-center gap-1">
+                <CurrencySymbol className="w-3.5 h-3.5" />
+                <span>{confirmedOrder.total}</span>
+              </span>
             </div>
           </div>
 
@@ -242,7 +246,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                     <select
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full h-11 px-3 text-xs bg-surface border border-border rounded-lg focus:border-primary focus:outline-none"
+                      className="w-full h-11 px-3 text-xs bg-surface border border-border rounded-lg focus:border-primary focus:outline-none font-medium"
                     >
                       {siteConfig.locations.map((l) => (
                         <option key={l.id} value={l.name[locale]}>
@@ -250,6 +254,9 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                         </option>
                       ))}
                     </select>
+                    <span className="text-[10.5px] text-[#435849] font-medium mt-1 block">
+                      {locale === 'ar' ? '• التوصيل متاح داخل مدينة جدة فقط' : '• Delivery exclusively within Jeddah'}
+                    </span>
                   </div>
                   <Input
                     label={dict.checkout.deliveryDistrict}
@@ -419,25 +426,45 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between text-text-muted">
                     <span>{dict.cart.subtotal}</span>
-                    <span>{formatPrice(subtotal, locale)}</span>
+                    <span dir="ltr" className="inline-flex items-center gap-1 font-medium">
+                      <CurrencySymbol className="w-3 h-3" />
+                      <span>{subtotal}</span>
+                    </span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-emerald-600 font-bold">
                       <span>{dict.cart.discount}</span>
-                      <span>-{formatPrice(discount, locale)}</span>
+                      <span dir="ltr" className="inline-flex items-center gap-1">
+                        <span>-</span>
+                        <CurrencySymbol className="w-3 h-3" />
+                        <span>{discount}</span>
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between text-text-muted">
                     <span>{dict.cart.shipping}</span>
-                    <span>{shippingFee === 0 ? dict.cart.freeShipping : formatPrice(shippingFee, locale)}</span>
+                    <span className={shippingFee === 0 ? 'text-emerald-600 font-bold' : ''}>
+                      {shippingFee === 0 ? dict.cart.freeShipping : (
+                        <span dir="ltr" className="inline-flex items-center gap-1">
+                          <CurrencySymbol className="w-3 h-3" />
+                          <span>{shippingFee}</span>
+                        </span>
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between text-text-muted">
                     <span>{dict.cart.vat}</span>
-                    <span>{formatPrice(vat, locale)}</span>
+                    <span dir="ltr" className="inline-flex items-center gap-1">
+                      <CurrencySymbol className="w-3 h-3" />
+                      <span>{vat}</span>
+                    </span>
                   </div>
                   <div className="flex justify-between text-lg font-black text-text-main pt-3 border-t border-border">
                     <span>{dict.cart.total}</span>
-                    <span className="text-primary">{formatPrice(total, locale)}</span>
+                    <span dir="ltr" className="text-primary inline-flex items-center gap-1.5">
+                      <CurrencySymbol className="w-4 h-4" />
+                      <span>{total}</span>
+                    </span>
                   </div>
                 </div>
 

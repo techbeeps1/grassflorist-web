@@ -89,22 +89,14 @@ export function Footer({ locale }: FooterProps) {
           {/* Brand & About Column */}
           <div className="lg:col-span-4 space-y-4">
             <Link href={getUrl('/')} className="flex items-center gap-3 group">
-              <div className="relative w-8 h-10 overflow-hidden shrink-0 bg-white rounded-lg p-1 border border-[#E4D8CB] shadow-xs">
+              <div className="relative ">
                 <Image
                   src="/grass-logo.jpg"
                   alt="Grass غراس"
-                  fill
-                  sizes="40px"
-                  className="object-contain"
+                  width={100}
+                  height={60}
+                  className="w-[80px]"
                 />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-serif text-2xl sm:text-3xl font-black tracking-tight text-[#25211E] group-hover:text-primary transition-colors">
-                  {locale === 'ar' ? 'غـراس' : 'GRASS'}
-                </span>
-                <span className="text-[9px] tracking-[0.2em] text-[#8C8075] font-bold uppercase block -mt-0.5">
-                  {locale === 'ar' ? 'للزهور والهدايا الفاخرة' : 'Haute Floral Atelier'}
-                </span>
               </div>
             </Link>
             <p className="text-xs text-[#5C524B] leading-relaxed max-w-sm">
@@ -242,13 +234,31 @@ export function Footer({ locale }: FooterProps) {
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8C8075]">
           <p>{dict.footer.allRightsReserved}</p>
 
-          {/* Secure Payment Badges */}
-          <div className="flex items-center gap-3 text-[#5C524B] text-[11px] font-semibold">
-            <span className="px-2.5 py-1 bg-white rounded-md border border-[#E4D8CB] shadow-xs">mada</span>
-            <span className="px-2.5 py-1 bg-white rounded-md border border-[#E4D8CB] shadow-xs">Apple Pay</span>
-            <span className="px-2.5 py-1 bg-white rounded-md border border-[#E4D8CB] shadow-xs">Visa</span>
-            <span className="px-2.5 py-1 bg-white rounded-md border border-[#E4D8CB] shadow-xs">MasterCard</span>
-            <span className="px-2.5 py-1 bg-white rounded-md border border-[#E4D8CB] shadow-xs">Tabby</span>
+          {/* Individual Payment Badges */}
+          <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 justify-center sm:justify-end">
+            {[
+              { name: 'mada', src: '/payments/mada.svg' },
+              { name: 'Visa', src: '/payments/visa.svg' },
+              { name: 'Mastercard', src: '/payments/mastercard.svg' },
+              { name: 'American Express', src: '/payments/amex.svg' },
+              { name: 'Tabby', src: '/payments/tabby.svg' },
+              { name: 'stc pay', src: '/payments/stcpay.svg' },
+              { name: 'Apple Pay', src: '/payments/applepay.svg' },
+              { name: 'Tamara', src: '/payments/tamara.svg' },
+              { name: 'PayPal', src: '/payments/paypal.svg' },
+            ].map((pm) => (
+              <div
+                key={pm.name}
+                className="h-7 sm:h-8 px-2 bg-white rounded-md border border-[#E4D8CB] shadow-xs flex items-center justify-center hover:border-[#435849]/50 hover:shadow-sm transition-all"
+                title={pm.name}
+              >
+                <img
+                  src={pm.src}
+                  alt={pm.name}
+                  className="h-4 sm:h-4.5 w-auto max-w-[44px] object-contain"
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>

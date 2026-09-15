@@ -7,8 +7,10 @@ import { setCartDrawerOpen } from '@/store/slices/uiSlice';
 import { selectCartItemsCount, selectCartSubtotal } from '@/store/slices/cartSlice';
 import { selectWishlistCount } from '@/store/slices/wishlistSlice';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { AccountDropdown } from './AccountDropdown';
 import { type Locale } from '@/config/site';
 import { formatPrice } from '@/lib/utils';
+import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 import { Heart, ShoppingBag } from 'lucide-react';
 
 interface HeaderActionsProps {
@@ -24,7 +26,10 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
   const wishlistUrl = locale === 'ar' ? '/wishlist' : '/en/wishlist';
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3">
+    <div className="flex items-center gap-1.5 sm:gap-2.5">
+      {/* Account Button / Dropdown */}
+      <AccountDropdown locale={locale} />
+
       {/* Language Switcher */}
       <LanguageSwitcher currentLocale={locale} />
 
@@ -58,8 +63,9 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
         </div>
 
         {cartCount > 0 && (
-          <span className="hidden sm:inline-block text-xs font-bold text-white ps-1">
-            {formatPrice(cartSubtotal, locale)}
+          <span dir="ltr" className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-white ps-1">
+            <CurrencySymbol className="w-3 h-3 brightness-0 invert" />
+            <span>{cartSubtotal}</span>
           </span>
         )}
       </button>

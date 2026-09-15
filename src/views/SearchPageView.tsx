@@ -7,7 +7,7 @@ import { getDictionary } from '@/i18n/get-dictionary';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { SortDropdown, type SortOption } from '@/components/category/SortDropdown';
-import { products } from '@/data/products';
+import { useGetProductsQuery } from '@/store/api/productsApi';
 import { Search, PackageOpen } from 'lucide-react';
 
 interface SearchPageViewProps {
@@ -23,6 +23,11 @@ export function SearchPageView({ locale }: SearchPageViewProps) {
   const [queryInput, setQueryInput] = useState(initialQuery);
   const [sortBy, setSortBy] = useState<SortOption>('popular');
 
+  const { data, isLoading } = useGetProductsQuery(
+    { query: initialQuery, limit: 30 },
+    { skip: !initialQuery.trim() }
+  );
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (queryInput.trim()) {
@@ -35,19 +40,8 @@ export function SearchPageView({ locale }: SearchPageViewProps) {
   };
 
   const searchResults = useMemo(() => {
-    if (!initialQuery.trim()) return [];
-    const q = initialQuery.toLowerCase().trim();
-
-    const results = products.filter(
-      (p) =>
-        p.name.ar.toLowerCase().includes(q) ||
-        p.name.en.toLowerCase().includes(q) ||
-        p.description.ar.toLowerCase().includes(q) ||
-        p.description.en.toLowerCase().includes(q) ||
-        p.category.ar.toLowerCase().includes(q) ||
-        p.category.en.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q))
-    );
+    if (!data?.products) return [];
+    const results = [...data.products];
 
     switch (sortBy) {
       case 'price-asc':
@@ -69,7 +63,7 @@ export function SearchPageView({ locale }: SearchPageViewProps) {
     }
 
     return results;
-  }, [initialQuery, sortBy]);
+  }, [data, sortBy]);
 
   const breadcrumbItems = [
     { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },

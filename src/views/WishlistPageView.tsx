@@ -12,6 +12,7 @@ import { removeFromWishlist } from '@/store/slices/wishlistSlice';
 import { addItem } from '@/store/slices/cartSlice';
 import { setCartDrawerOpen, addToast } from '@/store/slices/uiSlice';
 import { formatPrice } from '@/lib/utils';
+import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 import { type Product } from '@/types/product';
 import { Heart, ShoppingBag, Trash2 } from 'lucide-react';
 
@@ -113,8 +114,9 @@ export function WishlistPageView({ locale }: WishlistPageViewProps) {
                           {product.name[locale]}
                         </h3>
                       </Link>
-                      <div className="mt-2 text-sm sm:text-base font-extrabold text-primary">
-                        {formatPrice(product.price, locale)}
+                      <div dir="ltr" className="mt-2 text-sm sm:text-base font-extrabold text-primary inline-flex items-center gap-1">
+                        <CurrencySymbol className="w-3.5 h-3.5" />
+                        <span>{product.price}</span>
                       </div>
                     </div>
 

@@ -83,9 +83,9 @@ export function FaqPageView({ locale }: FaqPageViewProps) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={dict.faq.searchPlaceholder}
-                className="w-full h-11 ps-10 pe-4 text-xs sm:text-sm bg-surface-subtle border border-border rounded-full focus:outline-none focus:border-primary"
+                className="w-full h-11 ps-10 pe-4 text-xs sm:text-sm bg-white border border-[#E2D8CC] rounded-full focus:outline-none focus:border-[#435849] shadow-2xs transition-colors"
               />
-              <Search className="w-4 h-4 text-text-muted absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-[#8C8075] absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
@@ -97,8 +97,8 @@ export function FaqPageView({ locale }: FaqPageViewProps) {
                 onClick={() => setActiveCategory(c.id)}
                 className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
                   activeCategory === c.id
-                    ? 'bg-primary text-white shadow-xs'
-                    : 'bg-surface-subtle text-text-secondary hover:bg-surface border border-border'
+                    ? 'bg-[#435849] text-white shadow-xs'
+                    : 'bg-white text-[#5C5248] hover:bg-[#FAF7F2] border border-[#E2D8CC]'
                 }`}
               >
                 {c.label}
@@ -108,8 +108,9 @@ export function FaqPageView({ locale }: FaqPageViewProps) {
 
           {/* Accordion Component */}
           {filteredFaqs.length > 0 ? (
-            <div className="bg-surface rounded-3xl p-6 sm:p-8 border border-border shadow-xs">
+            <div className="bg-[#FAF8F5] rounded-3xl p-4 sm:p-7 md:p-8 border border-[#EFE7DC] shadow-sm">
               <Accordion
+                variant="card"
                 items={filteredFaqs.map((f) => ({
                   id: f.id,
                   title: f.question[locale],
@@ -118,7 +119,7 @@ export function FaqPageView({ locale }: FaqPageViewProps) {
               />
             </div>
           ) : (
-            <div className="py-12 text-center text-xs text-text-muted">
+            <div className="py-12 text-center text-xs text-[#8C8075]">
               {locale === 'ar'
                 ? 'لم يتم العثور على نتائج تطابق بحثك.'
                 : 'No frequently asked questions match your inquiry.'}

@@ -3,13 +3,14 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setMobileMenuOpen, setCityModalOpen } from '@/store/slices/uiSlice';
+import { setMobileMenuOpen, setCityModalOpen, addToast } from '@/store/slices/uiSlice';
+import { logout } from '@/store/slices/authSlice';
 import { Drawer } from '@/components/ui/Drawer';
 import { LanguageSwitcher } from '@/components/header/LanguageSwitcher';
 import { mainNavItems } from '@/config/navigation';
 import { siteConfig, type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
-import { ChevronDown, MapPin, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
+import { ChevronDown, MapPin, Phone, ArrowRight, ArrowLeft, User as UserIcon, Package, LogOut, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MobileNavDrawerProps {
@@ -19,6 +20,7 @@ interface MobileNavDrawerProps {
 export function MobileNavDrawer({ locale }: MobileNavDrawerProps) {
   const isOpen = useAppSelector((state) => state.ui.isMobileMenuOpen);
   const activeCity = useAppSelector((state) => state.ui.activeCity);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const dict = getDictionary(locale);
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
@@ -56,7 +58,85 @@ export function MobileNavDrawer({ locale }: MobileNavDrawerProps) {
         </div>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-5">
+        {/* User Account / Auth Mobile Banner */}
+        {isAuthenticated && user ? (
+          <div className="p-3.5 bg-gradient-to-r from-[#FAF3ED] to-[#F5ECE2] border border-[#E4D8CB] rounded-2xl space-y-3 text-start">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#435849] text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
+                  {user.name.charAt(0) || 'G'}
+                </div>
+                <div>
+                  <span className="text-xs font-black text-[#201B18] block truncate max-w-[150px]">
+                    {user.name}
+                  </span>
+                  <span className="text-[10px] text-[#7D7065] block truncate max-w-[150px]">
+                    {user.email}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  dispatch(logout());
+                  dispatch(
+                    addToast({
+                      type: 'info',
+                      message: dict.auth.logoutSuccess,
+                    })
+                  );
+                  handleClose();
+                }}
+                className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                title={dict.account.logout}
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#E4D8CB]/70 text-xs font-bold">
+              <Link
+                href={locale === 'ar' ? '/account' : '/en/account'}
+                onClick={handleClose}
+                className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white rounded-lg border border-[#E4D8CB] text-[#435849]"
+              >
+                <UserIcon className="w-3.5 h-3.5" />
+                <span>{dict.account.profileTab}</span>
+              </Link>
+              <Link
+                href={locale === 'ar' ? '/account' : '/en/account'}
+                onClick={handleClose}
+                className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white rounded-lg border border-[#E4D8CB] text-[#435849]"
+              >
+                <Package className="w-3.5 h-3.5" />
+                <span>{dict.account.ordersTab}</span>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="p-3.5 bg-gradient-to-r from-[#FAF3ED] to-[#F5ECE2] border border-[#E4D8CB] rounded-2xl flex items-center justify-between gap-3 text-start">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#EBF1ED] text-[#435849] flex items-center justify-center">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-black text-[#201B18] block">
+                  {dict.auth.loginTitle}
+                </span>
+                <span className="text-[10px] text-[#7D7065] block">
+                  {locale === 'ar' ? 'للتمتع بتجربة تسوق متكاملة' : 'Enjoy exclusive member perks'}
+                </span>
+              </div>
+            </div>
+            <Link
+              href={locale === 'ar' ? '/login' : '/en/login'}
+              onClick={handleClose}
+              className="px-3.5 py-1.5 bg-[#435849] hover:bg-[#344539] text-white text-xs font-bold rounded-xl shadow-xs shrink-0"
+            >
+              <span>{dict.auth.signIn}</span>
+            </Link>
+          </div>
+        )}
         {/* City Selector Quick Bar */}
         <button
           onClick={() => {

@@ -12,7 +12,6 @@ import { MobileFilterDrawer } from '@/components/category/MobileFilterDrawer';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { Button } from '@/components/ui/Button';
 import { categories } from '@/data/categories';
-import { products } from '@/data/products';
 import { ProductFilterState } from '@/types/product';
 import { generateBreadcrumbSchema } from '@/lib/schema';
 import { SlidersHorizontal } from 'lucide-react';
@@ -63,14 +62,7 @@ export function CategoryPageView({
   );
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  const baseProducts =
-    initialProducts && initialProducts.length > 0
-      ? initialProducts
-      : products.filter(
-          (p) =>
-            p.categorySlug === slug ||
-            decodeURIComponent(p.categorySlug) === decodedSlug
-        );
+  const baseProducts = initialProducts || [];
 
   const categoryProducts = useMemo(() => {
     let result = [...baseProducts];

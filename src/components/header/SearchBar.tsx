@@ -9,6 +9,7 @@ import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { useGetProductsQuery } from '@/store/api/productsApi';
 import { formatPrice } from '@/lib/utils';
+import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 
 interface SearchBarProps {
   locale: Locale;
@@ -140,8 +141,9 @@ export function SearchBar({ locale }: SearchBarProps) {
                           {product.category[locale]}
                         </p>
                       </div>
-                      <div className="text-xs sm:text-sm font-bold text-primary shrink-0">
-                        {formatPrice(product.price, locale)}
+                      <div dir="ltr" className="text-xs sm:text-sm font-bold text-primary shrink-0 inline-flex items-center gap-1">
+                        <CurrencySymbol className="w-3.5 h-3.5" />
+                        <span>{product.price}</span>
                       </div>
                     </Link>
                   );

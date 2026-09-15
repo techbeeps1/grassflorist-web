@@ -10,7 +10,6 @@ import { SortDropdown } from '@/components/category/SortDropdown';
 import { MobileFilterDrawer } from '@/components/category/MobileFilterDrawer';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { Button } from '@/components/ui/Button';
-import { products } from '@/data/products';
 import { ProductFilterState } from '@/types/product';
 import { generateBreadcrumbSchema } from '@/lib/schema';
 import { SlidersHorizontal } from 'lucide-react';
@@ -38,8 +37,7 @@ export function ProductsPageView({ locale, initialProducts }: ProductsPageViewPr
 
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  const baseProducts =
-    initialProducts && initialProducts.length > 0 ? initialProducts : products;
+  const baseProducts = initialProducts || [];
 
   const filteredProducts = useMemo(() => {
     let result = [...baseProducts];

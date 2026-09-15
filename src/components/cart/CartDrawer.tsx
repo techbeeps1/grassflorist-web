@@ -14,6 +14,7 @@ import { Drawer } from '@/components/ui/Drawer';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { formatPrice } from '@/lib/utils';
+import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, ShieldCheck, Plus, Minus } from 'lucide-react';
 
 interface CartDrawerProps {
@@ -76,8 +77,9 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                   {locale === 'ar' ? 'شامل الضريبة المضافة' : 'VAT Included'}
                 </span>
               </div>
-              <span className="text-xl sm:text-2xl font-black text-[#435849]">
-                {formatPrice(total, locale)}
+              <span dir="ltr" className="text-xl sm:text-2xl font-black text-[#435849] inline-flex items-center gap-1.5">
+                <CurrencySymbol className="w-4 h-4" />
+                <span>{total}</span>
               </span>
             </div>
 
@@ -215,8 +217,9 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                       </button>
                     </div>
 
-                    <span className="text-[14px] sm:text-[15px] font-extrabold text-[#1E1915] tracking-tight">
-                      {formatPrice(item.itemTotal, locale)}
+                    <span dir="ltr" className="text-[14px] sm:text-[15px] font-extrabold text-[#1E1915] tracking-tight inline-flex items-center gap-1">
+                      <CurrencySymbol className="w-3.5 h-3.5" />
+                      <span>{item.itemTotal}</span>
                     </span>
                   </div>
                 </div>
