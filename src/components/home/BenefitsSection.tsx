@@ -49,7 +49,7 @@ export function BenefitsSection({ locale }: BenefitsSectionProps) {
                 className="group relative flex flex-col items-center text-center pt-14 sm:pt-16 pb-8 sm:pb-10 px-6 sm:px-8 rounded-3xl bg-white border border-[#E3D7C7] shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_rgba(67,88,73,0.12)] hover:border-[#435849]/40 hover:-translate-y-2 transition-all duration-300"
               >
                 {/* Floating Top Circular Badge (Overlapping the card border) */}
-                <div className="absolute -top-9 sm:-top-10 start-1/2 -translate-x-1/2 w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#435849] to-[#2F4135] group-hover:from-[#8cb83e] group-hover:to-[#7aa433] text-white flex items-center justify-center shadow-[0_8px_22px_rgba(67,88,73,0.28)] group-hover:shadow-[0_12px_28px_rgba(140,184,62,0.4)] border-4 border-[#EFE7DC] group-hover:scale-110 transition-all duration-300 shrink-0">
+                <div className="absolute -top-9 sm:-top-10 left-1/2 -translate-x-1/2 w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#435849] to-[#2F4135] group-hover:from-[#8cb83e] group-hover:to-[#7aa433] text-white flex items-center justify-center shadow-[0_8px_22px_rgba(67,88,73,0.28)] group-hover:shadow-[0_12px_28px_rgba(140,184,62,0.4)] border-4 border-[#EFE7DC] group-hover:scale-110 transition-all duration-300 shrink-0">
                   <IconComponent className="w-8 h-8 sm:w-9 sm:h-9 stroke-[1.75] transition-transform duration-300" />
                 </div>
 

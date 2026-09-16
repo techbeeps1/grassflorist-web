@@ -79,7 +79,7 @@ export function SearchBar({ locale }: SearchBarProps) {
           onFocus={() => setIsOpen(true)}
           placeholder={dict.header.searchPlaceholder}
           aria-label={dict.header.searchPlaceholder}
-          className="w-full h-10 sm:h-11 ps-10 pe-9 text-xs sm:text-sm bg-surface-subtle hover:bg-surface border border-border/80 focus:border-primary focus:bg-surface rounded-full transition-all text-text-main placeholder:text-text-muted/80 focus:outline-none focus:ring-2 focus:ring-primary/10 shadow-xs"
+          className="w-full h-9 sm:h-10 ps-9 sm:ps-10 pe-9 text-xs sm:text-[13px] bg-surface-subtle hover:bg-surface border border-border/80 focus:border-primary focus:bg-surface rounded-full transition-all text-text-main placeholder:text-text-muted/80 focus:outline-none focus:ring-2 focus:ring-primary/10 shadow-2xs"
         />
 
         <div className="absolute start-3.5 flex items-center pointer-events-none text-text-muted">

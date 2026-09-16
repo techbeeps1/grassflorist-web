@@ -35,7 +35,7 @@ export default function ArabicRootLayout({
             تخطي إلى المحتوى الرئيسي
           </a>
           <Header locale="ar" />
-          <main id="main-content" className="flex-1">
+          <main id="main-content" className="flex-1 overflow-x-clip">
             {children}
           </main>
           <Footer locale="ar" />

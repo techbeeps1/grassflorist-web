@@ -128,11 +128,11 @@ export function HomePageView({
 
                   <Link
                     href={catalogUrl}
-                    className="group hidden sm:inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white hover:bg-[#FAF3ED] text-[#201B18] border border-[#D5C6B5] shadow-2xs hover:shadow-xs text-xs font-bold whitespace-nowrap transition-all duration-200 shrink-0"
+                    className="group hidden sm:inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#FAF5EE] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white border border-[#DDD3C6] hover:border-[#2D3F33] shadow-xs hover:shadow-md text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-95 shrink-0"
                   >
                     <span>{dict.common.viewAll}</span>
-                    <span className="w-5 h-5 rounded-full bg-[#FAF3ED] group-hover:bg-[#435849] group-hover:text-white flex items-center justify-center transition-colors duration-200 shrink-0">
-                      <ArrowIcon className="w-3 h-3 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform duration-200" />
+                    <span className="w-6 h-6 rounded-full bg-[#2D3F33] group-hover:bg-white text-white group-hover:text-[#2D3F33] flex items-center justify-center transition-colors shrink-0 ms-1">
+                      <ArrowIcon className="w-3.5 h-3.5 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
                     </span>
                   </Link>
                 </div>
@@ -213,11 +213,11 @@ export function HomePageView({
               <div className="mt-8 sm:mt-10 text-center">
                 <Link
                   href={faqUrl}
-                  className="group inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-white hover:bg-[#435849] text-[#1E1915] hover:text-white border border-[#E2D7CB] hover:border-[#435849] shadow-xs hover:shadow-md text-xs sm:text-[13px] font-bold whitespace-nowrap transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="group inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-[#FAF5EE] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white border border-[#DDD3C6] hover:border-[#2D3F33] shadow-xs hover:shadow-md text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-95"
                 >
                   <span>{locale === 'ar' ? 'عرض جميع الأسئلة الشائعة' : 'View All FAQs'}</span>
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#FAF7F2] group-hover:bg-white/20 text-[#435849] group-hover:text-white flex items-center justify-center transition-colors duration-200 shrink-0">
-                    <ArrowIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform duration-200" />
+                  <span className="w-6 h-6 rounded-full bg-[#2D3F33] group-hover:bg-white text-white group-hover:text-[#2D3F33] flex items-center justify-center transition-colors shrink-0 ms-1">
+                    <ArrowIcon className="w-3.5 h-3.5 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
                   </span>
                 </Link>
               </div>

@@ -26,18 +26,20 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
   const wishlistUrl = locale === 'ar' ? '/wishlist' : '/en/wishlist';
 
   return (
-    <div className="flex items-center gap-1.5 sm:gap-2.5">
-      {/* Account Button / Dropdown */}
-      <AccountDropdown locale={locale} />
+    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+      {/* Account Button / Dropdown (Desktop only) */}
+      <div className="hidden xl:block">
+        <AccountDropdown locale={locale} />
+      </div>
 
-      {/* Language Switcher */}
+      {/* Language Switcher (Always visible in Header) */}
       <LanguageSwitcher currentLocale={locale} />
 
       {/* Wishlist Link */}
       <Link
         href={wishlistUrl}
         aria-label="Wishlist"
-        className="relative p-2 text-text-main hover:text-primary hover:bg-surface-subtle rounded-full transition-colors cursor-pointer"
+        className="relative p-2 text-text-main hover:text-primary hover:bg-surface-subtle rounded-full transition-colors cursor-pointer shrink-0"
       >
         <Heart className="w-5 h-5" />
         {wishlistCount > 0 && (
@@ -51,7 +53,7 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
       <button
         onClick={() => dispatch(setCartDrawerOpen(true))}
         aria-label="Open shopping bag"
-        className="relative flex items-center gap-2 p-2 sm:px-3 sm:py-2 bg-primary text-white hover:bg-primary-hover rounded-full transition-all active:scale-[0.98] shadow-xs cursor-pointer select-none"
+        className="relative flex items-center gap-1.5 sm:gap-2 p-2 sm:px-3 sm:py-2 bg-primary text-white hover:bg-primary-hover rounded-full transition-all active:scale-[0.98] shadow-xs cursor-pointer select-none shrink-0"
       >
         <div className="relative">
           <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -63,7 +65,7 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
         </div>
 
         {cartCount > 0 && (
-          <span dir="ltr" className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-white ps-1">
+          <span dir="ltr" className="hidden xl:inline-flex items-center gap-1 text-xs font-bold text-white ps-1">
             <CurrencySymbol className="w-3 h-3 brightness-0 invert" />
             <span>{cartSubtotal}</span>
           </span>

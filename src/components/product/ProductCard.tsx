@@ -131,7 +131,7 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
           <div className="absolute top-2.5 start-2.5 z-10 pointer-events-none">
             <span
               className={cn(
-                'px-2.5 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-bold shadow-xs block tracking-wide',
+                'px-2.5 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-semibold shadow-xs block tracking-wide',
                 badge.className
               )}
             >
@@ -195,11 +195,6 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
       {/* 2. Product Information Details */}
       <div className="px-1 pt-3 sm:pt-3.5 pb-0.5 flex flex-col justify-between flex-1">
         <div>
-          {/* Subtle floral delivery note */}
-          <span className="text-[10px] sm:text-[10.5px] font-semibold text-[#8C8075] uppercase tracking-wider block mb-1">
-            {locale === 'ar' ? 'زهور طبيعية منسقة' : 'Fresh Handpicked'}
-          </span>
-
           {/* Product Title */}
           <Link href={productUrl} className="block group/title mb-2">
             <h3 className="text-sm sm:text-[15px] font-bold text-[#1E1915] group-hover/title:text-[#435849] transition-colors line-clamp-1 leading-snug">

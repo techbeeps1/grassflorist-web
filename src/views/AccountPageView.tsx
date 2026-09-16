@@ -146,7 +146,7 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
     switch (status) {
       case 'delivered':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EAF5EC] text-[#2D6A4F] border border-[#C8E6CF]">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>{dict.account.statusDelivered}</span>
           </span>
@@ -154,14 +154,14 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
       case 'preparing':
       case 'confirmed':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#FEF6E9] text-[#B87A28] border border-[#FADCB3]">
             <Clock className="w-3.5 h-3.5" />
             <span>{dict.account.statusProcessing}</span>
           </span>
         );
       case 'on_delivery':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EEF5FC] text-[#2970B6] border border-[#CDE1F7]">
             <Truck className="w-3.5 h-3.5" />
             <span>{dict.account.statusShipped}</span>
           </span>
@@ -462,11 +462,11 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
             {/* TAB 2: ORDER HISTORY */}
             {activeTab === 'orders' && (
               <div>
-                <div className="pb-5 border-b border-[#E4D8CB] mb-6">
-                  <h2 className="text-lg font-black text-[#201B18] tracking-tight">
+                <div className="pb-5 border-b border-[#E8DFD3] mb-6">
+                  <h2 className="text-xl font-bold text-[#1E1915] tracking-tight">
                     {dict.account.ordersTab}
                   </h2>
-                  <p className="text-xs text-[#7D7065] mt-0.5">
+                  <p className="text-xs sm:text-sm text-[#7D7065] mt-1">
                     {locale === 'ar'
                       ? 'متابعة وتفاصيل كافة طلباتك مع متجر غراس'
                       : 'Track the status and history of your flower orders'}
@@ -474,25 +474,26 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
                 </div>
 
                 {isOrdersLoading ? (
-                  <div className="py-12 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full border-2 border-[#435849] border-t-transparent animate-spin" />
+                  <div className="py-16 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full border-2 border-[#2D3F33] border-t-transparent animate-spin" />
                   </div>
                 ) : userOrders.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-4 sm:space-y-5">
                     {userOrders.map((order) => (
                       <div
                         key={order.orderNumber}
-                        className="p-5 rounded-2xl border border-[#E4D8CB] bg-[#FAF8F5] hover:border-[#435849]/40 transition-all space-y-4 shadow-xs"
+                        className="rounded-2xl sm:rounded-3xl border border-[#E8DFD3] bg-[#FDFBF7] hover:border-[#D0C2B0] hover:shadow-[0_8px_30px_-6px_rgba(45,36,28,0.08)] transition-all overflow-hidden text-start"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E4D8CB]">
-                          <div className="flex items-center gap-3">
-                            <span className="font-mono text-sm font-black text-[#201B18]">
+                        {/* Order Header Row */}
+                        <div className="p-4 sm:p-5 bg-[#FAF7F2]/80 border-b border-[#EFE8DE] flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+                            <span className="font-mono text-xs sm:text-sm font-bold bg-white px-3 py-1 rounded-lg border border-[#E2D8CC] text-[#1E1915]">
                               {order.orderNumber}
                             </span>
                             {getStatusBadge(order.status)}
                           </div>
-                          <div className="text-xs text-[#7D7065] flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5" />
+                          <div className="text-xs text-[#7D7065] flex items-center gap-1.5 font-medium">
+                            <Calendar className="w-3.5 h-3.5 text-[#8C8075]" />
                             <span>
                               {new Date(order.createdAt).toLocaleDateString(
                                 locale === 'ar' ? 'ar-SA' : 'en-US',
@@ -503,69 +504,83 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
                         </div>
 
                         {/* Order Items Preview */}
-                        <div className="space-y-2">
+                        <div className="p-4 sm:p-5 space-y-3">
                           {order.items.map((item, idx) => (
-                            <div key={idx} className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-2.5">
-                                <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-white border border-[#E4D8CB] shrink-0">
-                                  {item.product.thumbnail && (
+                            <div key={idx} className="flex items-center justify-between gap-3 text-xs sm:text-sm">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white border border-[#E8DFD3] shrink-0">
+                                  {item.product.thumbnail ? (
                                     <Image
                                       src={item.product.thumbnail}
                                       alt={item.product.name[locale]}
                                       fill
                                       className="object-cover"
                                     />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-[#8C8075]">
+                                      <Package className="w-6 h-6 opacity-40" />
+                                    </div>
                                   )}
                                 </div>
-                                <div>
-                                  <span className="font-bold text-[#201B18] block line-clamp-1">
+                                <div className="min-w-0">
+                                  <span className="text-[10px] sm:text-[11px] font-semibold text-[#8C8075] uppercase tracking-wider block mb-0.5">
+                                    {item.product.category?.[locale] || (locale === 'ar' ? 'زهور فاخرة' : 'Floral Arrangement')}
+                                  </span>
+                                  <span className="font-bold text-[#1E1915] block truncate mb-1">
                                     {item.product.name[locale]}
                                   </span>
-                                  <span className="text-[11px] text-[#7D7065]">
+                                  <span className="inline-block px-2 py-0.5 rounded-md bg-[#F4ECE1]/60 text-[11px] font-semibold text-[#5C5045]">
                                     {dict.product.quantity}: {item.quantity}
                                   </span>
                                 </div>
                               </div>
-                              <span dir="ltr" className="font-bold text-[#435849] inline-flex items-center gap-1">
-                                <CurrencySymbol className="w-3 h-3" />
+                              <span dir="ltr" className="font-extrabold text-sm sm:text-base text-[#1E1915] inline-flex items-center gap-1 shrink-0">
+                                <CurrencySymbol className="w-3.5 h-3.5 text-[#2D3F33]" />
                                 <span>{item.itemTotal}</span>
                               </span>
                             </div>
                           ))}
                         </div>
 
-                        {/* Total & Action */}
-                        <div className="pt-3 border-t border-[#E4D8CB] flex items-center justify-between">
-                          <div className="text-xs">
-                            <span className="text-[#7D7065]">{dict.account.orderTotal}: </span>
-                            <span dir="ltr" className="font-black text-sm sm:text-base text-[#435849] inline-flex items-center gap-1">
-                              <CurrencySymbol className="w-3.5 h-3.5" />
-                              <span>{order.total}</span>
-                            </span>
+                        {/* Total & Action Footer */}
+                        <div className="px-4 sm:px-5 py-3.5 bg-[#FAF7F2]/50 border-t border-[#EFE8DE] flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex items-center gap-1.5 text-xs text-[#7D7065]">
+                            <MapPin className="w-3.5 h-3.5 text-[#8C8075]" />
+                            <span>{order.recipient.city} {order.recipient.district ? `(${order.recipient.district})` : ''}</span>
                           </div>
 
-                          <button
-                            onClick={() => setSelectedOrder(order)}
-                            className="px-4 py-2 rounded-xl bg-[#435849] hover:bg-[#334438] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-                          >
-                            <span>{dict.account.viewOrderDetails}</span>
-                          </button>
+                          <div className="flex items-center gap-4">
+                            <div className="text-end">
+                              <span className="text-xs text-[#7D7065] me-1.5">{dict.account.orderTotal}:</span>
+                              <span dir="ltr" className="font-black text-sm sm:text-base text-[#1E1915] inline-flex items-center gap-1">
+                                <CurrencySymbol className="w-3.5 h-3.5 text-[#2D3F33]" />
+                                <span>{order.total}</span>
+                              </span>
+                            </div>
+
+                            <button
+                              onClick={() => setSelectedOrder(order)}
+                              className="px-4 py-2 rounded-xl bg-[#2D3F33] hover:bg-[#202E25] text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                            >
+                              <span>{dict.account.viewOrderDetails}</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 px-4 space-y-3">
-                    <div className="w-16 h-16 rounded-full bg-[#FAF3ED] flex items-center justify-center text-[#435849] mx-auto mb-2">
+                  <div className="text-center py-16 px-4 bg-[#FAF7F2]/50 rounded-2xl border border-[#E8DFD3] space-y-3">
+                    <div className="w-16 h-16 rounded-full bg-[#FAF3ED] flex items-center justify-center text-[#2D3F33] mx-auto mb-2 border border-[#E8DFD3]">
                       <Package className="w-8 h-8" />
                     </div>
-                    <h3 className="text-base font-bold text-[#201B18]">{dict.account.noOrders}</h3>
-                    <p className="text-xs text-[#7D7065] max-w-sm mx-auto">
+                    <h3 className="text-base font-bold text-[#1E1915]">{dict.account.noOrders}</h3>
+                    <p className="text-xs sm:text-sm text-[#7D7065] max-w-sm mx-auto">
                       {dict.account.noOrdersDesc}
                     </p>
                     <div className="pt-2">
                       <Link href={locale === 'ar' ? '/products' : '/en/products'}>
-                        <Button variant="primary" size="md" className="font-bold text-xs">
+                        <Button variant="primary" size="md" className="font-bold text-xs bg-[#2D3F33] hover:bg-[#202E25] rounded-xl px-5">
                           <span>{dict.account.startShopping}</span>
                         </Button>
                       </Link>
@@ -578,29 +593,29 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
             {/* TAB 3: SAVED ADDRESSES */}
             {activeTab === 'addresses' && (
               <div>
-                <div className="pb-5 border-b border-[#E4D8CB] mb-6">
-                  <h2 className="text-lg font-black text-[#201B18] tracking-tight">
+                <div className="pb-5 border-b border-[#E8DFD3] mb-6">
+                  <h2 className="text-xl font-bold text-[#1E1915] tracking-tight">
                     {dict.account.addressesTab}
                   </h2>
-                  <p className="text-xs text-[#7D7065] mt-0.5">
+                  <p className="text-xs sm:text-sm text-[#7D7065] mt-1">
                     {locale === 'ar'
                       ? 'العناوين المحفوظة لتسهيل وتنسيق سرعة التوصيل'
                       : 'Manage your saved delivery addresses for faster checkout'}
                   </p>
                 </div>
 
-                <div className="p-5 rounded-2xl border-2 border-primary/30 bg-[#FAF8F5] relative space-y-2">
+                <div className="p-5 rounded-2xl border border-[#2D3F33]/20 bg-[#FDFBF7] relative space-y-2 text-start">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-[#435849] flex items-center gap-1.5">
+                    <span className="font-bold text-xs text-[#2D3F33] flex items-center gap-1.5">
                       <MapPin className="w-4 h-4" />
                       <span>{locale === 'ar' ? 'العنوان الافتراضي (جدة)' : 'Primary Address (Jeddah)'}</span>
                     </span>
-                    <span className="px-2 py-0.5 bg-primary-light text-primary text-[10px] font-bold rounded-full">
+                    <span className="px-2.5 py-0.5 bg-[#EAF5EC] text-[#2D6A4F] text-[10px] font-bold rounded-full border border-[#C8E6CF]">
                       {locale === 'ar' ? 'افتراضي' : 'Default'}
                     </span>
                   </div>
 
-                  <p className="text-xs sm:text-sm font-semibold text-[#201B18]">
+                  <p className="text-xs sm:text-sm font-semibold text-[#1E1915]">
                     {user.name}
                   </p>
                   <p className="text-xs text-[#7D7065] leading-relaxed">
@@ -616,10 +631,10 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
         {/* ORDER DETAILS MODAL */}
         {selectedOrder && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-[#E4D8CB] shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto text-start">
-              <div className="flex items-center justify-between pb-4 border-b border-[#E4D8CB]">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-[#E8DFD3] shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto text-start">
+              <div className="flex items-center justify-between pb-4 border-b border-[#EFE8DE]">
                 <div>
-                  <h3 className="text-base sm:text-lg font-black text-[#201B18]">
+                  <h3 className="text-lg font-serif font-black text-[#1E1915]">
                     {dict.account.orderDetailsTitle}
                   </h3>
                   <span className="font-mono text-xs font-bold text-[#7D7065]">
@@ -628,14 +643,14 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
                 </div>
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="p-2 text-[#8C8075] hover:text-[#201B18] rounded-full hover:bg-[#FAF8F5] transition-colors cursor-pointer"
+                  className="p-2 text-[#8C8075] hover:text-[#1E1915] rounded-full hover:bg-[#FAF7F2] transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Status Banner */}
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E4D8CB]">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD3]">
                 <span className="text-xs font-bold text-[#7D7065]">
                   {dict.account.orderStatus}:
                 </span>
@@ -644,55 +659,59 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
 
               {/* Recipient & Delivery */}
               <div className="space-y-2 text-xs">
-                <span className="font-bold text-[#201B18] block uppercase tracking-wider text-[11px]">
+                <span className="font-bold text-[#1E1915] block uppercase tracking-wider text-[11px]">
                   {dict.account.recipientInfo}
                 </span>
-                <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E4D8CB] space-y-1.5">
+                <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD3] space-y-2">
                   <div className="flex justify-between">
                     <span className="text-[#7D7065]">{dict.checkout.recipientName}:</span>
-                    <span className="font-semibold text-[#201B18]">{selectedOrder.recipient.name}</span>
+                    <span className="font-semibold text-[#1E1915]">{selectedOrder.recipient.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#7D7065]">{dict.checkout.recipientPhone}:</span>
-                    <span className="font-semibold text-[#201B18]" dir="ltr">{selectedOrder.recipient.phone}</span>
+                    <span className="font-semibold text-[#1E1915]" dir="ltr">{selectedOrder.recipient.phone}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#7D7065]">{dict.checkout.deliveryCity}:</span>
-                    <span className="font-semibold text-[#201B18]">{selectedOrder.recipient.city} - {selectedOrder.recipient.district}</span>
+                    <span className="font-semibold text-[#1E1915]">{selectedOrder.recipient.city} - {selectedOrder.recipient.district}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#7D7065]">{dict.checkout.deliveryDate}:</span>
-                    <span className="font-semibold text-[#201B18]">{selectedOrder.delivery.date} ({selectedOrder.delivery.timeSlot})</span>
+                    <span className="font-semibold text-[#1E1915]">{selectedOrder.delivery.date} ({selectedOrder.delivery.timeSlot})</span>
                   </div>
                 </div>
               </div>
 
               {/* Items List */}
               <div className="space-y-2">
-                <span className="font-bold text-[#201B18] block uppercase tracking-wider text-[11px]">
+                <span className="font-bold text-[#1E1915] block uppercase tracking-wider text-[11px]">
                   {dict.account.orderItems}
                 </span>
-                <div className="divide-y divide-[#E4D8CB] border border-[#E4D8CB] rounded-xl overflow-hidden">
+                <div className="divide-y divide-[#EFE8DE] border border-[#E8DFD3] rounded-2xl overflow-hidden">
                   {selectedOrder.items.map((item, i) => (
-                    <div key={i} className="p-3 bg-[#FAF8F5] flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2.5">
-                        <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-white border border-[#E4D8CB] shrink-0">
-                          {item.product.thumbnail && (
+                    <div key={i} className="p-3.5 bg-white flex items-center justify-between text-xs sm:text-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-[#FAF7F2] border border-[#E8DFD3] shrink-0">
+                          {item.product.thumbnail ? (
                             <Image
                               src={item.product.thumbnail}
                               alt={item.product.name[locale]}
                               fill
                               className="object-cover"
                             />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[#8C8075]">
+                              <Package className="w-5 h-5 opacity-40" />
+                            </div>
                           )}
                         </div>
                         <div>
-                          <span className="font-bold text-[#201B18] block line-clamp-1">{item.product.name[locale]}</span>
+                          <span className="font-bold text-[#1E1915] block line-clamp-1">{item.product.name[locale]}</span>
                           <span className="text-[11px] text-[#7D7065]">Qty: {item.quantity}</span>
                         </div>
                       </div>
-                      <span dir="ltr" className="font-bold text-[#435849] inline-flex items-center gap-1">
-                        <CurrencySymbol className="w-3 h-3" />
+                      <span dir="ltr" className="font-bold text-[#1E1915] inline-flex items-center gap-1">
+                        <CurrencySymbol className="w-3.5 h-3.5 text-[#2D3F33]" />
                         <span>{item.itemTotal}</span>
                       </span>
                     </div>
@@ -701,7 +720,7 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
               </div>
 
               {/* Total Summary */}
-              <div className="p-4 rounded-xl bg-[#435849] text-white flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-[#2D3F33] text-white flex items-center justify-between">
                 <span className="text-xs font-bold">{dict.cart.total}</span>
                 <span dir="ltr" className="text-lg font-black inline-flex items-center gap-1.5">
                   <CurrencySymbol className="w-4 h-4 brightness-0 invert" />

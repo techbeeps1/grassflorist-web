@@ -273,7 +273,7 @@
     "email": "Email Address",
     "emailPlaceholder": "name@example.com",
     "phone": "Mobile Number",
-    "phonePlaceholder": "05xxxxxxxx",
+    "phonePlaceholder": "0501234567",
     "password": "Password",
     "passwordPlaceholder": "••••••••",
     "confirmPassword": "Confirm Password",

@@ -24,65 +24,66 @@ export function Header({ locale }: HeaderProps) {
   const homeUrl = locale === 'ar' ? '/' : '/en';
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md shadow-xs transition-shadow">
-      {/* Announcement Bar */}
+    <>
+      {/* Top Announcement Bar (Non-sticky: scrolls away with page) */}
       <AnnouncementBar locale={locale} />
 
-      {/* Main Navigation Bar */}
-      <div className="site-container py-3 sm:py-4">
-        <div className="flex items-center justify-between gap-3 sm:gap-6">
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => dispatch(setMobileMenuOpen(true))}
-            className="md:hidden p-2 text-text-main hover:text-primary hover:bg-surface-subtle rounded-lg cursor-pointer"
-            aria-label="Open mobile menu"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+      {/* Main Navigation Header (Sticky on scroll) */}
+      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md shadow-xs transition-shadow">
+        <div className="site-container py-2 sm:py-2.5">
+          <div className="flex items-center justify-between gap-2.5 sm:gap-4 lg:gap-6">
+            {/* Left: Hamburger (shown on < xl) + Brand Logo */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* Luxury Circular Hamburger Menu Button */}
+              <button
+                onClick={() => dispatch(setMobileMenuOpen(true))}
+                className="xl:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[#DDD3C6] bg-[#FAF8F5] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-2xs hover:scale-105 active:scale-95 shrink-0 group"
+                aria-label="Open mobile and tablet menu"
+              >
+                <Menu className="w-4 h-4 sm:w-[18px] sm:h-[18px] stroke-[2.2] text-[#1E1915] group-hover:text-white transition-colors" />
+              </button>
 
-          {/* Brand Logo */}
-          <Link
-            href={homeUrl}
-            className="flex items-center gap-2.5 group select-none shrink-0"
-            aria-label="Grass Flowers"
-          >
-            <div className="relative">
-              <Image
-                src="/grass-logo.jpg"
-                alt="Grass غراس"
-                width={150}
-                height={80}
-                className="w-[60px]"
-                priority
-              />
+              <Link
+                href={homeUrl}
+                className="flex items-center select-none shrink-0"
+                aria-label="Grass Flowers"
+              >
+                <Image
+                  src="/grass-logo.jpg"
+                  alt="Grass غراس"
+                  width={130}
+                  height={65}
+                  className="w-[46px] sm:w-[52px] md:w-[58px] h-auto object-contain"
+                  priority
+                />
+              </Link>
             </div>
 
-          </Link>
+            {/* Center: Search Bar (Integrated in main row on Tablet md: and Desktop xl:) */}
+            <div className="hidden md:flex flex-1 justify-center max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-2">
+              <SearchBar locale={locale} />
+            </div>
 
-          {/* Search Bar (Desktop) */}
-          <div className="hidden md:flex flex-1 justify-center max-w-md lg:max-w-lg">
-            <SearchBar locale={locale} />
+            {/* Right: Actions (Language Switcher, Wishlist, Cart, Account) */}
+            <HeaderActions locale={locale} />
           </div>
 
-          {/* Header Actions (Wishlist, Cart, Language) */}
-          <HeaderActions locale={locale} />
+          {/* Mobile Search Bar (Only on small mobile screens < md) */}
+          <div className="mt-2 md:hidden">
+            <SearchBar locale={locale} />
+          </div>
         </div>
 
-        {/* Mobile Search Bar */}
-        <div className="mt-3 md:hidden">
-          <SearchBar locale={locale} />
+        {/* Desktop Mega Menu Bar (Desktop only: >= xl) */}
+        <div className="hidden xl:block">
+          <MegaMenu locale={locale} />
         </div>
-      </div>
-
-      {/* Desktop Mega Menu Bar */}
-      <div className="hidden md:block">
-        <MegaMenu locale={locale} />
-      </div>
+      </header>
 
       {/* Modals & Drawers */}
       <CitySelectorModal locale={locale} />
       <MobileNavDrawer locale={locale} />
       <CartDrawer locale={locale} />
-    </header>
+    </>
   );
 }

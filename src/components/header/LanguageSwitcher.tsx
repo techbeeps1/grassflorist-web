@@ -27,13 +27,13 @@ export function LanguageSwitcher({ currentLocale, className }: LanguageSwitcherP
       href={targetPath}
       hrefLang={targetLocale}
       className={cn(
-        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border/80 text-xs font-semibold text-text-main',
-        'hover:border-primary hover:text-primary hover:bg-surface-subtle transition-all cursor-pointer select-none',
+        'inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-[#DDD3C6] bg-[#FAF8F5] text-[11px] sm:text-xs font-bold text-[#201B18]',
+        'hover:border-[#435849] hover:text-[#435849] hover:bg-[#FAF3ED] shadow-2xs transition-all cursor-pointer select-none shrink-0',
         className
       )}
       aria-label={`Switch language to ${displayLabel}`}
     >
-      <Globe className="w-3.5 h-3.5 text-text-muted" />
+      <Globe className="w-3.5 h-3.5 text-[#5C524B]" />
       <span>{displayLabel}</span>
     </Link>
   );

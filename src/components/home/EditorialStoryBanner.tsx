@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { type Locale } from '@/config/site';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface EditorialStoryBannerProps {
   locale: Locale;
@@ -11,6 +12,7 @@ interface EditorialStoryBannerProps {
 
 export function EditorialStoryBanner({ locale }: EditorialStoryBannerProps) {
   const isRtl = locale === 'ar';
+  const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
   const catalogUrl = locale === 'ar' ? '/category/flowers' : '/en/category/flowers';
 
   return (
@@ -56,10 +58,13 @@ export function EditorialStoryBanner({ locale }: EditorialStoryBannerProps) {
             {/* Pill CTA Button */}
             <Link
               href={catalogUrl}
-              className="group inline-flex items-center justify-center gap-2 px-7 sm:px-9 py-3 sm:py-3.5 rounded-full bg-white hover:bg-[#FAF6F0] text-[#1E1915] text-xs sm:text-[13px] font-bold tracking-[0.12em] uppercase shadow-sm hover:shadow-md transition-all duration-300 border border-[#E8DFD5] hover:scale-105 active:scale-95"
+              className="group inline-flex items-center justify-center gap-2.5 px-6 py-2.5 sm:px-7 sm:py-3 rounded-full bg-[#FAF5EE] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white border border-[#DDD3C6] hover:border-[#2D3F33] shadow-xs hover:shadow-md text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-95"
             >
               <span>
-                {locale === 'ar' ? 'تسوق زهور اليوم نفسه' : 'SHOP SAME DAY FLOWERS'}
+                {locale === 'ar' ? 'تسوق زهور اليوم نفسه' : 'Shop Same Day Flowers'}
+              </span>
+              <span className="w-6 h-6 rounded-full bg-[#2D3F33] group-hover:bg-white text-white group-hover:text-[#2D3F33] flex items-center justify-center transition-colors shrink-0 ms-1">
+                <ArrowIcon className="w-3.5 h-3.5 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
               </span>
             </Link>
           </div>
