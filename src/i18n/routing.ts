@@ -38,6 +38,23 @@ const REVERSE_SLUG_ALIASES: Record<string, string> = Object.fromEntries(
   Object.entries(CATEGORY_SLUG_ALIASES).map(([en, ar]) => [ar, en])
 );
 
+const PAGE_PATH_ALIASES: Record<string, string> = {
+  '/about': '/عن-غراس',
+  '/contact': '/اتصل-بنا',
+  '/blog': '/المدونة',
+  '/policies/privacy': '/الخصوصية',
+  '/policies/returns': '/سياسة-الاسترجاع-والاسترداد',
+  '/من-نحن': '/about',
+  '/عن-غراس': '/about',
+  '/اتصل-بنا': '/contact',
+  '/المدونة': '/blog',
+  '/الخصوصية': '/policies/privacy',
+  '/سياسة-الخصوصية': '/policies/privacy',
+  '/سياسة-التوصيل-والخصوصية': '/policies/privacy',
+  '/سياسة-الاسترجاع-والاسترداد': '/policies/returns',
+  '/سياسة-الاسترجاع-والاستبدال': '/policies/returns',
+};
+
 /**
  * Generates the corresponding URL path in the target language.
  * Arabic lives strictly at root (e.g. / or /product/abc).
@@ -58,6 +75,7 @@ export function getLocalizedPath(currentPath: string, targetLocale: Locale): str
   // Determine current locale and root path
   const isEnglish = pathname === '/en' || pathname.startsWith('/en/');
   let basePath = isEnglish ? pathname.replace(/^\/en/, '') || '/' : pathname;
+  const decodedBasePath = decodeURIComponent(basePath);
 
   // If basePath is a category route, translate the slug if possible
   const categoryMatch = basePath.match(/^\/category\/(.+)$/);
@@ -70,6 +88,8 @@ export function getLocalizedPath(currentPath: string, targetLocale: Locale): str
       const translatedSlug = REVERSE_SLUG_ALIASES[rawSlug] || rawSlug;
       basePath = `/category/${encodeURIComponent(translatedSlug)}`;
     }
+  } else if (PAGE_PATH_ALIASES[decodedBasePath]) {
+    basePath = PAGE_PATH_ALIASES[decodedBasePath];
   }
 
   if (targetLocale === 'ar') {

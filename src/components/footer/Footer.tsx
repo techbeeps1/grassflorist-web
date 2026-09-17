@@ -171,17 +171,26 @@ export function Footer({ locale }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href={getUrl('/about')} className="hover:text-primary transition-colors">
+                <Link
+                  href={locale === 'ar' ? '/عن-غراس' : '/en/about'}
+                  className="hover:text-primary transition-colors"
+                >
                   {dict.nav.about}
                 </Link>
               </li>
               <li>
-                <Link href={getUrl('/blog')} className="hover:text-primary transition-colors">
+                <Link
+                  href={locale === 'ar' ? '/المدونة' : '/en/blog'}
+                  className="hover:text-primary transition-colors"
+                >
                   {dict.nav.blog}
                 </Link>
               </li>
               <li>
-                <Link href={getUrl('/contact')} className="hover:text-primary transition-colors">
+                <Link
+                  href={locale === 'ar' ? '/اتصل-بنا' : '/en/contact'}
+                  className="hover:text-primary transition-colors"
+                >
                   {dict.nav.contact}
                 </Link>
               </li>
@@ -205,7 +214,10 @@ export function Footer({ locale }: FooterProps) {
             </h4>
             <ul className="space-y-2 text-xs text-[#5C524B]">
               <li>
-                <Link href={getUrl('/policies/privacy')} className="hover:text-primary transition-colors">
+                <Link
+                  href={locale === 'ar' ? '/الخصوصية' : '/en/policies/privacy'}
+                  className="hover:text-primary transition-colors"
+                >
                   {dict.policies.privacyTitle}
                 </Link>
               </li>
@@ -220,7 +232,10 @@ export function Footer({ locale }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href={getUrl('/policies/returns')} className="hover:text-primary transition-colors">
+                <Link
+                  href={locale === 'ar' ? '/سياسة-الاسترجاع-والاسترداد' : '/en/policies/returns'}
+                  className="hover:text-primary transition-colors"
+                >
                   {dict.policies.returnsTitle}
                 </Link>
               </li>

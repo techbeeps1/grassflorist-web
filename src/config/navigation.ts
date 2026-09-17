@@ -205,16 +205,16 @@ export const mainNavItems: NavItem[] = [
     },
     href: {
       en: '/en/about',
-      ar: '/about',
+      ar: '/عن-غراس',
     },
     hasDropdown: true,
     dropdownType: 'simple',
     subcategories: [
-      { id: 'about-us', name: { en: 'About Us', ar: 'من نحن' }, href: { en: '/en/about', ar: '/about' } },
-      { id: 'delivery-privacy', name: { en: 'Delivery & Privacy Policy', ar: 'سياسة التوصيل والخصوصية' }, href: { en: '/en/policies/privacy', ar: '/policies/privacy' } },
-      { id: 'refund-returns', name: { en: 'Refund and Returns Policy', ar: 'سياسة الاسترجاع والاستبدال' }, href: { en: '/en/policies/returns', ar: '/policies/returns' } },
-      { id: 'contact-us', name: { en: 'Contact Us', ar: 'اتصل بنا' }, href: { en: '/en/contact', ar: '/contact' } },
-      { id: 'blog', name: { en: 'Blog', ar: 'المدونة' }, href: { en: '/en/blog', ar: '/blog' } },
+      { id: 'about-us', name: { en: 'About Us', ar: 'من نحن' }, href: { en: '/en/about', ar: '/عن-غراس' } },
+      { id: 'delivery-privacy', name: { en: 'Delivery & Privacy Policy', ar: 'سياسة التوصيل والخصوصية' }, href: { en: '/en/policies/privacy', ar: '/الخصوصية' } },
+      { id: 'refund-returns', name: { en: 'Refund and Returns Policy', ar: 'سياسة الاسترجاع والاستبدال' }, href: { en: '/en/policies/returns', ar: '/سياسة-الاسترجاع-والاسترداد' } },
+      { id: 'contact-us', name: { en: 'Contact Us', ar: 'اتصل بنا' }, href: { en: '/en/contact', ar: '/اتصل-بنا' } },
+      { id: 'blog', name: { en: 'Blog', ar: 'المدونة' }, href: { en: '/en/blog', ar: '/المدونة' } },
     ],
   },
 ];
