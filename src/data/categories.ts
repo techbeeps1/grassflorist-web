@@ -14,8 +14,8 @@ export const categories: Category[] = [
     },
     image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=800&q=80',
     seoTitle: {
-      ar: 'باقات زهور طبيعية فاخرة | توصيل فوري في السعودية | فلوريل',
-      en: 'Luxury Fresh Flower Bouquets | Same-Day Delivery | Florelle',
+      ar: 'باقات زهور طبيعية فاخرة | توصيل فوري في السعودية | غراس فلوريست',
+      en: 'Luxury Fresh Flower Bouquets | Same-Day Delivery | Grass Florist',
     },
     seoDescription: {
       ar: 'تسوق أرقى باقات الزهور الطبيعية مع خدمة التوصيل المبرد في نفس اليوم في الرياض وجدة. ورد جوري، توليب، وليليوم.',
@@ -43,8 +43,8 @@ export const categories: Category[] = [
     },
     image: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=800&q=80',
     seoTitle: {
-      ar: 'صناديق زهور مخملية وأكريليك ملكية | متجر فلوريل',
-      en: 'Opulent Box Flower Arrangements | Florelle Atelier',
+      ar: 'صناديق زهور مخملية وأكريليك ملكية | متجر غراس فلوريست',
+      en: 'Opulent Box Flower Arrangements | Grass Florist Atelier',
     },
     seoDescription: {
       ar: 'تنسيقات زهور راقية في علب مخملية فاخرة تدوم طويلاً مع بطاقة إهداء وتوصيل فوري مبرد.',
@@ -71,8 +71,8 @@ export const categories: Category[] = [
     },
     image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=800&q=80',
     seoTitle: {
-      ar: 'نباتات ظل داخلية وبونساي للمنزل والمكتب | فلوريل',
-      en: 'Lush Indoor Plants & Bonsai Trees | Florelle Botanic',
+      ar: 'نباتات ظل داخلية وبونساي للمنزل والمكتب | غراس فلوريست',
+      en: 'Lush Indoor Plants & Bonsai Trees | Grass Florist Botanic',
     },
     seoDescription: {
       ar: 'اختر من تشكيلة النباتات الداخلية المنقية للهواء مع مراكن فخمة وإرشادات ري مجانية.',
@@ -99,8 +99,8 @@ export const categories: Category[] = [
     },
     image: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&w=800&q=80',
     seoTitle: {
-      ar: 'شوكولاتة فاخرة وكيك احتفالي مع الزهور | فلوريل',
-      en: 'Gourmet Chocolates & Celebratory Cakes | Florelle',
+      ar: 'شوكولاتة فاخرة وكيك احتفالي مع الزهور | غراس فلوريست',
+      en: 'Gourmet Chocolates & Celebratory Cakes | Grass Florist',
     },
     seoDescription: {
       ar: 'أضف لمسة حلاوة استثنائية لهديتك مع علب شوكولاتة وترافلز بلجيكية وكيك طازج فاخر.',
@@ -126,8 +126,8 @@ export const categories: Category[] = [
     },
     image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=800&q=80',
     seoTitle: {
-      ar: 'عطور راقية ودهن عود وشموع معطرة | فلوريل',
-      en: 'Luxury Perfumes, Oud & Botanical Candles | Florelle',
+      ar: 'عطور راقية ودهن عود وشموع معطرة | غراس فلوريست',
+      en: 'Luxury Perfumes, Oud & Botanical Candles | Grass Florist',
     },
     seoDescription: {
       ar: 'أرقى العطور والشموع العطرية الفاخرة للإهداء الراقي مع تغليف مميز وبطاقة مخصصة.',
@@ -153,12 +153,12 @@ export const categories: Category[] = [
     },
     image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80',
     seoTitle: {
-      ar: 'بكجات هدايا فخمة متكاملة لجميع المناسبات | فلوريل',
-      en: 'Luxury Gift Sets & Floral Hampers | Florelle',
+      ar: 'بكجات هدايا فخمة متكاملة لجميع المناسبات | غراس فلوريست',
+      en: 'Luxury Gift Sets & Floral Hampers | Grass Florist',
     },
     seoDescription: {
-      ar: 'وفر عناء الاختيار مع مجموعات الهدايا المتكاملة من فلوريل: زهور، شوكولاتة، وعطور في باقة واحدة.',
-      en: 'Effortless luxury gifting: curated combinations of fresh flowers, gourmet treats, and keepsake treasures.',
+      ar: 'وفر عناء الاختيار مع مجموعات الهدايا المتكاملة من غراس فلوريست: زهور، شوكولاتة، وعطور في باقة واحدة.',
+      en: 'Effortless luxury gifting: curated combinations of fresh flowers, gourmet treats, and keepsake treasures from Grass Florist.',
     },
     featured: true,
     itemCount: 6,

@@ -80,8 +80,8 @@ export function MegaMenu({ locale }: MegaMenuProps) {
       className="relative z-40 bg-white border-t border-[#F0ECE4] select-none"
     >
       <div className="site-container">
-        {/* Main Nav Items List: overflow-visible so dropdowns are never clipped */}
-        <ul className="flex items-center justify-center gap-3 md:gap-5 lg:gap-7 xl:gap-8 overflow-visible flex-wrap md:flex-nowrap">
+        {/* Main Nav Items List: centered with responsive gaps */}
+        <ul className="flex items-center justify-center gap-2 xl:gap-4 2xl:gap-6 overflow-visible flex-wrap md:flex-nowrap mx-auto">
           {mainNavItems.map((item) => {
             const itemUrl = item.href[locale];
             const isOpen = activeItem === item.id;
@@ -102,7 +102,7 @@ export function MegaMenu({ locale }: MegaMenuProps) {
                 <Link
                   href={itemUrl}
                   className={cn(
-                    'inline-flex items-center gap-1.5 py-3.5 px-1.5 text-[12px] sm:text-[12.5px] font-bold tracking-wide uppercase transition-all duration-200 border-b-2 cursor-pointer',
+                    'inline-flex items-center gap-1 xl:gap-1.5 py-3 xl:py-3.5 px-1 xl:px-1.5 text-[11px] xl:text-[11.5px] 2xl:text-[12.5px] font-bold tracking-wide uppercase transition-all duration-200 border-b-2 cursor-pointer whitespace-nowrap',
                     isActive
                       ? 'text-[#1E1915] border-[#8CA841]'
                       : 'text-[#5C534B] hover:text-[#1E1915] border-transparent hover:border-[#8CA841]/50',

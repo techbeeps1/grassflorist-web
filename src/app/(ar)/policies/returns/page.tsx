@@ -3,8 +3,8 @@ import { PolicyPageView } from '@/views/PolicyPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'سياسة الاستبدال وضمان النضارة 100%',
-  description: 'ضمان فلوريل الذهبي لنضارة الزهور لمدة 7 أيام وسياسة إعادة التنسيق أو استرجاع القيمة.',
+  title: 'ضمان النضارة وسياسة الاسترجاع | غراس فلوريست',
+  description: 'ضمان غراس فلوريست الذهبي لنضارة الزهور لمدة 7 أيام وسياسة إعادة التنسيق أو استرجاع القيمة.',
   path: '/policies/returns',
   locale: 'ar',
 });

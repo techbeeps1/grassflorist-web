@@ -28,13 +28,13 @@ export function PolicyPageView({ type, locale }: PolicyPageViewProps) {
   const policyContent: Record<PolicyType, { ar: string[]; en: string[] }> = {
     privacy: {
       ar: [
-        'نحن في بوتيك فلوريل نلتزم بأعلى معايير حماية وخصوصية بيانات عملائنا وفق الأنظمة واللوائح المعمول بها في المملكة العربية السعودية.',
+        'نحن في بوتيك غراس فلوريست نلتزم بأعلى معايير حماية وخصوصية بيانات عملائنا وفق الأنظمة واللوائح المعمول بها في المملكة العربية السعودية.',
         'نقوم بجمع البيانات الضرورية فقط لإتمام وتنفيذ وتوصيل الطلبات، مثل الاسم، رقم الهاتف، وعنوان التوصيل.',
         'في حال اختيارك إرسال الهدية كـ "مجهول الهوية"، نضمن عدم الإفصاح عن هويتك أو رقم هاتفك للمستلم تحت أي ظرف.',
         'نستخدم بروتوكولات تشفير SSL/TLS المتقدمة لضمان أمان جميع العمليات المالية والبيانات البنكية، ولا نقوم بتخزين أي معلومات متعلقة بأرقام البطاقات الائتمانية على خوادمنا.',
       ],
       en: [
-        'At Florelle Luxury Floral Atelier, we are committed to upholding the highest standards of data security and privacy in accordance with Saudi Arabian regulations.',
+        'At Grass Florist Luxury Floral Atelier, we are committed to upholding the highest standards of data security and privacy in accordance with Saudi Arabian regulations.',
         'We collect only the essential personal details required to coordinate, assemble, and deliver your orders with utmost care.',
         'If you elect to send your gift anonymously, we strictly protect and withhold your identity and contact information from the recipient.',
         'All payment transactions are encrypted using enterprise SSL/TLS protocols. We never store sensitive debit or credit card credentials on our servers.',
@@ -42,16 +42,16 @@ export function PolicyPageView({ type, locale }: PolicyPageViewProps) {
     },
     terms: {
       ar: [
-        'تحدد هذه الشروط والأحكام القواعد العامة لاستخدام متجر فلوريل الإلكتروني وإتمام طلبات الشراء.',
+        'تحدد هذه الشروط والأحكام القواعد العامة لاستخدام متجر غراس فلوريست الإلكتروني وإتمام طلبات الشراء.',
         'تخضع جميع الزهور الطبيعية لتوفر المواسم الزراعية؛ وفي حال تعذر توفر صنف معين، يلتزم منسقونا باستبداله بصنف ذي قيمة وجودة مساوية أو أعلى مع الحفاظ على التدرج اللوني وشكل الباقة الأصلي.',
         'يتم تأكيد الطلب فور إتمام عملية الدفع بنجاح أو اختيار الدفع عند الاستلام وفق الشروط المحددة.',
-        'تحتفظ فلوريل بكافة حقوق الملكية الفكرية والعلامات التجارية والتصاميم والصور المعروضة على الموقع.',
+        'تحتفظ غراس فلوريست بكافة حقوق الملكية الفكرية والعلامات التجارية والتصاميم والصور المعروضة على الموقع.',
       ],
       en: [
-        'These terms govern the use of Florelle online boutique services and all purchasing agreements.',
+        'These terms govern the use of Grass Florist online boutique services and all purchasing agreements.',
         'Fresh flower varieties are subject to seasonal grower availability. In the rare event a specific stem is unavailable, our master florists substitute with blooms of equal or greater prestige while honoring original palette harmony.',
         'Orders are formally confirmed upon successful payment verification or selection of approved Cash on Delivery terms.',
-        'Florelle retains full intellectual property, trademark, and aesthetic rights over all content and designs presented on this platform.',
+        'Grass Florist retains full intellectual property, trademark, and aesthetic rights over all content and designs presented on this platform.',
       ],
     },
     shipping: {

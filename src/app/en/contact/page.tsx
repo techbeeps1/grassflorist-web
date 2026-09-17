@@ -3,8 +3,8 @@ import { ContactPageView } from '@/views/ContactPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Contact Concierge | Florelle Ateliers Riyadh & Jeddah',
-  description: 'Connect with the Florelle floral concierge for bespoke requests and delivery inquiries. Phone, WhatsApp, and boutiques.',
+  title: 'Contact Concierge | Grass Florist Ateliers Riyadh & Jeddah',
+  description: 'Connect with the Grass Florist floral concierge for bespoke requests and delivery inquiries. Phone, WhatsApp, and boutiques.',
   path: '/contact',
   locale: 'en',
 });

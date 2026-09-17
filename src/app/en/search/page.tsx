@@ -4,8 +4,8 @@ import { SearchPageView } from '@/views/SearchPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Search Flowers & Luxury Gifts',
-  description: 'Search across curated fresh flowers, Belgian chocolates, and living plants on Florelle.',
+  title: 'Search Bouquets & Gifts | Grass Florist Concierge',
+  description: 'Search across curated fresh flowers, Belgian chocolates, and living plants on Grass Florist.',
   path: '/search',
   locale: 'en',
   noIndex: true,

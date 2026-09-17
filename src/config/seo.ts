@@ -2,19 +2,20 @@ import { siteConfig, type Locale } from './site';
 
 export const seoConfig = {
   defaultTitle: {
-    ar: 'فلوريل | باقات زهور وتنسيقات هدايا فاخرة مع توصيل فوري',
-    en: 'Florelle | Luxury Fresh Flowers & Handcrafted Gifting',
+    ar: 'غراس فلوريست | باقات زهور وتنسيقات هدايا فاخرة مع توصيل فوري',
+    en: 'Grass Florist | Luxury Fresh Flowers & Handcrafted Gifting',
   },
   titleTemplate: {
-    ar: '%s | فلوريل للزهور والهدايا',
-    en: '%s | Florelle Luxury Floral',
+    ar: '%s | غراس فلوريست للزهور والهدايا',
+    en: '%s | Grass Florist Luxury Floral',
   },
   defaultDescription: {
-    ar: 'اكتشف أرقى باقات الورد الطبيعي وتنسيقات الهدايا الفخمة في السعودية. توصيل في نفس اليوم لجميع المناسبات مع بطاقة إهداء مخصصة وشوكولاتة فاخرة.',
-    en: 'Discover curated fresh floral bouquets and luxury gifting collections across Saudi Arabia. Same-day delivery for birthdays, anniversaries, and special moments.',
+    ar: 'اكتشف أرقى باقات الورد الطبيعي وتنسيقات الهدايا الفخمة من غراس فلوريست في السعودية. توصيل في نفس اليوم لجميع المناسبات مع بطاقة إهداء مخصصة وشوكولاتة فاخرة.',
+    en: 'Discover curated fresh floral bouquets and luxury gifting collections from Grass Florist across Saudi Arabia. Same-day delivery for birthdays, anniversaries, and special moments.',
   },
   keywords: {
     ar: [
+      'غراس فلوريست',
       'توصيل زهور الرياض',
       'توصيل ورد جدة',
       'باقات ورد طبيعي',
@@ -27,8 +28,10 @@ export const seoConfig = {
       'نباتات داخلية فاخرة',
     ],
     en: [
-      'flower delivery riyadh',
+      'grass florist',
+      'grass flower delivery',
       'flower delivery jeddah',
+      'flower delivery riyadh',
       'fresh floral bouquets',
       'luxury gifting saudi arabia',
       'same day flower delivery',
@@ -41,20 +44,20 @@ export const seoConfig = {
   },
   openGraph: {
     type: 'website',
-    siteName: 'Florelle Luxury Floral Atelier',
+    siteName: 'Grass Florist Luxury Floral Atelier',
     images: [
       {
         url: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1200&h=630&q=80',
         width: 1200,
         height: 630,
-        alt: 'Florelle Luxury Floral Collections',
+        alt: 'Grass Florist Luxury Floral Collections',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@florelle_sa',
-    creator: '@florelle_sa',
+    site: '@grassflorist_sa',
+    creator: '@grassflorist_sa',
   },
 };
 

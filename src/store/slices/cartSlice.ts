@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CartItem, CartState } from '@/types/cart';
 import { siteConfig } from '@/config/site';
 
-const CART_STORAGE_KEY = 'florelle_cart_v1';
+const CART_STORAGE_KEY = 'grass_florist_cart_v1';
 
 function loadInitialState(): CartState {
   if (typeof window !== 'undefined') {
@@ -81,7 +81,7 @@ export const cartSlice = createSlice({
 
     applyCoupon: (state, action: PayloadAction<string>) => {
       const code = action.payload.toUpperCase().trim();
-      if (code === 'FLORELLE10' || code === 'WELCOME10') {
+      if (code === 'GRASS10' || code === 'WELCOME10') {
         state.couponCode = code;
         const subtotal = state.items.reduce((acc, item) => acc + item.itemTotal, 0);
         state.discountAmount = Math.round(subtotal * 0.1);

@@ -5,8 +5,8 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 import { getStoreProducts } from '@/lib/wordpress/store-api';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'جميع باقات الزهور وتنسيقات الهدايا',
-  description: 'تسوق تشكيلة متجر فلوريل الكاملة من باقات الورد الطبيعي، الصناديق الفاخرة، النباتات، والشوكولاتة.',
+  title: 'جميع باقات الورد والهدايا الفاخرة | متجر غراس فلوريست',
+  description: 'تسوق تشكيلة متجر غراس فلوريست الكاملة من باقات الورد الطبيعي، الصناديق الفاخرة، النباتات، والشوكولاتة.',
   path: '/products',
   locale: 'ar',
 });

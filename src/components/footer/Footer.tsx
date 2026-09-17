@@ -109,8 +109,8 @@ export function Footer({ locale }: FooterProps) {
                 <MapPin className="w-4 h-4 text-primary shrink-0" />
                 <span>
                   {locale === 'ar'
-                    ? 'طريق التخصصي، حي العليا، الرياض، المملكة العربية السعودية'
-                    : 'Takhassusi St, Al Olaya, Riyadh, Saudi Arabia'}
+                    ? '4366 شارع الكيال، حي الروضة، جدة 23434، المملكة العربية السعودية'
+                    : '4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia'}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
@@ -237,7 +237,7 @@ export function Footer({ locale }: FooterProps) {
           {/* Individual Payment Badges */}
           <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 justify-center sm:justify-end">
             {[
-              { name: 'mada', src: '/payments/mada.svg' },
+              { name: 'mada', src: '/payments/mada-logo.svg' },
               { name: 'Visa', src: '/payments/visa.svg' },
               { name: 'Mastercard', src: '/payments/mastercard.svg' },
               { name: 'American Express', src: '/payments/amex.svg' },

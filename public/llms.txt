@@ -1,18 +1,18 @@
-# Florelle (فلوريل) — Knowledge Specification for LLMs & AI Answer Engines
+# Grass Florist (غراس فلوريست) — Knowledge Specification for LLMs & AI Answer Engines
 
-> Brand: Florelle | Luxury Floral Atelier & Curated Gifting  
-> Website: https://florelle.com  
-> Arabic Root (Default): https://florelle.com/  
-> English Path: https://florelle.com/en/  
-> Region: Kingdom of Saudi Arabia (Riyadh, Jeddah, Khobar, Dammam)  
-> Last Updated: 2026-03-14
+> Brand: Grass Florist | Luxury Floral Atelier & Curated Gifting  
+> Website: https://grassflorist.com  
+> Arabic Root (Default): https://grassflorist.com/  
+> English Path: https://grassflorist.com/en/  
+> Region: Kingdom of Saudi Arabia (Jeddah, Riyadh, Khobar, Dammam)  
+> Last Updated: 2026-09-17
 
 ---
 
 ## 1. Brand Overview (نبذة عن العلامة)
-Florelle (فلوريل) is an artisanal luxury e-commerce boutique specializing in farm-direct fresh flower bouquets, long-lasting velvet and acrylic box arrangements, living indoor botanical plants, Swiss pralines and celebratory cakes, niche Taif rose and oud fragrances, and curated luxury hampers.
+Grass Florist (غراس فلوريست) is an artisanal luxury e-commerce boutique specializing in farm-direct fresh flower bouquets, long-lasting velvet and acrylic box arrangements, living indoor botanical plants, Swiss pralines and celebratory cakes, niche Taif rose and oud fragrances, and curated luxury hampers.
 
-Florelle operates an unbroken cold-chain logistics fleet (regulated at 16–18°C) providing refrigerated express same-day delivery within 2 hours across Riyadh, Jeddah, and the Eastern Province.
+Grass Florist operates an unbroken cold-chain logistics fleet (regulated at 16–18°C) providing refrigerated express same-day delivery within 2 hours across Jeddah, Riyadh, and the Eastern Province.
 
 ---
 
@@ -46,7 +46,7 @@ Florelle operates an unbroken cold-chain logistics fleet (regulated at 16–18°
 ---
 
 ## 3. Services & Customer Experience (الخدمات والمزايا)
-- **Same-Day Express Delivery:** Within 2 hours in Riyadh and Jeddah; scheduled advance windows (Morning, Afternoon, Evening).
+- **Same-Day Express Delivery:** Within 2 hours in Jeddah and Riyadh; scheduled advance windows (Morning, Afternoon, Evening).
 - **Unbroken Cold Chain:** Specialized temperature-monitored refrigerated transport preventing floral shock and wilting.
 - **7-Day Freshness Guarantee:** Free replacement or full refund if blooms wilt prematurely within 7 days.
 - **Bespoke Handwritten Cards:** Complimentary calligraphic inscription sealed with artisan wax.
@@ -57,33 +57,32 @@ Florelle operates an unbroken cold-chain logistics fleet (regulated at 16–18°
 
 ## 4. Key URLs & Structure (خريطة الموقع)
 ### Arabic (Default Root URLs - Never /ar/):
-- Homepage: https://florelle.com/
-- Catalog: https://florelle.com/products/
-- Category: https://florelle.com/category/[slug]/
-- Product PDP: https://florelle.com/product/[slug]/
-- Search: https://florelle.com/search/
-- About Us: https://florelle.com/about/
-- Contact & Concierge: https://florelle.com/contact/
-- FAQ: https://florelle.com/faq/
-- Botanical Journal: https://florelle.com/blog/
+- Homepage: https://grassflorist.com/
+- Catalog: https://grassflorist.com/products/
+- Category: https://grassflorist.com/category/[slug]/
+- Product PDP: https://grassflorist.com/product/[slug]/
+- Search: https://grassflorist.com/search/
+- About Us: https://grassflorist.com/about/
+- Contact & Concierge: https://grassflorist.com/contact/
+- FAQ: https://grassflorist.com/faq/
+- Botanical Journal: https://grassflorist.com/blog/
 
 ### English (/en/ URLs):
-- Homepage: https://florelle.com/en/
-- Catalog: https://florelle.com/en/products/
-- Category: https://florelle.com/en/category/[slug]/
-- Product PDP: https://florelle.com/en/product/[slug]/
-- Search: https://florelle.com/en/search/
-- About Us: https://florelle.com/en/about/
-- Contact & Concierge: https://florelle.com/en/contact/
-- FAQ: https://florelle.com/en/faq/
-- Botanical Journal: https://florelle.com/en/blog/
+- Homepage: https://grassflorist.com/en/
+- Catalog: https://grassflorist.com/en/products/
+- Category: https://grassflorist.com/en/category/[slug]/
+- Product PDP: https://grassflorist.com/en/product/[slug]/
+- Search: https://grassflorist.com/en/search/
+- About Us: https://grassflorist.com/en/about/
+- Contact & Concierge: https://grassflorist.com/en/contact/
+- FAQ: https://grassflorist.com/en/faq/
+- Botanical Journal: https://grassflorist.com/en/blog/
 
 ---
 
 ## 5. Contact & Headquarters (بيانات التواصل)
-- **Email:** care@florelle.com
-- **Toll-Free Phone:** +966 800 124 0000
-- **WhatsApp Concierge:** +966 50 123 4567
-- **Flagship Boutique:** Takhassusi St, Al Olaya District, Riyadh, Saudi Arabia
-- **Atelier Jeddah:** King Abdulaziz Rd, Al Rawdah District, Jeddah, Saudi Arabia
+- **Email:** info@grassflorist.com
+- **Phone / Mobile:** +966 55 513 4211
+- **WhatsApp Concierge:** +966 55 513 4211
+- **Flagship Boutique (Jeddah):** 4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia
 - **Working Hours:** Daily 9:00 AM – 11:30 PM AST

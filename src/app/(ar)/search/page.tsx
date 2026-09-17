@@ -4,8 +4,8 @@ import { SearchPageView } from '@/views/SearchPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'البحث في باقات الزهور والهدايا',
-  description: 'ابحث عن أرقى باقات الورد، الشوكولاتة الفاخرة، والنباتات المنزلية في بوتيك فلوريل.',
+  title: 'البحث عن باقات الزهور والهدايا الفاخرة',
+  description: 'ابحث عن أرقى باقات الورد، الشوكولاتة الفاخرة، والنباتات المنزلية في بوتيك غراس فلوريست.',
   path: '/search',
   locale: 'ar',
   noIndex: true, // Master prompt requirement: exclude internal search from index

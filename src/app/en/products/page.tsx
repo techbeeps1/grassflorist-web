@@ -5,8 +5,8 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 import { getStoreProducts } from '@/lib/wordpress/store-api';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'All Floral Bouquets & Luxury Gift Collections',
-  description: 'Explore the full Florelle assortment of handcrafted flower bouquets, hatboxes, plants, and chocolates.',
+  title: 'All Luxury Flowers & Curated Gifts | Grass Florist Catalog',
+  description: 'Explore the full Grass Florist assortment of handcrafted flower bouquets, hatboxes, plants, and chocolates.',
   path: '/products',
   locale: 'en',
 });

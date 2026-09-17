@@ -1,80 +1,158 @@
 @import "tailwindcss";
 
 :root {
-  /* Brand Core - Inspired by Soft Sand & Botanical Refinement */
+  /* 1. Primary - Botanical Forest Greens */
   --primary: #435849;
-  --primary-hover: #334438;
-  --primary-light: #EBF1EC;
+  --primary-hover: #344539;
+  --primary-dark: #2D3F33;
+  --primary-dark-hover: #202E25;
+  --primary-light: #EBF1ED;
   --primary-muted: #6D8675;
+  --primary-subtle: #F2F6F3;
 
+  /* 2. Secondary - Warm Sand Gold & Champagne */
   --secondary: #CEB8A8;
   --secondary-hover: #BD9E8A;
   --secondary-light: #FAF3ED;
   --secondary-muted: #D8C3B5;
+  --secondary-border: #D5C6B5;
 
+  /* 3. Accent - Terracotta, Warm Bronze & Gold */
   --accent: #B08E77;
   --accent-hover: #987760;
   --accent-light: #F7EFE8;
+  --accent-brown: #8C6D58;
+  --accent-gold: #D4AF37;
+  --accent-rating: #F5A623;
 
-  /* Surfaces & Backgrounds - Clean Base + Soft Sand Pastel Alternations */
+  /* 4. Sand & Neutrals (Complete 50-900 Scale) */
+  --sand-50: #FAF7F2;
+  --sand-100: #FAF3ED;
+  --sand-150: #F4ECE2;
+  --sand-200: #EFE7DC;
+  --sand-250: #EAE0D3;
+  --sand-300: #E4D8CB;
+  --sand-350: #E2D5C4;
+  --sand-400: #D5C6B5;
+  --sand-500: #A6998E;
+  --sand-600: #8C8075;
+  --sand-700: #5C524B;
+  --sand-800: #25211E;
+  --sand-900: #1E1915;
+
+  /* 5. Surfaces & Backgrounds */
   --background: #FFFFFF;
   --background-alt: #EFE7DC;
   --surface: #FFFFFF;
+  --surface-card: #FDFBF7;
   --surface-subtle: #FAF7F2;
   --surface-sand: #EFE7DC;
+  --surface-warm: #F4ECE1;
 
-  /* Typography - Dark Warm Contrast for Headings */
-  --text: #25211E;
+  /* 6. Typography */
+  --text: #1E1915;
+  --text-main: #1E1915;
+  --text-heading: #25211E;
+  --text-body: #5C524B;
   --text-secondary: #5C524B;
   --text-muted: #8C8075;
+  --text-placeholder: #A6998E;
   --text-inverse: #FFFFFF;
 
-  /* Borders - Soft Sand */
+  /* 7. Borders & Dividers */
   --border: #E4D8CB;
   --border-light: #EFE6DB;
+  --border-subtle: #EFE8DE;
   --border-sand: #E2D5C4;
+  --border-input: #E2D8CC;
   --border-focus: #435849;
 
-  /* Semantic */
-  --success: #4A7C59;
+  /* 8. Semantic Status */
+  --success: #435849;
+  --success-bg: #EBF1ED;
   --warning: #BA8038;
+  --warning-bg: #FFF8EB;
   --error: #C6565F;
+  --error-bg: #FDF2F2;
+  --info: #3B82F6;
+  --info-bg: #EFF6FF;
 }
 
 @theme {
+  /* 1. Primary Colors */
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-dark-hover: var(--primary-dark-hover);
   --color-primary-light: var(--primary-light);
   --color-primary-muted: var(--primary-muted);
+  --color-primary-subtle: var(--primary-subtle);
 
+  /* 2. Secondary Colors */
   --color-secondary: var(--secondary);
   --color-secondary-hover: var(--secondary-hover);
   --color-secondary-light: var(--secondary-light);
   --color-secondary-muted: var(--secondary-muted);
+  --color-secondary-border: var(--secondary-border);
 
+  /* 3. Accent Colors */
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-light: var(--accent-light);
+  --color-accent-brown: var(--accent-brown);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-rating: var(--accent-rating);
 
+  /* 4. Sand Scale */
+  --color-sand-50: var(--sand-50);
+  --color-sand-100: var(--sand-100);
+  --color-sand-150: var(--sand-150);
+  --color-sand-200: var(--sand-200);
+  --color-sand-250: var(--sand-250);
+  --color-sand-300: var(--sand-300);
+  --color-sand-350: var(--sand-350);
+  --color-sand-400: var(--sand-400);
+  --color-sand-500: var(--sand-500);
+  --color-sand-600: var(--sand-600);
+  --color-sand-700: var(--sand-700);
+  --color-sand-800: var(--sand-800);
+  --color-sand-900: var(--sand-900);
+
+  /* 5. Surfaces */
   --color-background: var(--background);
   --color-background-alt: var(--background-alt);
   --color-surface: var(--surface);
+  --color-surface-card: var(--surface-card);
   --color-surface-subtle: var(--surface-subtle);
   --color-surface-sand: var(--surface-sand);
+  --color-surface-warm: var(--surface-warm);
 
-  --color-text-main: var(--text);
+  /* 6. Typography */
+  --color-text-main: var(--text-main);
+  --color-text-heading: var(--text-heading);
+  --color-text-body: var(--text-body);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
+  --color-text-placeholder: var(--text-placeholder);
   --color-text-inverse: var(--text-inverse);
 
+  /* 7. Borders */
   --color-border: var(--border);
   --color-border-light: var(--border-light);
+  --color-border-subtle: var(--border-subtle);
   --color-border-sand: var(--border-sand);
+  --color-border-input: var(--border-input);
   --color-border-focus: var(--border-focus);
 
+  /* 8. Semantics */
   --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
   --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
   --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
 
   --font-arabic: var(--font-cairo);
   --font-sans: var(--font-poppins);
@@ -186,12 +264,24 @@ body {
   }
 }
 
-/* Global Reusable Container (1480px Unified Width) */
+/* Global Reusable Container (1480px Unified Width with Safe Margins) */
 .site-container {
   max-width: 1480px;
   width: 100%;
   margin-inline: auto;
   padding-inline: 20px;
+}
+
+@media (min-width: 768px) {
+  .site-container {
+    padding-inline: 28px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .site-container {
+    padding-inline: 36px;
+  }
 }
 
 /* Remove Browser Default Blue / Yellow Autofill Background */

@@ -48,8 +48,8 @@ export const testimonials: Testimonial[] = [
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
     rating: 5,
     comment: {
-      ar: 'أرسلت نبتة الأوركيد الأبيض لافتتاح عيادة صديقتي، كانت حديث الحضور لجودتها والوعاء السيراميكي المميز. شكراً فلوريل على الاحترافية العالية.',
-      en: 'Sent the White Orchid for my friend’s clinic opening. It was the centerpiece of admiration. Thank you Florelle for your unmatched sophistication.',
+      ar: 'أرسلت نبتة الأوركيد الأبيض لافتتاح عيادة صديقتي، كانت حديث الحضور لجودتها والوعاء السيراميكي المميز. شكراً غراس فلوريست على الاحترافية العالية.',
+      en: 'Sent the White Orchid for my friend’s clinic opening. It was the centerpiece of admiration. Thank you Grass Florist for your unmatched sophistication.',
     },
     occasion: { ar: 'افتتاح وتهنئة', en: 'Clinic Opening & Congratulations' },
     verified: true,

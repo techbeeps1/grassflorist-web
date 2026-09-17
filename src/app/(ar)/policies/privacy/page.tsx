@@ -3,8 +3,8 @@ import { PolicyPageView } from '@/views/PolicyPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'سياسة الخصوصية وأمن البيانات',
-  description: 'تعرف على التزام فلوريل بحماية بيانات العملاء وخصوصية بطاقات الإهداء وسرية المستلم.',
+  title: 'سياسة الخصوصية وأمان البيانات | غراس فلوريست',
+  description: 'تعرف على التزام غراس فلوريست بحماية بيانات العملاء وخصوصية بطاقات الإهداء وسرية المستلم.',
   path: '/policies/privacy',
   locale: 'ar',
 });

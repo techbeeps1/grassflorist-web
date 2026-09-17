@@ -132,8 +132,8 @@ export const faqs: FAQItem[] = [
     id: 'faq-11',
     category: 'payments',
     question: {
-      ar: 'ما هي طرق الدفع المتاحة على متجر فلوريل؟',
-      en: 'What payment methods are supported on Florelle?',
+      ar: 'ما هي طرق الدفع المتاحة على متجر غراس فلوريست؟',
+      en: 'What payment methods are supported on Grass Florist?',
     },
     answer: {
       ar: 'نقبل جميع وسائل الدفع الإلكترونية الآمنة: مدى (Mada)، أبل باي (Apple Pay)، فيزا وماستركارد، وخيار التقسيط عبر تابي (Tabby) على 4 دفعات ميسرة بدون أي فوائد، بالإضافة للدفع عند الاستلام.',

@@ -16,7 +16,7 @@ export const blogPosts: BlogPost[] = [
       en: 'Learn the scientific practices employed by high-end floral ateliers to trim stems, optimize water hydration, and prevent premature wilting.',
     },
     content: {
-      ar: `باقات الزهور الطبيعية ليست مجرد هدية عابرة، بل هي لوحة فنية نابضة بالحياة تضفي على المنزل بهجة لا مثيل لها. للحفاظ على نضارة زهورك لأطول فترة ممكنة، اتبع هذه النصائح الذهبية من خبراء فلوريل:
+      ar: `باقات الزهور الطبيعية ليست مجرد هدية عابرة، بل هي لوحة فنية نابضة بالحياة تضفي على المنزل بهجة لا مثيل لها. للحفاظ على نضارة زهورك لأطول فترة ممكنة، اتبع هذه النصائح الذهبية من خبراء غراس فلوريست:
 
 ### 1. تقليم السيقان بزاوية 45 درجة تحت الماء الجاري
 عند استلام باقة الزهور، قم بقص 2 إلى 3 سنتيمترات من أسفل كل ساق بزاوية 45 درجة باستخدام مقص حاد أو سكين نظيف. القص المائل يزيد من مساحة السطح الماص للماء ويمنع الساق من الاستقرار بشكل مسطح في قاع الفازة مما يسد قنوات امتصاص الماء.
@@ -28,13 +28,13 @@ export const blogPosts: BlogPost[] = [
 الفازة النظيفة تماماً هي نصف سر طول عمر الزهور. تأكد من غسل الفازة جيداً بالماء الفاتر والصابون للتخلص من أي ترسبات بكتيرية سابقة قبل ملئها بماء بارد ونظيف.
 
 ### 4. استخدام كيس غذاء الزهور المرفق
-يحتوي غذاء الزهور المرفق مع باقات فلوريل على ثلاثة عناصر أساسية: السكر لتغذية البتلات، منظم حموضة (pH) لتحسين سرعة تدفق الماء، ومثبط بكتيري يمنع تعفن الماء.
+يحتوي غذاء الزهور المرفق مع باقات غراس فلوريست على ثلاثة عناصر أساسية: السكر لتغذية البتلات، منظم حموضة (pH) لتحسين سرعة تدفق الماء، ومثبط بكتيري يمنع تعفن الماء.
 
 ### 5. إبعاد الفازة عن مصادر الحرارة والفاكهة
 تجنب وضع باقة الزهور تحت أشعة الشمس المباشرة أو بالقرب من فتحات التكييف الحار أو البارد. والأهم من ذلك: لا تضع الزهور بجوار سلة الفواكه، حيث تطلق الفواكه الناضجة (خاصة الموز والتفاح) غاز الإيثيلين الذي يسرع شيخوخة الزهور وذبولها.
 
 باتباع هذه الخطوات البسيطة، ستستمتع بجمال وعبير باقتك الملكية لأيام طويلة تتجاوز الأسبوعين بكل تألق.`,
-      en: `Fresh flower bouquets are an exquisite sensory addition to your living space. To ensure your stems remain radiant for ten days or longer, apply these expert protocols from the Florelle Atelier:
+      en: `Fresh flower bouquets are an exquisite sensory addition to your living space. To ensure your stems remain radiant for ten days or longer, apply these expert protocols from the Grass Florist Atelier:
 
 ### 1. Cut Stems at a 45-Degree Angle
 Upon receiving your arrangement, snip approximately 2 to 3 centimeters from the base of each stem diagonally using sharp floral shears. Cutting at an angle expands the surface area for hydration uptake and prevents stems from resting flat against the vase bottom.
@@ -46,7 +46,7 @@ Any foliage resting below the waterline will deteriorate, introducing microbial 
 A spotless vase is essential. Cleanse glass or ceramic vessels with warm soapy water to eliminate residual bacteria before replenishing with chilled, clean water.
 
 ### 4. Administer Floral Nutrients
-The preservative sachet included with Florelle arrangements supplies sucrose for cellular nourishment, an acidifier to balance water pH, and a gentle antimicrobial agent to suppress bacterial bloom.
+The preservative sachet included with Grass Florist arrangements supplies sucrose for cellular nourishment, an acidifier to balance water pH, and a gentle antimicrobial agent to suppress bacterial bloom.
 
 ### 5. Position Away from Drafts and Ripe Fruit
 Shield your blooms from direct sunlight, air-conditioning vents, and fruit bowls. Ripening fruits—especially bananas and apples—emit ethylene gas, which triggers premature floral senescence.`,
@@ -54,7 +54,7 @@ Shield your blooms from direct sunlight, air-conditioning vents, and fruit bowls
     coverImage: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1200&q=80',
     author: {
       name: { ar: 'مها التميمي', en: 'Maha Al-Tamimi' },
-      role: { ar: 'كبيرة منسقي الزهور في فلوريل', en: 'Master Floral Designer at Florelle' },
+      role: { ar: 'كبيرة منسقي الزهور في غراس فلوريست', en: 'Master Floral Designer at Grass Florist' },
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
     },
     category: { ar: 'العناية بالزهور', en: 'Floral Care' },
@@ -63,8 +63,8 @@ Shield your blooms from direct sunlight, air-conditioning vents, and fruit bowls
     readTime: 5,
     tags: ['flower-care', 'roses', 'tips', 'lifestyle'],
     seoTitle: {
-      ar: 'كيف تحافظ على نضارة باقات الورد لأكثر من 10 أيام | مدونة فلوريل',
-      en: 'How to Keep Flower Bouquets Fresh for 10+ Days | Florelle Journal',
+      ar: 'كيف تحافظ على نضارة باقات الورد لأكثر من 10 أيام | مدونة غراس فلوريست',
+      en: 'How to Keep Flower Bouquets Fresh for 10+ Days | Grass Florist Journal',
     },
     seoDescription: {
       ar: 'أفضل الطرق والخطوات العملية لإطالة عمر باقات الورد والزهور الطبيعية في المنزل.',
@@ -97,7 +97,7 @@ Shield your blooms from direct sunlight, air-conditioning vents, and fruit bowls
 ### باقات الصناديق المخملية: الفخامة التي تدوم
 تعتبر الصناديق المخملية الدائرية خياراً رائعاً لحفلات العشاء والذكرى السنوية، حيث لا تحتاج إلى البحث عن فازة وتظل قطعة ديكور فخمة في غرفة النوم لعدة أيام.
 
-في فلوريل، نسعد بمساعدتك في اختيار التنسيق المخصص مع إضافة الشوكولاتة البلجيكية وبطاقة الإهداء بالخط الديواني الملكي لجعل ليلتكم لا تُنسى.`,
+في غراس فلوريست، نسعد بمساعدتك في اختيار التنسيق المخصص مع إضافة الشوكولاتة البلجيكية وبطاقة الإهداء بالخط الديواني الملكي لجعل ليلتكم لا تُنسى.`,
       en: `In the botanical arts, every bloom and tint carries historical and poetic symbolism. For an anniversary, choose with intentional elegance:
 
 ### Velvet Crimson Roses: The Emblem of Devotion
@@ -121,8 +121,8 @@ Hatbox arrangements presented in plush velvet cylinders eliminate the need for v
     readTime: 4,
     tags: ['anniversary', 'romance', 'gift-ideas', 'roses'],
     seoTitle: {
-      ar: 'دليل اختيار زهور ذكرى الزواج ومعاني ألوان الورد | فلوريل',
-      en: 'How to Choose Anniversary Flowers | Florelle Gifting Guide',
+      ar: 'دليل اختيار زهور ذكرى الزواج ومعاني ألوان الورد | غراس فلوريست',
+      en: 'How to Choose Anniversary Flowers | Grass Florist Gifting Guide',
     },
     seoDescription: {
       ar: 'تعرف على معاني ألوان وعدد زهور باقات ذكرى الزواج والارتباط لاختيار الهدية المثالية.',
@@ -158,7 +158,7 @@ Hatbox arrangements presented in plush velvet cylinders eliminate the need for v
 ### 4. نبتة الزاميا (ZZ Plant)
 النبتة التي لا تقهر! أوراقها اللامعة تخزن الماء بكفاءة عالية في سيقانها، مما يجعلها مثالية للمكاتب والأشخاص المشغولين دائمي السفر.
 
-في بوتيك فلوريل، نوفر جميع هذه النباتات مغروسة في مراكن سيراميك وحجرية فاخرة جاهزة لتزيين مساحتك بجمال الطبيعة النقي.`,
+في بوتيك غراس فلوريست، نوفر جميع هذه النباتات مغروسة في مراكن سيراميك وحجرية فاخرة جاهزة لتزيين مساحتك بجمال الطبيعة النقي.`,
       en: `Indoor air quality directly impacts cognitive performance and restful sleep. NASA Clean Air research established that living indoor foliage actively absorbs airborne volatile organic compounds.
 
 ### 1. Peace Lily (Spathiphyllum)
@@ -185,8 +185,8 @@ Virtually indestructible with mirror-gloss foliage that thrives in low light wit
     readTime: 6,
     tags: ['plants', 'air-purifying', 'wellness', 'decor'],
     seoTitle: {
-      ar: 'أفضل 5 نباتات لتنقية هواء المنزل وفق دراسات ناسا | فلوريل',
-      en: '5 Best Air-Purifying Indoor Plants | NASA Guide | Florelle',
+      ar: 'أفضل 5 نباتات لتنقية هواء المنزل وفق دراسات ناسا | غراس فلوريست',
+      en: '5 Best Air-Purifying Indoor Plants | NASA Guide | Grass Florist',
     },
     seoDescription: {
       ar: 'تعرف على النباتات المنزلية المنقية للهواء والمزيلة للسموم وطرق العناية بها.',

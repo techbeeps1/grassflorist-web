@@ -1,6 +1,6 @@
 {
   "common": {
-    "brandName": "Florelle",
+    "brandName": "Grass Florist",
     "tagline": "Luxury Floral Atelier & Curated Gifting",
     "viewAll": "View All",
     "readMore": "Read More",
@@ -40,7 +40,7 @@
     "giftSets": "Curated Gift Sets",
     "occasions": "Occasions",
     "blog": "Care Guides & Journal",
-    "about": "About Florelle",
+    "about": "About Grass Florist",
     "contact": "Contact Us",
     "faq": "FAQ"
   },
@@ -65,18 +65,18 @@
     "promoTitle": "Royal Crimson Roses with Swiss Artisan Truffles",
     "promoSubtitle": "Complimentary bespoke handwritten greeting card and deluxe velvet gift presentation",
     "promoCta": "Reserve Exclusive Set",
-    "benefitsTitle": "Why Discerning Clients Choose Florelle",
+    "benefitsTitle": "Why Discerning Clients Choose Grass Florist",
     "testimonialsTitle": "Stories from Our Clients",
-    "testimonialsSubtitle": "Over 15,000 delighted clients trusting Florelle with life's most precious occasions",
+    "testimonialsSubtitle": "Over 15,000 delighted clients trusting Grass Florist with life's most precious occasions",
     "blogTitle": "From The Floral Journal",
     "blogSubtitle": "Botanical care guides, styling inspirations, and gifting etiquette",
     "faqTitle": "Frequently Asked Questions",
     "faqSubtitle": "Everything you need to know about our flowers, cold-chain transport, and ordering",
-    "newsletterTitle": "Join The Florelle Society",
+    "newsletterTitle": "Join The Grass Florist Club",
     "newsletterSubtitle": "Receive 10% off your first arrangement and early access to limited seasonal blooms",
     "newsletterPlaceholder": "Enter your email address...",
     "newsletterButton": "Subscribe Now",
-    "newsletterSuccess": "Welcome! Use promo code FLORELLE10 for 10% off your first order."
+    "newsletterSuccess": "Welcome! Use promo code GRASS10 for 10% off your first order."
   },
   "benefits": {
     "sameDayDeliveryTitle": "2-Hour Express Delivery",
@@ -152,7 +152,7 @@
     "total": "Total Amount",
     "proceedToCheckout": "Proceed to Secure Checkout",
     "promoCode": "Promotional Code",
-    "promoCodePlaceholder": "Enter code (e.g. FLORELLE10)",
+    "promoCodePlaceholder": "Enter code (e.g. GRASS10)",
     "apply": "Apply",
     "remove": "Remove",
     "itemsCount": "items",
@@ -199,7 +199,7 @@
     "placeOrder": "Confirm & Place Order",
     "processing": "Processing your order securely...",
     "orderSuccessTitle": "Order Confirmed Successfully!",
-    "orderSuccessDesc": "Thank you for choosing Florelle. Our master florists have begun preparing your arrangement with absolute care.",
+    "orderSuccessDesc": "Thank you for choosing Grass Florist. Our master florists have begun preparing your arrangement with absolute care.",
     "orderNumber": "Order Reference",
     "trackOrder": "Track Order Progress"
   },
@@ -219,10 +219,10 @@
     "workingHours": "Operating Hours"
   },
   "about": {
-    "title": "The Florelle Story | Artistry in Bloom",
-    "subtitle": "Where uncompromising luxury meets natural poetry",
+    "title": "The Grass Florist Story | Artistry in Bloom",
+    "subtitle": "Where uncompromising luxury meets exquisite natural botanicals",
     "ourStory": "Our Heritage & Philosophy",
-    "storyP1": "Florelle was founded with a singular ambition: to elevate the gift of flowers into a profound sensory expression of devotion, celebration, and gratitude across Saudi Arabia.",
+    "storyP1": "Grass Florist was founded with a singular ambition: to elevate the gift of flowers into a profound sensory expression of devotion, celebration, and gratitude across Saudi Arabia.",
     "storyP2": "We source direct from premier high-altitude growers in Ecuador and sustainable Dutch glasshouses. Handled through our proprietary climate-monitored cold chain, our master florists arrange each stem by hand with architectural precision and timeless grace.",
     "artisanValues": "Artisan Values",
     "coldChainTitle": "Unbroken Cold Chain",
@@ -329,13 +329,13 @@
     "statusCancelled": "Cancelled"
   },
   "footer": {
-    "aboutBrand": "Grass is a luxury floral atelier and gifting boutique crafting bespoke bouquets, Belgian chocolates, and living plants with same-day express delivery across Saudi Arabia.",
+    "aboutBrand": "Grass Florist is a luxury floral atelier and gifting boutique crafting bespoke bouquets, Belgian chocolates, and living plants with same-day express delivery across Saudi Arabia.",
     "quickLinks": "Quick Links",
     "categories": "Collections",
     "customerCare": "Client Concierge",
     "policies": "Legal & Terms",
     "securePayments": "100% Secure Checkout",
-    "copyright": "All rights reserved. Grass Luxury Floral Atelier.",
-    "allRightsReserved": "Copyright © 2026 Grass. Engineered for premier performance and Core Web Vitals."
+    "copyright": "Copyright© 2026, GRASS Florist, All Rights Reserved.",
+    "allRightsReserved": "Copyright© 2026, GRASS Florist, All Rights Reserved."
   }
 }

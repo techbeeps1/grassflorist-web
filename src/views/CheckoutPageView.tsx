@@ -481,8 +481,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
                 <p className="text-[11px] text-text-muted text-center leading-relaxed">
                   {locale === 'ar'
-                    ? 'بإتمام الطلب، أنت توافق على الشروط والأحكام وسياسة التوصيل المبرد لبوتيك فلوريل.'
-                    : 'By placing order, you agree to Florelle terms of service and cold-chain policy.'}
+                    ? 'بإتمام الطلب، أنت توافق على الشروط والأحكام وسياسة التوصيل المبرد لبوتيك غراس فلوريست.'
+                    : 'By placing order, you agree to Grass Florist terms of service and cold-chain policy.'}
                 </p>
               </div>
             </div>

@@ -1,17 +1,17 @@
 export const siteConfig = {
   name: {
-    ar: 'غراس | بوتيك الزهور والهدايا الفاخرة',
-    en: 'Grass | Luxury Floral Atelier & Artisanal Gifts',
+    ar: 'غراس فلوريست | بوتيك الزهور والهدايا الفاخرة',
+    en: 'Grass Florist | Luxury Floral Atelier & Artisanal Gifts',
   },
   shortName: {
-    ar: 'غراس',
-    en: 'Grass',
+    ar: 'غراس فلوريست',
+    en: 'Grass Florist',
   },
   description: {
-    ar: 'بوتيك الزهور الفاخرة والهدايا الراقية في المملكة العربية السعودية. باقات زهور طبيعية منتقاة يدوياً، تنسيقات فخمة، شوكولاتة بلجيكية وعطور مميزة مع خدمة توصيل سريع في نفس اليوم.',
-    en: 'Artisanal luxury floral atelier and curated gifting boutique in Saudi Arabia. Handcrafted fresh bouquets, velvet box arrangements, Belgian chocolates and bespoke perfumes with express same-day delivery.',
+    ar: 'بوتيك غراس فلوريست للزهور الفاخرة والهدايا الراقية في المملكة العربية السعودية. باقات زهور طبيعية منتقاة يدوياً، تنسيقات فخمة، شوكولاتة بلجيكية وعطور مميزة مع خدمة توصيل سريع في نفس اليوم.',
+    en: 'Grass Florist — Artisanal luxury floral atelier and curated gifting boutique in Saudi Arabia. Handcrafted fresh bouquets, velvet box arrangements, Belgian chocolates and bespoke perfumes with express same-day delivery.',
   },
-  url: 'https://florelle.com',
+  url: 'https://grassflorist.com',
   defaultLocale: 'ar',
   locales: ['ar', 'en'] as const,
   currency: {
@@ -22,9 +22,9 @@ export const siteConfig = {
     },
   },
   contact: {
-    email: 'care@florelle.com',
-    phone: '+966 800 124 0000',
-    whatsapp: '+966 50 123 4567',
+    email: 'info@grassflorist.com',
+    phone: '+966 55 513 4211',
+    whatsapp: '+966 55 513 4211',
     hours: {
       ar: 'يومياً من 9:00 صباحاً حتى 11:30 مساءً',
       en: 'Daily 9:00 AM – 11:30 PM AST',
@@ -34,16 +34,19 @@ export const siteConfig = {
     {
       id: 'jeddah',
       name: { ar: 'جدة', en: 'Jeddah' },
-      address: { ar: 'طريق الملك عبدالعزيز، حي الروضة، جدة', en: 'King Abdulaziz Rd, Al Rawdah, Jeddah' },
+      address: {
+        ar: '4366 شارع الكيال، حي الروضة، جدة 23434، المملكة العربية السعودية',
+        en: '4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia',
+      },
       deliveryTime: { ar: 'توصيل خلال ساعتين', en: 'Delivery within 2 hours' },
     },
   ],
   socials: {
-    instagram: 'https://instagram.com/florelle_sa',
-    twitter: 'https://twitter.com/florelle_sa',
-    facebook: 'https://facebook.com/florelle.sa',
-    snapchat: 'https://snapchat.com/add/florelle_sa',
-    tiktok: 'https://tiktok.com/@florelle_sa',
+    instagram: 'https://instagram.com/grassflorist_sa',
+    twitter: 'https://twitter.com/grassflorist_sa',
+    facebook: 'https://facebook.com/grassflorist.sa',
+    snapchat: 'https://snapchat.com/add/grassflorist_sa',
+    tiktok: 'https://tiktok.com/@grassflorist_sa',
   },
   features: {
     freeShippingThreshold: 250,

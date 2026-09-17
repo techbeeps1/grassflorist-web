@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Product } from '@/types/product';
 
-const WISHLIST_STORAGE_KEY = 'florelle_wishlist_v1';
+const WISHLIST_STORAGE_KEY = 'grass_florist_wishlist_v1';
 
 export interface WishlistState {
   items: Product[];

@@ -8,10 +8,10 @@ export function generateOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Florist',
-    name: 'Florelle Luxury Floral Atelier',
-    alternateName: 'فلوريل للزهور والهدايا الفاخرة',
+    name: 'Grass Florist Luxury Floral Atelier',
+    alternateName: 'غراس فلوريست للزهور والهدايا الفاخرة',
     url: siteConfig.url,
-    logo: `${siteConfig.url}/images/logo.png`,
+    logo: `${siteConfig.url}/grass-logo.jpg`,
     image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1200&h=630&q=80',
     description: siteConfig.description.ar,
     telephone: siteConfig.contact.phone,
@@ -19,16 +19,16 @@ export function generateOrganizationSchema() {
     priceRange: '$$$',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: 'Takhassusi St, Al Olaya',
-      addressLocality: 'Riyadh',
-      addressRegion: 'Riyadh',
-      postalCode: '12211',
+      streetAddress: '4366 Al Kayyal Street, Al-Rawdah District',
+      addressLocality: 'Jeddah',
+      addressRegion: 'Makkah Province',
+      postalCode: '23434',
       addressCountry: 'SA',
     },
     geo: {
       '@type': 'GeoCoordinates',
-      latitude: 24.7136,
-      longitude: 46.6753,
+      latitude: 21.5768,
+      longitude: 39.1558,
     },
     openingHoursSpecification: [
       {
@@ -89,7 +89,7 @@ export function generateProductSchema(product: Product, locale: Locale) {
     url,
     brand: {
       '@type': 'Brand',
-      name: 'Florelle',
+      name: 'Grass Florist',
     },
     offers: {
       '@type': 'Offer',
@@ -103,7 +103,7 @@ export function generateProductSchema(product: Product, locale: Locale) {
       itemCondition: 'https://schema.org/NewCondition',
       seller: {
         '@type': 'Organization',
-        name: 'Florelle',
+        name: 'Grass Florist',
       },
     },
     aggregateRating: {
@@ -156,10 +156,10 @@ export function generateArticleSchema(post: BlogPost, locale: Locale) {
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Florelle',
+      name: 'Grass Florist',
       logo: {
         '@type': 'ImageObject',
-        url: `${siteConfig.url}/images/logo.png`,
+        url: `${siteConfig.url}/grass-logo.jpg`,
       },
     },
   };

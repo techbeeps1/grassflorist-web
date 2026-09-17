@@ -3,8 +3,8 @@ import { PolicyPageView } from '@/views/PolicyPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Freshness Guarantee & Returns Policy',
-  description: 'Florelle 7-day botanical freshness guarantee, replacement terms, and refund policy.',
+  title: 'Freshness Guarantee & Returns | Grass Florist',
+  description: 'Grass Florist 7-day botanical freshness guarantee, replacement terms, and refund policy.',
   path: '/policies/returns',
   locale: 'en',
 });
