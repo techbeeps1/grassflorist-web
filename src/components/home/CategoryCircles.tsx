@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { categories } from '@/data/categories';
+import { getCategorySlugForLocale } from '@/lib/wordpress/store-api';
 import { type Locale } from '@/config/site';
 
 interface CategoryCirclesProps {
@@ -15,7 +16,9 @@ export function CategoryCircles({ locale }: CategoryCirclesProps) {
         <div className="flex items-center justify-between gap-4 sm:gap-6 overflow-x-auto no-scrollbar py-2">
           {categories.map((cat) => {
             const categoryUrl =
-              locale === 'ar' ? `/category/${cat.slug}` : `/en/category/${cat.slug}`;
+              locale === 'ar'
+                ? `/category/${getCategorySlugForLocale(cat.slug, 'ar')}`
+                : `/en/category/${getCategorySlugForLocale(cat.slug, 'en')}`;
 
             return (
               <Link

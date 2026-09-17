@@ -8,6 +8,7 @@ import { occasions } from '@/data/occasions';
 import { type Locale } from '@/config/site';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Category } from '@/types/category';
+import { getCategorySlugForLocale, decodeHtmlEntities } from '@/lib/wordpress/store-api';
 
 interface CategorySliderProps {
   locale: Locale;
@@ -16,11 +17,7 @@ interface CategorySliderProps {
 
 function cleanTitle(str?: string): string {
   if (!str) return '';
-  return str
-    .replace(/&amp;/g, '&')
-    .replace(/&#038;/g, '&')
-    .replace(/&quot;/g, '"')
-    .trim();
+  return decodeHtmlEntities(str);
 }
 
 export function CategorySlider({ locale, categories }: CategorySliderProps) {
@@ -67,7 +64,10 @@ export function CategorySlider({ locale, categories }: CategorySliderProps) {
         id: cat.id,
         name: cat.name,
         image: cat.image || 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=400&q=80',
-        link: locale === 'ar' ? `/category/${cat.slug}` : `/en/category/${cat.slug}`,
+        link:
+          locale === 'ar'
+            ? `/category/${getCategorySlugForLocale(cat.slug, 'ar')}`
+            : `/en/category/${getCategorySlugForLocale(cat.slug, 'en')}`,
       }))
       : occasions.map((occ) => ({
         id: occ.id,

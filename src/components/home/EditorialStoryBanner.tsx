@@ -13,7 +13,7 @@ interface EditorialStoryBannerProps {
 export function EditorialStoryBanner({ locale }: EditorialStoryBannerProps) {
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
-  const catalogUrl = locale === 'ar' ? '/category/flowers' : '/en/category/flowers';
+  const catalogUrl = locale === 'ar' ? '/category/جميع-الزهور' : '/en/category/all-flowers';
 
   return (
     <section

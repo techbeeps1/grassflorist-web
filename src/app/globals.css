@@ -178,6 +178,7 @@ html[lang="en"] {
 h1, h2, h3, h4, .font-heading {
   font-family: var(--font-cormorant), var(--font-cairo), Georgia, serif;
   letter-spacing: 0.01em;
+  font-variant-numeric: lining-nums;
 }
 
 html[lang="en"] h1,
@@ -187,6 +188,7 @@ html[lang="en"] h4,
 html[lang="en"] .font-heading {
   font-family: var(--font-cormorant), Georgia, serif;
   letter-spacing: 0.01em;
+  font-variant-numeric: lining-nums;
 }
 
 html[lang="ar"] h1,
@@ -196,6 +198,7 @@ html[lang="ar"] h4,
 html[lang="ar"] .font-heading {
   font-family: var(--font-cairo), var(--font-cormorant), sans-serif;
   letter-spacing: normal;
+  font-variant-numeric: lining-nums;
 }
 
 body {

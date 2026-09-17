@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { type Locale, siteConfig } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { categories } from '@/data/categories';
+import { getCategorySlugForLocale } from '@/lib/wordpress/store-api';
 import { LanguageSwitcher } from '@/components/header/LanguageSwitcher';
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
 
@@ -144,7 +145,11 @@ export function Footer({ locale }: FooterProps) {
               {categories.map((cat) => (
                 <li key={cat.id}>
                   <Link
-                    href={getUrl(`/category/${cat.slug}`)}
+                    href={
+                      locale === 'ar'
+                        ? `/category/${getCategorySlugForLocale(cat.slug, 'ar')}`
+                        : `/en/category/${getCategorySlugForLocale(cat.slug, 'en')}`
+                    }
                     className="hover:text-primary hover:underline transition-colors"
                   >
                     {cat.name[locale]}

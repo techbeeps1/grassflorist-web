@@ -12,7 +12,7 @@ import {
 export interface BannerSlide {
   id: string;
   image: string;
-  link: string;
+  link: { ar: string; en: string } | string;
   title: { ar: string; en: string };
   badge?: { ar: string; en: string };
   promoCode?: string;
@@ -23,7 +23,10 @@ export const bannerSlides: BannerSlide[] = [
   {
     id: 'slide-1',
     image: '/banner-1.jpg',
-    link: '/category/flowers',
+    link: {
+      ar: '/category/جميع-الزهور',
+      en: '/en/category/all-flowers',
+    },
     title: {
       ar: 'توصيل الزهور في جدة خلال نفس اليوم',
       en: 'Flowers delivery in Jeddah within the Same Day',
@@ -37,7 +40,10 @@ export const bannerSlides: BannerSlide[] = [
   {
     id: 'slide-2',
     image: '/banner-2.jpg',
-    link: '/category/luxury-arrangements',
+    link: {
+      ar: '/category/باقات-فاخرة',
+      en: '/en/category/luxury-bouquets',
+    },
     title: {
       ar: 'تنسيقات بأيدي خبراء الزهور المحترفين',
       en: 'Prepared by Professional Florists',
@@ -51,7 +57,10 @@ export const bannerSlides: BannerSlide[] = [
   {
     id: 'slide-3',
     image: '/banner-3.jpg',
-    link: '/products',
+    link: {
+      ar: '/products',
+      en: '/en/products',
+    },
     title: {
       ar: 'عزنا بطبعنا — خصم 15% بكود Saudi96',
       en: 'Enjoy 15% OFF with code Saudi96',
@@ -135,9 +144,12 @@ export function HeroBannerSlider({ locale }: HeroBannerSliderProps) {
   };
 
   // Resolve localized URLs
-  const getLocalizedLink = (path: string) => {
-    if (locale === 'ar') return path;
-    return `/en${path}`;
+  const getLocalizedLink = (link: { ar: string; en: string } | string) => {
+    if (typeof link === 'object' && link !== null) {
+      return link[locale];
+    }
+    if (locale === 'ar') return link;
+    return link.startsWith('/en') ? link : `/en${link}`;
   };
 
   return (

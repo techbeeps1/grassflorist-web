@@ -87,22 +87,58 @@ export interface WCStoreCategory {
 }
 
 /**
+ * Decodes all HTML entities commonly returned by WooCommerce REST APIs
+ */
+export function decodeHtmlEntities(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/&amp;/gi, '&')
+    .replace(/&#038;/g, '&')
+    .replace(/&#8211;/g, '–')
+    .replace(/&ndash;/gi, '–')
+    .replace(/&#8212;/g, '—')
+    .replace(/&mdash;/gi, '—')
+    .replace(/&#8216;/g, '‘')
+    .replace(/&lsquo;/gi, '‘')
+    .replace(/&#8217;/g, '’')
+    .replace(/&rsquo;/gi, '’')
+    .replace(/&#8220;/g, '“')
+    .replace(/&ldquo;/gi, '“')
+    .replace(/&#8221;/g, '”')
+    .replace(/&rdquo;/gi, '”')
+    .replace(/&#039;/g, "'")
+    .replace(/&apos;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#34;/g, '"')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&#160;/g, ' ')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#(\d+);/g, (_, dec) => {
+      try {
+        return String.fromCharCode(parseInt(dec, 10));
+      } catch {
+        return '';
+      }
+    })
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+      try {
+        return String.fromCharCode(parseInt(hex, 16));
+      } catch {
+        return '';
+      }
+    })
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * Strips HTML tags and entities from raw API content
  */
 export function stripHtml(html: string): string {
   if (!html) return '';
-  return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&#8220;/g, '“')
-    .replace(/&#8221;/g, '”')
-    .replace(/&#8216;/g, '‘')
-    .replace(/&#8217;/g, '’')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#038;/g, '&')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const withoutTags = html.replace(/<[^>]*>/g, ' ');
+  return decodeHtmlEntities(withoutTags);
 }
 
 /**
@@ -151,7 +187,8 @@ export function mapWCProductToProduct(wc: WCStoreProduct): Product {
   const primaryCategory = wc.categories && wc.categories.length > 0 ? wc.categories[0] : null;
   const secondaryCategory = wc.categories && wc.categories.length > 1 ? wc.categories[1] : null;
 
-  const categoryName = primaryCategory ? primaryCategory.name : 'زهور وهدايا';
+  const cleanProductName = decodeHtmlEntities(wc.name);
+  const categoryName = primaryCategory ? decodeHtmlEntities(primaryCategory.name) : 'زهور وهدايا';
   const categorySlug = primaryCategory ? decodeURIComponent(primaryCategory.slug) : 'flowers';
 
   const cleanShortDesc = stripHtml(wc.short_description || '');
@@ -162,20 +199,20 @@ export function mapWCProductToProduct(wc: WCStoreProduct): Product {
   return {
     id: String(wc.id),
     name: {
-      ar: wc.name,
-      en: wc.name,
+      ar: cleanProductName,
+      en: cleanProductName,
     },
     slug: {
       ar: decodedSlug,
       en: decodedSlug,
     },
     description: {
-      ar: cleanFullDesc || wc.name,
-      en: cleanFullDesc || wc.name,
+      ar: cleanFullDesc || cleanProductName,
+      en: cleanFullDesc || cleanProductName,
     },
     shortDescription: {
-      ar: cleanShortDesc || wc.name,
-      en: cleanShortDesc || wc.name,
+      ar: cleanShortDesc || cleanProductName,
+      en: cleanShortDesc || cleanProductName,
     },
     price,
     originalPrice: originalPrice && originalPrice > price ? originalPrice : undefined,
@@ -190,8 +227,8 @@ export function mapWCProductToProduct(wc: WCStoreProduct): Product {
     categorySlug,
     subcategory: secondaryCategory
       ? {
-        ar: secondaryCategory.name,
-        en: secondaryCategory.name,
+        ar: decodeHtmlEntities(secondaryCategory.name),
+        en: decodeHtmlEntities(secondaryCategory.name),
       }
       : undefined,
     subcategorySlug: secondaryCategory ? decodeURIComponent(secondaryCategory.slug) : undefined,
@@ -199,18 +236,18 @@ export function mapWCProductToProduct(wc: WCStoreProduct): Product {
     reviewCount: wc.review_count || 12,
     stock: wc.is_in_stock ? 20 : 0,
     sku: wc.sku || `GF-${wc.id}`,
-    tags: wc.tags ? wc.tags.map((t) => t.name) : [],
+    tags: wc.tags ? wc.tags.map((t) => decodeHtmlEntities(t.name)) : [],
     featured: Boolean(wc.on_sale),
     bestseller: true,
     newArrival: true,
     availability: wc.is_in_stock ? 'in_stock' : 'out_of_stock',
     seoTitle: {
-      ar: `${wc.name} | جراس فلوريست للورود والهدايا`,
-      en: `${wc.name} | Grass Florist Saudi Arabia`,
+      ar: `${cleanProductName} | غراس فلوريست للورود والهدايا`,
+      en: `${cleanProductName} | Grass Florist Saudi Arabia`,
     },
     seoDescription: {
-      ar: cleanShortDesc || `اطلب ${wc.name} من جراس فلوريست مع توصيل سريع لجميع مناطق المملكة.`,
-      en: cleanShortDesc || `Order ${wc.name} from Grass Florist with express delivery across Saudi Arabia.`,
+      ar: cleanShortDesc || `اطلب ${cleanProductName} من غراس فلوريست مع توصيل سريع لجميع مناطق المملكة.`,
+      en: cleanShortDesc || `Order ${cleanProductName} from Grass Florist with express delivery across Saudi Arabia.`,
     },
   };
 }
@@ -223,13 +260,14 @@ export function mapWCCategoryToCategory(
   allCategories: WCStoreCategory[] = []
 ): Category {
   const decodedSlug = decodeURIComponent(cat.slug);
+  const cleanCategoryName = decodeHtmlEntities(cat.name);
   const childCategories: Subcategory[] = allCategories
     .filter((c) => c.parent === cat.id)
     .map((c) => ({
       id: String(c.id),
       name: {
-        ar: c.name,
-        en: c.name,
+        ar: decodeHtmlEntities(c.name),
+        en: decodeHtmlEntities(c.name),
       },
       slug: decodeURIComponent(c.slug),
       count: c.count,
@@ -244,22 +282,22 @@ export function mapWCCategoryToCategory(
   return {
     id: String(cat.id),
     name: {
-      ar: cat.name,
-      en: cat.name,
+      ar: cleanCategoryName,
+      en: cleanCategoryName,
     },
     slug: decodedSlug,
     description: {
-      ar: cleanDesc || `تصفح أرقى تشكيلة من ${cat.name} مع توصيل سريع وهدايا فاخرة من جراس فلوريست.`,
-      en: cleanDesc || `Explore premium ${cat.name} handcrafted arrangements by Grass Florist.`,
+      ar: cleanDesc || `تصفح أرقى تشكيلة من ${cleanCategoryName} مع توصيل سريع وهدايا فاخرة من غراس فلوريست.`,
+      en: cleanDesc || `Explore premium ${cleanCategoryName} handcrafted arrangements by Grass Florist.`,
     },
     image: imageUrl,
     seoTitle: {
-      ar: `${cat.name} | جراس فلوريست`,
-      en: `${cat.name} | Grass Florist`,
+      ar: `${cleanCategoryName} | غراس فلوريست`,
+      en: `${cleanCategoryName} | Grass Florist`,
     },
     seoDescription: {
-      ar: cleanDesc || `اكتشف أجمل تشكيلات ${cat.name} في المملكة العربية السعودية مع توصيل سريع في نفس اليوم.`,
-      en: cleanDesc || `Discover beautiful ${cat.name} collections in Saudi Arabia with same-day express delivery.`,
+      ar: cleanDesc || `اكتشف أجمل تشكيلات ${cleanCategoryName} في المملكة العربية السعودية مع توصيل سريع في نفس اليوم.`,
+      en: cleanDesc || `Discover beautiful ${cleanCategoryName} collections in Saudi Arabia with same-day express delivery.`,
     },
     featured: cat.count > 0,
     itemCount: cat.count,
@@ -404,6 +442,56 @@ export async function getStoreCategories(locale?: Locale): Promise<Category[]> {
   }
 }
 
+export const CATEGORY_SLUG_ALIASES: Record<string, string> = {
+  // English to Arabic slug mappings
+  'all-flowers': 'جميع-الزهور',
+  'occasions': 'المناسبات',
+  'for-mother': 'للأم',
+  'birthday': 'عيد-ميلاد',
+  'for-father': 'للآب',
+  'for-her': 'للمرأة',
+  'for-him': 'للرجل',
+  'love': 'حب',
+  'get-well': 'تمني-بالشفاء',
+  'graduation': 'تخرج',
+  'hand-bouquet': 'هاند-بوكيه',
+  'i-am-sorry': 'اعتذار',
+  'new-baby': 'مولود-جديد',
+  'new-job': 'وظيفة-وترقية',
+  'luxury-bouquets': 'باقات-فاخرة',
+  'fruits-bouquet': 'باقات-الفواكه',
+  'cake-chocolate': 'كيك-وشوكولاته',
+  'chocolate': 'شوكولاته',
+  'cake': 'كيك',
+  'chocolate-bouquet': 'بوكيه-شوكولاته',
+  'balloons': 'بالونات',
+  'latex-balloons': 'بالونات-مطاطية',
+  'letters-balloons': 'بالونات-الحروف',
+  'golden-letters': 'أحرف-ذهبية',
+  'silver-letters': 'أحرف-فضية',
+  'numbers-balloons': 'بالونات-الأرقام',
+  'golden-numbers': 'الأرقام-الذهبية',
+  'silver-numbers': 'أرقام-فضية',
+  'flowers': 'جميع-الزهور',
+  'luxury-arrangements': 'باقات-فاخرة',
+  'chocolates-cakes': 'كيك-وشوكولاته',
+};
+
+export const REVERSE_SLUG_ALIASES: Record<string, string> = Object.fromEntries(
+  Object.entries(CATEGORY_SLUG_ALIASES).map(([en, ar]) => [ar, en])
+);
+
+/**
+ * Helper to resolve category slug in either language
+ */
+export function getCategorySlugForLocale(slug: string, targetLocale: Locale): string {
+  const decoded = decodeURIComponent(slug).trim().toLowerCase();
+  if (targetLocale === 'en') {
+    return REVERSE_SLUG_ALIASES[decoded] || decoded;
+  }
+  return CATEGORY_SLUG_ALIASES[decoded] || decoded;
+}
+
 /**
  * Fetch category details by slug, including its products
  */
@@ -413,23 +501,36 @@ export async function getStoreCategoryBySlug(
 ): Promise<{ category: Category | null; products: Product[] }> {
   try {
     const decodedSlug = decodeURIComponent(slug).trim().toLowerCase();
+    const mappedSlug =
+      CATEGORY_SLUG_ALIASES[decodedSlug] ||
+      REVERSE_SLUG_ALIASES[decodedSlug] ||
+      decodedSlug;
+
     const categories = await getStoreCategories(locale);
 
-    // Match category
+    // Match category by slug, alias, name, or id
     let matchedCategory =
       categories.find(
         (c) =>
           c.slug.toLowerCase() === decodedSlug ||
+          c.slug.toLowerCase() === mappedSlug ||
           c.name.ar.toLowerCase() === decodedSlug ||
+          c.name.ar.toLowerCase() === mappedSlug ||
           c.name.en.toLowerCase() === decodedSlug ||
-          c.id === decodedSlug
+          c.name.en.toLowerCase() === mappedSlug ||
+          c.id === decodedSlug ||
+          c.id === mappedSlug
       ) || null;
 
     // Check in subcategories if not in top level
     if (!matchedCategory) {
       for (const parentCat of categories) {
         const sub = parentCat.subcategories.find(
-          (s) => s.slug.toLowerCase() === decodedSlug || s.id === decodedSlug
+          (s) =>
+            s.slug.toLowerCase() === decodedSlug ||
+            s.slug.toLowerCase() === mappedSlug ||
+            s.id === decodedSlug ||
+            s.id === mappedSlug
         );
         if (sub) {
           matchedCategory = {
@@ -451,11 +552,18 @@ export async function getStoreCategoryBySlug(
 
     // If still not matched, check fallback categories
     if (!matchedCategory) {
-      matchedCategory = fallbackCategories.find((c) => c.slug === decodedSlug) || null;
+      matchedCategory =
+        fallbackCategories.find(
+          (c) =>
+            c.slug === decodedSlug ||
+            c.slug === mappedSlug ||
+            c.id === decodedSlug ||
+            c.id === mappedSlug
+        ) || null;
     }
 
     // Fetch products for category
-    const categoryFilter = matchedCategory ? matchedCategory.id : decodedSlug;
+    const categoryFilter = matchedCategory ? matchedCategory.id : mappedSlug;
     const { products } = await getStoreProducts({
       category: categoryFilter,
       per_page: 24,
@@ -468,8 +576,18 @@ export async function getStoreCategoryBySlug(
     };
   } catch (error) {
     console.error(`[getStoreCategoryBySlug] Error for slug ${slug}:`, error);
-    const fallbackCat = fallbackCategories.find((c) => c.slug === slug) || null;
-    const fallbackProds = fallbackProducts.filter((p) => p.categorySlug === slug);
+    const decodedSlug = decodeURIComponent(slug).trim().toLowerCase();
+    const mappedSlug =
+      CATEGORY_SLUG_ALIASES[decodedSlug] ||
+      REVERSE_SLUG_ALIASES[decodedSlug] ||
+      decodedSlug;
+    const fallbackCat =
+      fallbackCategories.find(
+        (c) => c.slug === decodedSlug || c.slug === mappedSlug
+      ) || null;
+    const fallbackProds = fallbackProducts.filter(
+      (p) => p.categorySlug === decodedSlug || p.categorySlug === mappedSlug
+    );
     return {
       category: fallbackCat,
       products: fallbackProds,
@@ -526,7 +644,7 @@ export async function getHomeCategorySections(locale: Locale): Promise<HomeCateg
         categorySlug: 'جميع-الزهور',
         viewAllUrl: {
           ar: '/category/جميع-الزهور',
-          en: '/en/category/جميع-الزهور',
+          en: '/en/category/all-flowers',
         },
         products: bouquetsRes.products,
       },
@@ -543,7 +661,7 @@ export async function getHomeCategorySections(locale: Locale): Promise<HomeCateg
         categorySlug: 'باقات-فاخرة',
         viewAllUrl: {
           ar: '/category/باقات-فاخرة',
-          en: '/en/category/باقات-فاخرة',
+          en: '/en/category/luxury-bouquets',
         },
         products: luxuryRes.products,
       },
@@ -560,7 +678,7 @@ export async function getHomeCategorySections(locale: Locale): Promise<HomeCateg
         categorySlug: 'كيك-وشوكولاته',
         viewAllUrl: {
           ar: '/category/كيك-وشوكولاته',
-          en: '/en/category/كيك-وشوكولاته',
+          en: '/en/category/cake-chocolate',
         },
         products: cakesRes.products,
       },
@@ -577,7 +695,7 @@ export async function getHomeCategorySections(locale: Locale): Promise<HomeCateg
         categorySlug: 'بالونات',
         viewAllUrl: {
           ar: '/category/بالونات',
-          en: '/en/category/بالونات',
+          en: '/en/category/balloons',
         },
         products: balloonsRes.products,
       },

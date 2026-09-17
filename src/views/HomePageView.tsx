@@ -97,11 +97,7 @@ export function HomePageView({
                       locale={locale}
                       title={section.title[locale]}
                       subtitle={section.subtitle[locale]}
-                      viewAllUrl={
-                        locale === 'ar'
-                          ? `/category/${section.categorySlug}`
-                          : `/en/category/${section.categorySlug}`
-                      }
+                      viewAllUrl={section.viewAllUrl[locale]}
                       viewAllLabel={dict.common.viewAll}
                     />
                   </div>
