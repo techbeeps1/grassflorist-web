@@ -197,7 +197,7 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
         <div>
           {/* Product Title */}
           <Link href={productUrl} className="block group/title mb-2">
-            <h3 className="text-sm sm:text-[15px] font-bold text-[#1E1915] group-hover/title:text-[#435849] transition-colors line-clamp-1 leading-snug">
+            <h3 className="text-[15px] md:text-[18px] font-bold text-[#1E1915] group-hover/title:text-[#435849] transition-colors line-clamp-1 leading-snug">
               {product.name[locale]}
             </h3>
           </Link>
