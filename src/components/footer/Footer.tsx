@@ -195,12 +195,18 @@ export function Footer({ locale }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href={getUrl('/faq')} className="hover:text-primary transition-colors">
+                <Link
+                  href={locale === 'ar' ? '/الأسئلة-الشائعة' : '/en/faq'}
+                  className="hover:text-primary transition-colors"
+                >
                   {dict.nav.faq}
                 </Link>
               </li>
               <li>
-                <Link href={getUrl('/wishlist')} className="hover:text-primary transition-colors">
+                <Link
+                  href={locale === 'ar' ? '/المفضلة' : '/en/wishlist'}
+                  className="hover:text-primary transition-colors"
+                >
                   {dict.wishlist.title}
                 </Link>
               </li>
@@ -222,12 +228,18 @@ export function Footer({ locale }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href={getUrl('/policies/terms')} className="hover:text-primary transition-colors">
+                <Link
+                  href={locale === 'ar' ? '/الشروط-والأحكام' : '/en/policies/terms'}
+                  className="hover:text-primary transition-colors"
+                >
                   {dict.policies.termsTitle}
                 </Link>
               </li>
               <li>
-                <Link href={getUrl('/policies/shipping')} className="hover:text-primary transition-colors">
+                <Link
+                  href={locale === 'ar' ? '/الشحن-والتوصيل' : '/en/policies/shipping'}
+                  className="hover:text-primary transition-colors"
+                >
                   {dict.policies.shippingTitle}
                 </Link>
               </li>

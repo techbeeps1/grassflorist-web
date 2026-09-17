@@ -57,7 +57,7 @@ export function HomePageView({
   const faqSchema = generateFaqSchema(homeFaqs, locale);
 
   const catalogUrl = locale === 'ar' ? '/products' : '/en/products';
-  const faqUrl = locale === 'ar' ? '/faq' : '/en/faq';
+  const faqUrl = locale === 'ar' ? '/الأسئلة-الشائعة' : '/en/faq';
 
   return (
     <>

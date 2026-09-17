@@ -38,21 +38,32 @@ const REVERSE_SLUG_ALIASES: Record<string, string> = Object.fromEntries(
   Object.entries(CATEGORY_SLUG_ALIASES).map(([en, ar]) => [ar, en])
 );
 
-const PAGE_PATH_ALIASES: Record<string, string> = {
+const EN_TO_AR_PAGE_ALIASES: Record<string, string> = {
   '/about': '/عن-غراس',
   '/contact': '/اتصل-بنا',
   '/blog': '/المدونة',
+  '/faq': '/الأسئلة-الشائعة',
+  '/wishlist': '/المفضلة',
   '/policies/privacy': '/الخصوصية',
   '/policies/returns': '/سياسة-الاسترجاع-والاسترداد',
+  '/policies/terms': '/الشروط-والأحكام',
+  '/policies/shipping': '/الشحن-والتوصيل',
+};
+
+const AR_TO_EN_PAGE_ALIASES: Record<string, string> = {
   '/من-نحن': '/about',
   '/عن-غراس': '/about',
   '/اتصل-بنا': '/contact',
   '/المدونة': '/blog',
+  '/الأسئلة-الشائعة': '/faq',
+  '/المفضلة': '/wishlist',
   '/الخصوصية': '/policies/privacy',
   '/سياسة-الخصوصية': '/policies/privacy',
   '/سياسة-التوصيل-والخصوصية': '/policies/privacy',
   '/سياسة-الاسترجاع-والاسترداد': '/policies/returns',
   '/سياسة-الاسترجاع-والاستبدال': '/policies/returns',
+  '/الشروط-والأحكام': '/policies/terms',
+  '/الشحن-والتوصيل': '/policies/shipping',
 };
 
 /**
@@ -88,8 +99,14 @@ export function getLocalizedPath(currentPath: string, targetLocale: Locale): str
       const translatedSlug = REVERSE_SLUG_ALIASES[rawSlug] || rawSlug;
       basePath = `/category/${encodeURIComponent(translatedSlug)}`;
     }
-  } else if (PAGE_PATH_ALIASES[decodedBasePath]) {
-    basePath = PAGE_PATH_ALIASES[decodedBasePath];
+  } else if (targetLocale === 'ar') {
+    if (EN_TO_AR_PAGE_ALIASES[decodedBasePath]) {
+      basePath = EN_TO_AR_PAGE_ALIASES[decodedBasePath];
+    }
+  } else {
+    if (AR_TO_EN_PAGE_ALIASES[decodedBasePath]) {
+      basePath = AR_TO_EN_PAGE_ALIASES[decodedBasePath];
+    }
   }
 
   if (targetLocale === 'ar') {

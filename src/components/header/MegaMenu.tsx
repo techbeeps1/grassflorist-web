@@ -1,6 +1,4 @@
-'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -64,15 +62,65 @@ const getOccasionIcon = (id: string) => {
 export function MegaMenu({ locale }: MegaMenuProps) {
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [activeSubItem, setActiveSubItem] = useState<string | null>(null);
+  const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const subTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pathname = usePathname();
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
   const SubChevron = isRtl ? ChevronLeft : ChevronRight;
 
-  const closeMenus = () => {
+  const handleMouseEnterItem = (itemId: string) => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setActiveItem(itemId);
+  };
+
+  const handleMouseLeaveItem = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+    }
+    closeTimerRef.current = setTimeout(() => {
+      setActiveItem(null);
+      setActiveSubItem(null);
+    }, 250);
+  };
+
+  const handleMouseEnterSub = (subId: string) => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    if (subTimerRef.current) {
+      clearTimeout(subTimerRef.current);
+      subTimerRef.current = null;
+    }
+    setActiveSubItem(subId);
+  };
+
+  const handleMouseLeaveSub = () => {
+    if (subTimerRef.current) {
+      clearTimeout(subTimerRef.current);
+    }
+    subTimerRef.current = setTimeout(() => {
+      setActiveSubItem(null);
+    }, 200);
+  };
+
+  const closeMenusImmediately = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    if (subTimerRef.current) clearTimeout(subTimerRef.current);
     setActiveItem(null);
     setActiveSubItem(null);
   };
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      if (subTimerRef.current) clearTimeout(subTimerRef.current);
+    };
+  }, []);
 
   return (
     <nav
@@ -95,9 +143,9 @@ export function MegaMenu({ locale }: MegaMenuProps) {
             return (
               <li
                 key={item.id}
-                className="group shrink-0 relative"
-                onMouseEnter={() => item.hasDropdown && setActiveItem(item.id)}
-                onMouseLeave={() => item.hasDropdown && closeMenus()}
+                className="group shrink-0 relative flex items-center"
+                onMouseEnter={() => item.hasDropdown && handleMouseEnterItem(item.id)}
+                onMouseLeave={() => item.hasDropdown && handleMouseLeaveItem()}
               >
                 <Link
                   href={itemUrl}
@@ -136,11 +184,10 @@ export function MegaMenu({ locale }: MegaMenuProps) {
                           ? 'end-0'
                           : 'start-0'
                       )}
-                      onMouseEnter={() => setActiveItem(item.id)}
-                      onMouseLeave={closeMenus}
+                      onMouseEnter={() => handleMouseEnterItem(item.id)}
                     >
-                      {/* Invisible hover bridge to prevent flicker */}
-                      <div className="absolute -top-2 inset-x-0 h-2 bg-transparent" />
+                      {/* Generous hover bridge to prevent flicker from any direction */}
+                      <div className="absolute -top-3 inset-x-0 h-3 bg-transparent pointer-events-auto" />
 
                       <div className="flex flex-col">
                         {item.subcategories.map((sub) => {
@@ -152,7 +199,7 @@ export function MegaMenu({ locale }: MegaMenuProps) {
                               <Link
                                 key={sub.id}
                                 href={sub.href[locale]}
-                                onClick={closeMenus}
+                                onClick={closeMenusImmediately}
                                 className="px-4 py-2 text-xs sm:text-[13px] font-medium text-[#4A4036] hover:text-[#1E1915] hover:bg-[#FAF7F2] transition-colors flex items-center justify-between group/sub"
                               >
                                 <span>{sub.name[locale]}</span>
@@ -165,12 +212,12 @@ export function MegaMenu({ locale }: MegaMenuProps) {
                             <div
                               key={sub.id}
                               className="relative"
-                              onMouseEnter={() => setActiveSubItem(sub.id)}
-                              onMouseLeave={() => setActiveSubItem(null)}
+                              onMouseEnter={() => handleMouseEnterSub(sub.id)}
+                              onMouseLeave={handleMouseLeaveSub}
                             >
                               <Link
                                 href={sub.href[locale]}
-                                onClick={closeMenus}
+                                onClick={closeMenusImmediately}
                                 className={cn(
                                   'px-4 py-2 text-xs sm:text-[13px] font-medium transition-colors flex items-center justify-between cursor-pointer',
                                   isSubOpen
@@ -196,12 +243,14 @@ export function MegaMenu({ locale }: MegaMenuProps) {
                                     'absolute top-0 flex flex-col min-w-[200px] sm:min-w-[220px] bg-white border border-[#EFE8DE] shadow-xl rounded-xl py-2 z-50',
                                     isRtl ? 'right-full me-1' : 'left-full ms-1'
                                   )}
+                                  onMouseEnter={() => handleMouseEnterSub(sub.id)}
+                                  onMouseLeave={handleMouseLeaveSub}
                                 >
                                   {/* Hover bridge between parent item and submenu */}
                                   <div
                                     className={cn(
-                                      'absolute top-0 bottom-0 w-3 bg-transparent',
-                                      isRtl ? '-right-3' : '-left-3'
+                                      'absolute top-0 bottom-0 w-4 bg-transparent pointer-events-auto',
+                                      isRtl ? '-right-4' : '-left-4'
                                     )}
                                   />
 
@@ -209,7 +258,7 @@ export function MegaMenu({ locale }: MegaMenuProps) {
                                     <Link
                                       key={child.id}
                                       href={child.href[locale]}
-                                      onClick={closeMenus}
+                                      onClick={closeMenusImmediately}
                                       className="px-4 py-2 text-xs sm:text-[13px] font-medium text-[#4A4036] hover:text-[#1E1915] hover:bg-[#FAF7F2] transition-colors flex items-center justify-between group/child"
                                     >
                                       <span>{child.name[locale]}</span>
@@ -226,13 +275,12 @@ export function MegaMenu({ locale }: MegaMenuProps) {
                   ) : (
                     /* Full-width Luxury Mega Dropdown (for Occasions, etc.) */
                     <div
-                      className="fixed top-auto start-0 end-0 left-0 right-0 bg-[#FCFAF7]/98 backdrop-blur-xl border-b border-[#E8E1D5] shadow-[0_20px_40px_rgba(30,25,21,0.08)] py-7 px-6 sm:px-8 z-50 animate-in fade-in slide-in-from-top-1 duration-200"
+                      className="fixed top-auto start-0 end-0 left-0 right-0 bg-[#FCFAF7]/98 backdrop-blur-xl border-b border-[#E8E1D5] shadow-[0_20px_40px_rgba(30,25,21,0.08)] py-7 px-6 sm:px-8 z-50"
                       style={{ top: '100%' }}
-                      onMouseEnter={() => setActiveItem(item.id)}
-                      onMouseLeave={closeMenus}
+                      onMouseEnter={() => handleMouseEnterItem(item.id)}
                     >
-                      {/* Invisible hover bridge */}
-                      <div className="absolute -top-3 inset-x-0 h-3 bg-transparent" />
+                      {/* Generous invisible hover bridge */}
+                      <div className="absolute -top-4 inset-x-0 h-4 bg-transparent pointer-events-auto" />
 
                       <div className="site-container grid grid-cols-12 gap-8 items-start">
                         {/* Left: Category Sub-links in 3 Columns with Circular Icons */}
@@ -254,7 +302,7 @@ export function MegaMenu({ locale }: MegaMenuProps) {
 
                             <Link
                               href={itemUrl}
-                              onClick={closeMenus}
+                              onClick={closeMenusImmediately}
                               className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#FAF7F2] hover:bg-[#435849] text-[#435849] hover:text-white border border-[#E8E0D4] text-xs font-semibold transition-all duration-200 group/all"
                             >
                               <span>{locale === 'ar' ? 'عرض جميع المناسبات' : 'View All Occasions'}</span>
@@ -270,7 +318,7 @@ export function MegaMenu({ locale }: MegaMenuProps) {
                                 <Link
                                   key={sub.id}
                                   href={sub.href[locale]}
-                                  onClick={closeMenus}
+                                  onClick={closeMenusImmediately}
                                   className="group/occ flex items-center gap-3 py-2.5 border-b border-[#F4EFEA] hover:border-[#8CA841]/50 transition-colors"
                                 >
                                   <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-[#FAF7F2] group-hover/occ:bg-[#435849] border border-[#EAE3D7] group-hover/occ:border-[#435849] flex items-center justify-center transition-all duration-200 shrink-0 shadow-2xs">
@@ -290,7 +338,7 @@ export function MegaMenu({ locale }: MegaMenuProps) {
                           <div className="col-span-12 lg:col-span-4">
                             <Link
                               href={itemUrl}
-                              onClick={closeMenus}
+                              onClick={closeMenusImmediately}
                               className="group/card block bg-white p-3.5 rounded-2xl border border-[#EFE8DE] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(67,88,73,0.10)] hover:border-[#D8CFBF] transition-all duration-300"
                             >
                               <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden mb-3 bg-[#FAF7F2]">
