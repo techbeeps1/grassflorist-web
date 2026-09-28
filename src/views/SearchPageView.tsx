@@ -134,7 +134,7 @@ function SearchPageContent({ locale }: SearchPageViewProps) {
 
         {/* Results Info & Sort */}
         {initialQuery && (
-          <div className="flex items-center justify-between gap-4 p-4 bg-surface-subtle border border-border/80 rounded-2xl mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 bg-surface-subtle border border-border/80 rounded-2xl mb-6 sm:mb-8">
             <span className="text-xs sm:text-sm font-semibold text-text-muted">
               {locale === 'ar' ? 'تم العثور على ' : 'Found '}
               <strong className="text-text-main">{searchResults.length}</strong>{' '}
@@ -143,7 +143,9 @@ function SearchPageContent({ locale }: SearchPageViewProps) {
             </span>
 
             {searchResults.length > 0 && (
-              <SortDropdown locale={locale} value={sortBy} onChange={setSortBy} />
+              <div className="w-full sm:w-auto flex justify-end">
+                <SortDropdown locale={locale} value={sortBy} onChange={setSortBy} className="w-full sm:w-auto" />
+              </div>
             )}
           </div>
         )}

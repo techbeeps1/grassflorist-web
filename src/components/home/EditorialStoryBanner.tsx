@@ -18,12 +18,12 @@ export function EditorialStoryBanner({ locale }: EditorialStoryBannerProps) {
   return (
     <section
       aria-label="Editorial Highlight"
-      className="relative w-full overflow-hidden bg-[#FDF7F2]"
+      className="relative mt-10 sm:mt-14 lg:mt-16 w-full overflow-hidden bg-[#FDF7F2]"
     >
       {/* Edge-to-Edge Split Grid */}
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 items-stretch min-h-[420px] sm:min-h-[480px] lg:min-h-[540px]">
         {/* Editorial Text Block with Botanical Sketches (Left in LTR, Right in RTL) */}
-        <div className="relative flex flex-col justify-center items-center text-center px-6 py-12 sm:px-12 sm:py-16 lg:px-16 lg:py-20 overflow-hidden bg-[#FDF7F2]">
+        <div className="relative flex flex-col justify-center items-center text-center px-6 py-10 sm:px-12 sm:py-14 lg:px-16 lg:py-16 overflow-hidden bg-[#FDF7F2]">
           {/* Subtle Botanical Line Art Background Texture */}
           <div className="absolute inset-0 pointer-events-none select-none">
             <Image

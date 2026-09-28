@@ -6,6 +6,7 @@ import { notFound, useSearchParams } from 'next/navigation';
 import { type Locale, siteConfig } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
+import { CategorySlider } from '@/components/home/CategorySlider';
 import { CategoryFilters } from '@/components/category/CategoryFilters';
 import { SortDropdown } from '@/components/category/SortDropdown';
 import { MobileFilterDrawer } from '@/components/category/MobileFilterDrawer';
@@ -24,6 +25,7 @@ interface CategoryPageViewProps {
   locale: Locale;
   initialCategory?: Category | null;
   initialProducts?: Product[];
+  allCategories?: Category[];
 }
 
 function CategoryPageContent({
@@ -31,6 +33,7 @@ function CategoryPageContent({
   locale,
   initialCategory,
   initialProducts,
+  allCategories,
 }: CategoryPageViewProps) {
   const dict = getDictionary(locale);
   const searchParams = useSearchParams();
@@ -38,6 +41,13 @@ function CategoryPageContent({
   const decodedSlug = decodeURIComponent(slug).trim();
   const currentCategory =
     initialCategory ||
+    (allCategories && allCategories.find(
+      (c) =>
+        c.slug === slug ||
+        decodeURIComponent(c.slug) === decodedSlug ||
+        c.name.ar === decodedSlug ||
+        c.name.en.toLowerCase() === decodedSlug.toLowerCase()
+    )) ||
     categories.find(
       (c) =>
         c.slug === slug ||
@@ -141,8 +151,8 @@ function CategoryPageContent({
         <div className="site-container">
           <Breadcrumbs items={breadcrumbItems} locale={locale} />
 
-          {/* Category Banner Card */}
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#FAF3ED] via-[#F4ECE2] to-[#EAE0D3] border border-[#E2D5C4] mb-8 p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          {/* Category Banner / Title Card */}
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#FAF3ED] via-[#F4ECE2] to-[#EAE0D3] border border-[#E2D5C4] mb-6 sm:mb-8 p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="max-w-xl text-start">
               <h1 className="text-2xl sm:text-4xl font-extrabold text-[#25211E] mb-2">
                 {currentCategory.name[locale]}
@@ -164,16 +174,28 @@ function CategoryPageContent({
             </div>
           </div>
 
+          {/* Category Switcher Carousel: Clean circles without header */}
+          <div className="mb-6 bg-white/90 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3.5 border border-[#EFE7DC] shadow-2xs">
+            <CategorySlider
+              locale={locale}
+              categories={allCategories && allCategories.length > 0 ? allCategories : categories}
+              activeSlug={slug}
+              variant="compact"
+              hideHeader={true}
+              isContained={false}
+              className="pt-0 bg-transparent"
+            />
+          </div>
+
           {/* Subcategory Pills */}
           {currentCategory.subcategories.length > 0 && (
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-4 mb-6">
               <button
                 onClick={() => setActiveSubcategory(undefined)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                  !activeSubcategory
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${!activeSubcategory
                     ? 'bg-primary text-white shadow-xs'
                     : 'bg-surface-subtle text-text-secondary hover:bg-surface border border-border'
-                }`}
+                  }`}
               >
                 {locale === 'ar' ? 'جميع التشكيلات' : 'All Subcategories'}
               </button>
@@ -186,11 +208,10 @@ function CategoryPageContent({
                     onClick={() =>
                       setActiveSubcategory(isSelected ? undefined : sub.slug)
                     }
-                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                      isSelected
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${isSelected
                         ? 'bg-primary text-white shadow-xs'
                         : 'bg-surface-subtle text-text-secondary hover:bg-surface border border-border'
-                    }`}
+                      }`}
                   >
                     {sub.name[locale]}
                   </button>
@@ -200,29 +221,52 @@ function CategoryPageContent({
           )}
 
           {/* Controls Bar */}
-          <div className="flex items-center justify-between gap-4 p-3.5 bg-surface-subtle border border-border/80 rounded-2xl mb-8">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsMobileFiltersOpen(true)}
-                className="lg:hidden font-bold text-xs"
-              >
-                <SlidersHorizontal className="w-4 h-4 me-1.5" />
-                <span>{dict.category.filters}</span>
-              </Button>
+          <div className="bg-surface-subtle border border-border/80 rounded-2xl p-3 sm:p-3.5 mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              {/* Mobile: Filter & Sort buttons row | Desktop: Left Filter & Count */}
+              <div className="grid grid-cols-2 sm:flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsMobileFiltersOpen(true)}
+                  className="lg:hidden font-bold text-xs h-10 w-full sm:w-auto rounded-xl justify-center"
+                >
+                  <SlidersHorizontal className="w-4 h-4 me-1.5 shrink-0" />
+                  <span>{dict.category.filters}</span>
+                </Button>
 
-              <span className="text-xs font-semibold text-text-muted">
-                <span className="font-bold text-text-main">{categoryProducts.length}</span>{' '}
-                {dict.category.productCount}
-              </span>
+                <div className="sm:hidden w-full">
+                  <SortDropdown
+                    locale={locale}
+                    value={filters.sortBy}
+                    onChange={(sortVal) => setFilters({ ...filters, sortBy: sortVal })}
+                    className="w-full"
+                  />
+                </div>
+
+                <span className="hidden sm:inline-block text-xs font-semibold text-text-muted">
+                  <span className="font-bold text-text-main">{categoryProducts.length}</span>{' '}
+                  {dict.category.productCount}
+                </span>
+              </div>
+
+              {/* Mobile Product Count */}
+              <div className="flex sm:hidden items-center justify-between px-1 text-xs font-semibold text-text-muted">
+                <span>
+                  <span className="font-bold text-text-main">{categoryProducts.length}</span>{' '}
+                  {dict.category.productCount}
+                </span>
+              </div>
+
+              {/* Desktop Sort Dropdown */}
+              <div className="hidden sm:flex items-center justify-end">
+                <SortDropdown
+                  locale={locale}
+                  value={filters.sortBy}
+                  onChange={(sortVal) => setFilters({ ...filters, sortBy: sortVal })}
+                />
+              </div>
             </div>
-
-            <SortDropdown
-              locale={locale}
-              value={filters.sortBy}
-              onChange={(sortVal) => setFilters({ ...filters, sortBy: sortVal })}
-            />
           </div>
 
           {/* Grid Layout */}
@@ -232,6 +276,8 @@ function CategoryPageContent({
                 locale={locale}
                 filters={filters}
                 onFilterChange={setFilters}
+                categories={allCategories}
+                activeCategorySlug={slug}
                 onReset={() => {
                   setFilters({ category: slug, sortBy: 'popular' });
                   setActiveSubcategory(undefined);
@@ -252,6 +298,8 @@ function CategoryPageContent({
           locale={locale}
           filters={filters}
           onFilterChange={setFilters}
+          categories={allCategories}
+          activeCategorySlug={slug}
           onReset={() => {
             setFilters({ category: slug, sortBy: 'popular' });
             setActiveSubcategory(undefined);

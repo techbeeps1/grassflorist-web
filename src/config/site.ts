@@ -42,11 +42,11 @@ export const siteConfig = {
     },
   ],
   socials: {
-    instagram: 'https://instagram.com/grassflorist_sa',
-    twitter: 'https://twitter.com/grassflorist_sa',
-    facebook: 'https://facebook.com/grassflorist.sa',
-    snapchat: 'https://snapchat.com/add/grassflorist_sa',
-    tiktok: 'https://tiktok.com/@grassflorist_sa',
+    facebook: 'https://www.facebook.com/GrassFloralWeddingsDesign',
+    twitter: 'https://x.com/grass_florist',
+    instagram: 'https://www.instagram.com/grass_florist/',
+    whatsapp: 'https://api.whatsapp.com/send/?phone=966555134211&text&type=phone_number&app_absent=0',
+    snapchat: 'https://www.snapchat.com/@grassflorist',
   },
   features: {
     freeShippingThreshold: 250,

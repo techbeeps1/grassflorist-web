@@ -47,9 +47,10 @@ export function generateOrganizationSchema() {
       },
     ],
     sameAs: [
-      siteConfig.socials.instagram,
+      siteConfig.socials.facebook,
       siteConfig.socials.twitter,
-      siteConfig.socials.tiktok,
+      siteConfig.socials.instagram,
+      siteConfig.socials.snapchat,
     ],
   };
 }

@@ -8,6 +8,8 @@ import { ProductFilterState } from '@/types/product';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 
+import { Category } from '@/types/category';
+
 interface MobileFilterDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -16,6 +18,8 @@ interface MobileFilterDrawerProps {
   onFilterChange: (newFilters: ProductFilterState) => void;
   onReset: () => void;
   productCount: number;
+  categories?: Category[];
+  activeCategorySlug?: string;
 }
 
 export function MobileFilterDrawer({
@@ -26,6 +30,8 @@ export function MobileFilterDrawer({
   onFilterChange,
   onReset,
   productCount,
+  categories,
+  activeCategorySlug,
 }: MobileFilterDrawerProps) {
   const dict = getDictionary(locale);
 
@@ -61,6 +67,8 @@ export function MobileFilterDrawer({
         filters={filters}
         onFilterChange={onFilterChange}
         onReset={onReset}
+        categories={categories}
+        activeCategorySlug={activeCategorySlug}
       />
     </Drawer>
   );

@@ -15,6 +15,9 @@ const ARABIC_STATIC_PAGE_REWRITES: Record<string, string> = {
   '/المفضلة': '/wishlist',
   '/الشروط-والأحكام': '/policies/terms',
   '/الشحن-والتوصيل': '/policies/shipping',
+  '/حجز-مناسبة': '/event-booking',
+  '/حجز-وتنظيم-المناسبات': '/event-booking',
+  '/تنظيم-المناسبات': '/event-booking',
 };
 
 export function middleware(request: NextRequest) {

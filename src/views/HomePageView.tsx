@@ -4,8 +4,8 @@ import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { HeroBannerSlider } from '@/components/home/HeroBannerSlider';
 import { CategorySlider } from '@/components/home/CategorySlider';
-import { BenefitsSection } from '@/components/home/BenefitsSection';
 import { EditorialStoryBanner } from '@/components/home/EditorialStoryBanner';
+import { HomeEventsSection } from '@/components/home/HomeEventsSection';
 import { TestimonialsSection } from '@/components/home/TestimonialsSection';
 import { BlogPreviewSection } from '@/components/home/BlogPreviewSection';
 import { ProductGrid } from '@/components/product/ProductGrid';
@@ -89,7 +89,7 @@ export function HomePageView({
               <React.Fragment key={section.id}>
                 <section
                   aria-label={`${section.title[locale]} Carousel`}
-                  className="py-12 sm:py-16 bg-white"
+                  className="pt-10 sm:pt-14 lg:pt-16 bg-white"
                 >
                   <div className="site-container">
                     <ProductCarousel
@@ -110,9 +110,9 @@ export function HomePageView({
         ) : (
           <>
             {/* Fallback to Featured & Bestsellers if categorySections not loaded */}
-            <section aria-label="Featured Collection" className="py-14 sm:py-20 bg-[#EFE7DC]">
+            <section aria-label="Featured Collection" className="py-10 sm:py-14 lg:py-16 bg-[#EFE7DC]">
               <div className="site-container">
-                <div className="flex items-end justify-between mb-8 sm:mb-10">
+                <div className="flex items-end justify-between mb-6 sm:mb-8">
                   <div>
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18]">
                       {dict.home.featuredTitle}
@@ -137,7 +137,7 @@ export function HomePageView({
               </div>
             </section>
 
-            <section aria-label="Best Sellers Carousel" className="py-14 sm:py-20 bg-white">
+            <section aria-label="Best Sellers Carousel" className="py-10 sm:py-14 lg:py-16 bg-white">
               <div className="site-container">
                 <ProductCarousel
                   products={bestsellers}
@@ -153,7 +153,7 @@ export function HomePageView({
 
             <EditorialStoryBanner locale={locale} />
 
-            <section aria-label="New Arrivals Carousel" className="py-14 sm:py-20 bg-white">
+            <section aria-label="New Arrivals Carousel" className="py-10 sm:py-14 lg:py-16 bg-white">
               <div className="site-container">
                 <ProductCarousel
                   products={newArrivals}
@@ -169,8 +169,8 @@ export function HomePageView({
           </>
         )}
 
-        {/* 9. Brand Trust & Benefits (Theme: Pastel Sand) */}
-        <BenefitsSection locale={locale} />
+        {/* 8. Brand Benefits & Events Planning Showcase */}
+        <HomeEventsSection locale={locale} />
 
         {/* 10. Verified Client Testimonials (Theme: White) */}
         <TestimonialsSection locale={locale} />
@@ -179,10 +179,10 @@ export function HomePageView({
         <BlogPreviewSection locale={locale} />
 
         {/* 12. FAQ Accordion Section on Homepage (Theme: White) */}
-        <section aria-label="Frequently Asked Questions" className="py-16 sm:py-24 bg-white">
+        <section aria-label="Frequently Asked Questions" className="py-10 sm:py-14 lg:py-16 bg-white">
           <div className="site-container">
             <div className="max-w-3xl mx-auto">
-              <div className="text-center mb-10 sm:mb-12">
+              <div className="text-center mb-6 sm:mb-8">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#435849] border border-[#EAE3D7] text-xs font-bold uppercase tracking-wider mb-3.5 shadow-2xs">
                   <Sparkles className="w-3.5 h-3.5 text-[#8CA841]" />
                   <span>{locale === 'ar' ? 'مركز المساعدة والإرشادات' : 'HELP & FLORAL GUIDANCE'}</span>
@@ -206,7 +206,7 @@ export function HomePageView({
                 />
               </div>
 
-              <div className="mt-8 sm:mt-10 text-center">
+              <div className="mt-6 sm:mt-8 text-center">
                 <Link
                   href={faqUrl}
                   className="group inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-[#FAF5EE] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white border border-[#DDD3C6] hover:border-[#2D3F33] shadow-xs hover:shadow-md text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-95"

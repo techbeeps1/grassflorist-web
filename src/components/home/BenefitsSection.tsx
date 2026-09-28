@@ -37,10 +37,10 @@ export function BenefitsSection({ locale }: BenefitsSectionProps) {
   ];
 
   return (
-    <section aria-label="Brand Benefits" className="py-14 sm:py-20 bg-[#EFE7DC]">
+    <section aria-label="Brand Benefits" className="mt-10 sm:mt-14 lg:mt-16 py-10 sm:py-14 lg:py-16 bg-[#EFE7DC]">
       <div className="site-container">
         {/* Modern 3-Card Grid with Top Overlapping Badges */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-6 lg:gap-8 pt-6 sm:pt-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-6 lg:gap-8 pt-4 sm:pt-6">
           {benefits.map((item) => {
             const IconComponent = item.icon;
             return (

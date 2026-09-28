@@ -19,10 +19,10 @@ export function BlogPreviewSection({ locale }: BlogPreviewSectionProps) {
   const previewPosts = blogPosts.slice(0, 3);
 
   return (
-    <section aria-label="Floral Journal" className="py-14 sm:py-20 bg-white">
+    <section aria-label="Floral Journal" className="py-10 sm:py-14 lg:py-16 bg-white">
       <div className="site-container">
         {/* Header */}
-        <div className="flex items-end justify-between mb-10 sm:mb-12">
+        <div className="flex items-end justify-between mb-6 sm:mb-8">
           <div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18]">
               {locale === 'ar' ? 'إلهام وأسرار العناية بالزهور' : 'Floral Inspiration & Care Guides'}

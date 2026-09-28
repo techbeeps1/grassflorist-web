@@ -67,10 +67,10 @@ export function TestimonialsSection({ locale }: TestimonialsSectionProps) {
   );
 
   return (
-    <section aria-label="Customer Reviews" className="py-14 sm:py-20 bg-white relative overflow-hidden">
+    <section aria-label="Customer Reviews" className="py-10 sm:py-14 lg:py-16 bg-white relative overflow-hidden">
       <div className="site-container">
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+        <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18]">
             {dict.home.testimonialsTitle}
           </h2>

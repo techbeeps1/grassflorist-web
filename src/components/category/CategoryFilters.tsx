@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
+import Link from 'next/link';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
-import { categories } from '@/data/categories';
+import { categories as defaultCategories } from '@/data/categories';
 import { ProductFilterState } from '@/types/product';
+import { Category } from '@/types/category';
+import { getCategorySlugForLocale, decodeHtmlEntities } from '@/lib/wordpress/store-api';
 import { Star, RotateCcw, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -13,7 +15,14 @@ interface CategoryFiltersProps {
   filters: ProductFilterState;
   onFilterChange: (newFilters: ProductFilterState) => void;
   onReset: () => void;
+  categories?: Category[];
+  activeCategorySlug?: string;
   className?: string;
+}
+
+function cleanTitle(str?: string): string {
+  if (!str) return '';
+  return decodeHtmlEntities(str);
 }
 
 export function CategoryFilters({
@@ -21,13 +30,19 @@ export function CategoryFilters({
   filters,
   onFilterChange,
   onReset,
+  categories: dynamicCategories,
+  activeCategorySlug,
   className,
 }: CategoryFiltersProps) {
   const dict = getDictionary(locale);
 
-  const handleCategoryChange = (slug?: string) => {
-    onFilterChange({ ...filters, category: slug });
-  };
+  const displayCategories =
+    dynamicCategories && dynamicCategories.length > 0
+      ? dynamicCategories
+      : defaultCategories;
+
+  const currentActiveSlug = (activeCategorySlug || filters.category || '').trim().toLowerCase();
+  const isAllProductsActive = !currentActiveSlug || currentActiveSlug === 'all';
 
   const handlePriceChange = (min?: number, max?: number) => {
     onFilterChange({ ...filters, minPrice: min, maxPrice: max });
@@ -49,6 +64,8 @@ export function CategoryFilters({
     { label: locale === 'ar' ? 'أكثر من 500 ر.س' : 'Above 500 ر.س', min: 500, max: undefined },
   ];
 
+  const allProductsUrl = locale === 'ar' ? '/products' : '/en/products';
+
   return (
     <aside aria-label="Catalog Filters" className={cn('space-y-6 text-start select-none', className)}>
       {/* Header & Reset */}
@@ -65,41 +82,62 @@ export function CategoryFilters({
         </button>
       </div>
 
-      {/* Categories Filter */}
+      {/* Categories Filter / Quick Category Switcher */}
       <div>
         <h4 className="text-xs font-bold text-text-main uppercase tracking-wider mb-3">
           {dict.footer.categories}
         </h4>
         <div className="space-y-1.5">
-          <button
-            onClick={() => handleCategoryChange(undefined)}
+          <Link
+            href={allProductsUrl}
             className={cn(
               'w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-start',
-              !filters.category
-                ? 'bg-primary text-white'
+              isAllProductsActive
+                ? 'bg-primary text-white font-bold shadow-xs'
                 : 'text-text-secondary hover:bg-surface-subtle hover:text-text-main'
             )}
           >
             <span>{dict.nav.allProducts}</span>
-            {!filters.category && <Check className="w-3.5 h-3.5" />}
-          </button>
+            {isAllProductsActive && <Check className="w-3.5 h-3.5" />}
+          </Link>
 
-          {categories.map((cat) => {
-            const isSelected = filters.category === cat.slug;
+          {displayCategories.map((cat) => {
+            const arSlug = getCategorySlugForLocale(cat.slug, 'ar');
+            const enSlug = getCategorySlugForLocale(cat.slug, 'en');
+            const decodedCatSlug = decodeURIComponent(cat.slug).toLowerCase();
+            const decodedCatId = cat.id.toString().toLowerCase();
+            const decodedArSlug = decodeURIComponent(arSlug).toLowerCase();
+            const decodedEnSlug = decodeURIComponent(enSlug).toLowerCase();
+
+            const isSelected = Boolean(
+              currentActiveSlug &&
+              (currentActiveSlug === decodedCatSlug ||
+                currentActiveSlug === decodedCatId ||
+                currentActiveSlug === decodedArSlug ||
+                currentActiveSlug === decodedEnSlug ||
+                (cat.name.en && cat.name.en.toLowerCase() === currentActiveSlug) ||
+                (cat.name.ar && cat.name.ar.toLowerCase() === currentActiveSlug))
+            );
+
+            const categoryUrl =
+              locale === 'ar'
+                ? `/category/${arSlug}`
+                : `/en/category/${enSlug}`;
+
             return (
-              <button
+              <Link
                 key={cat.id}
-                onClick={() => handleCategoryChange(cat.slug)}
+                href={categoryUrl}
                 className={cn(
                   'w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-start',
                   isSelected
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary text-white font-bold shadow-xs'
                     : 'text-text-secondary hover:bg-surface-subtle hover:text-text-main'
                 )}
               >
-                <span>{cat.name[locale]}</span>
+                <span>{cleanTitle(cat.name[locale] || cat.name.en)}</span>
                 {isSelected && <Check className="w-3.5 h-3.5" />}
-              </button>
+              </Link>
             );
           })}
         </div>

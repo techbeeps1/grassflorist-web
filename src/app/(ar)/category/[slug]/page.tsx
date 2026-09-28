@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { CategoryPageView } from '@/views/CategoryPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
-import { getStoreCategoryBySlug } from '@/lib/wordpress/store-api';
+import { getStoreCategoryBySlug, getStoreCategories } from '@/lib/wordpress/store-api';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -35,7 +35,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ArabicCategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const { category, products } = await getStoreCategoryBySlug(slug, 'ar');
+  const [{ category, products }, categories] = await Promise.all([
+    getStoreCategoryBySlug(slug, 'ar'),
+    getStoreCategories('ar'),
+  ]);
 
   return (
     <Suspense fallback={<div className="py-20 text-center text-sm">جاري تحميل القسم...</div>}>
@@ -44,6 +47,7 @@ export default async function ArabicCategoryPage({ params }: PageProps) {
         locale="ar"
         initialCategory={category}
         initialProducts={products}
+        allCategories={categories.filter((c) => c.image && c.itemCount > 0)}
       />
     </Suspense>
   );
