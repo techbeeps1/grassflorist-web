@@ -20,6 +20,11 @@ import { formatPrice, calculateDiscount } from '@/lib/utils';
 import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 import { generateProductSchema, generateBreadcrumbSchema } from '@/lib/schema';
 import {
+  translateArabicProductName,
+  translateArabicCategoryName,
+  translateArabicToEnglishDescription,
+} from '@/lib/wordpress/store-api';
+import {
   Heart,
   ShoppingBag,
   Loader2,
@@ -76,19 +81,57 @@ export function ProductDetailPageView({
 
   const relatedProducts = initialRelatedProducts || [];
 
+  // Localized string resolution with automatic instant English translation guarantee
+  const displayName =
+    locale === 'en'
+      ? (!product.name?.en || /[\u0600-\u06FF]/.test(product.name.en)
+          ? translateArabicProductName(product.name?.ar || product.name?.en || '', product.slug?.en || slug)
+          : product.name.en)
+      : (product.name?.ar || product.name?.en || '');
+
+  const displayCategory =
+    locale === 'en'
+      ? (!product.category?.en || /[\u0600-\u06FF]/.test(product.category.en)
+          ? translateArabicCategoryName(product.category?.ar || product.category?.en || '', product.categorySlug)
+          : product.category.en)
+      : (product.category?.ar || product.category?.en || '');
+
+  const rawDescription =
+    product.description?.[locale] ||
+    product.shortDescription?.[locale] ||
+    product.description?.ar ||
+    product.shortDescription?.ar ||
+    '';
+
+  const displayDescription =
+    locale === 'en'
+      ? (!product.description?.en || /[\u0600-\u06FF]/.test(product.description.en)
+          ? translateArabicToEnglishDescription(rawDescription, displayName, displayCategory)
+          : product.description.en)
+      : (product.description?.ar || product.shortDescription?.ar || rawDescription);
+
   // Schema Generation
-  const productSchema = generateProductSchema(product, locale);
+  const productSchema = generateProductSchema(
+    {
+      ...product,
+      name: { ar: product.name.ar, en: displayName },
+      category: { ar: product.category.ar, en: displayCategory },
+      description: { ar: product.description.ar, en: displayDescription },
+    },
+    locale
+  );
+
   const breadcrumbsSchema = generateBreadcrumbSchema([
     { name: dict.nav.home, url: locale === 'ar' ? siteConfig.url : `${siteConfig.url}/en` },
     {
-      name: product.category[locale],
+      name: displayCategory,
       url:
         locale === 'ar'
           ? `${siteConfig.url}/category/${product.categorySlug}`
           : `${siteConfig.url}/en/category/${product.categorySlug}`,
     },
     {
-      name: product.name[locale],
+      name: displayName,
       url:
         locale === 'ar'
           ? `${siteConfig.url}/product/${product.slug.ar}`
@@ -99,10 +142,10 @@ export function ProductDetailPageView({
   const breadcrumbItems = [
     { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },
     {
-      label: product.category[locale],
+      label: displayCategory,
       href: locale === 'ar' ? `/category/${product.categorySlug}` : `/en/category/${product.categorySlug}`,
     },
-    { label: product.name[locale] },
+    { label: displayName },
   ];
 
   const handleAddToCart = (directToCheckout = false) => {
@@ -131,7 +174,7 @@ export function ProductDetailPageView({
             message:
               locale === 'ar'
                 ? `تمت إضافة "${product.name.ar}" إلى حقيبة التسوق!`
-                : `Added "${product.name.en}" to shopping bag!`,
+                : `Added "${displayName}" to shopping bag!`,
           })
         );
       }
@@ -159,7 +202,7 @@ export function ProductDetailPageView({
             <div className="lg:col-span-6 lg:sticky lg:top-36">
               <ProductGallery
                 images={product.images}
-                productName={product.name[locale]}
+                productName={displayName}
                 price={product.price}
                 originalPrice={product.originalPrice}
                 newArrival={product.newArrival}
@@ -172,10 +215,10 @@ export function ProductDetailPageView({
               {/* Category & Title */}
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-secondary block mb-1">
-                  {product.category[locale]}
+                  {displayCategory}
                 </span>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main leading-tight">
-                  {product.name[locale]}
+                  {displayName}
                 </h1>
               </div>
 
@@ -207,13 +250,13 @@ export function ProductDetailPageView({
               </div>
 
               {/* Product Description */}
-              {(product.description?.[locale] || product.shortDescription?.[locale]) && (
+              {displayDescription && (
                 <div className="py-3 text-sm sm:text-base text-[#5C524B] leading-relaxed border-t border-border/60">
                   <span className="text-xs font-bold uppercase tracking-wider text-[#25211E] block mb-1.5">
                     {locale === 'ar' ? 'تفاصيل المنتج' : 'Product Description'}
                   </span>
                   <p className="whitespace-pre-line text-[#6E6258] leading-relaxed">
-                    {product.description?.[locale] || product.shortDescription?.[locale]}
+                    {displayDescription}
                   </p>
                 </div>
               )}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { type Locale, siteConfig } from '@/config/site';
@@ -27,6 +27,16 @@ export function Footer({ locale }: FooterProps) {
   const isRtl = locale === 'ar';
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 250);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +101,8 @@ export function Footer({ locale }: FooterProps) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={locale === 'ar' ? 'أدخل بريدك الإلكتروني...' : 'Enter your email...'}
-                      className="w-full h-10 sm:h-11 text-xs sm:text-sm bg-transparent border-0 text-[#1E1915] placeholder:text-[#91857A] focus:outline-none"
+                      className="w-full h-10 sm:h-11 text-xs sm:text-sm bg-transparent !border-0 !border-none !outline-none text-[#1E1915] placeholder:text-[#91857A] !shadow-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none"
+                      style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
                     />
                   </div>
                   <button
@@ -399,7 +410,7 @@ export function Footer({ locale }: FooterProps) {
 
 
 
-            {/* Payment Method Badges & Back-To-Top Button */}
+            {/* Payment Method Badges */}
             <div className="flex items-center gap-3">
               <div className="flex items-center flex-wrap gap-1.5 justify-center md:justify-end">
                 {[
@@ -426,20 +437,24 @@ export function Footer({ locale }: FooterProps) {
                   </div>
                 ))}
               </div>
-
-              {/* Scroll to Top Round Button */}
-              <button
-                type="button"
-                onClick={scrollToTop}
-                aria-label={locale === 'ar' ? 'الرجوع للأعلى' : 'Back to top'}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#99C552] text-white hover:text-[#121B14] border border-white/15 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 shrink-0 cursor-pointer shadow-xs"
-              >
-                <ArrowUp className="w-4 h-4" />
-              </button>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Floating Fixed Scroll-To-Top Button */}
+      <button
+        type="button"
+        onClick={scrollToTop}
+        aria-label={locale === 'ar' ? 'الرجوع للأعلى' : 'Back to top'}
+        className={`fixed bottom-5 end-4 sm:bottom-7 sm:end-7 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#1E2E23]/95 hover:bg-[#99C552] text-white hover:text-[#121B14] border border-white/20 flex items-center justify-center transition-all duration-300 shadow-2xl cursor-pointer hover:scale-110 active:scale-95 backdrop-blur-md ${
+          showScrollTop
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 translate-y-4 pointer-events-none'
+        }`}
+      >
+        <ArrowUp className="w-5 h-5" />
+      </button>
     </>
   );
 }

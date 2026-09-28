@@ -44,10 +44,12 @@ export const productsApi = baseApi.injectEndpoints({
       providesTags: ['Product'],
     }),
 
-    getProductBySlug: builder.query<Product | null, string>({
-      queryFn: async (slug) => {
+    getProductBySlug: builder.query<Product | null, string | { slug: string; locale?: string }>({
+      queryFn: async (arg) => {
+        const slug = typeof arg === 'string' ? arg : arg.slug;
+        const locale = typeof arg === 'object' ? (arg.locale as any) : undefined;
         try {
-          const product = await getStoreProductBySlug(slug);
+          const product = await getStoreProductBySlug(slug, locale);
           return { data: product };
         } catch {
           const found =
@@ -55,7 +57,9 @@ export const productsApi = baseApi.injectEndpoints({
           return { data: found };
         }
       },
-      providesTags: (_result, _error, slug) => [{ type: 'Product', id: slug }],
+      providesTags: (_result, _error, arg) => [
+        { type: 'Product', id: typeof arg === 'string' ? arg : arg.slug },
+      ],
     }),
 
     getFeaturedProducts: builder.query<Product[], void>({

@@ -5,6 +5,11 @@ import { Product } from '@/types/product';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { Sparkles, ShieldCheck, Truck, Droplets } from 'lucide-react';
+import {
+  translateArabicProductName,
+  translateArabicCategoryName,
+  translateArabicToEnglishDescription,
+} from '@/lib/wordpress/store-api';
 import { cn } from '@/lib/utils';
 
 interface ProductTabsProps {
@@ -22,6 +27,23 @@ export function ProductTabs({ product, locale }: ProductTabsProps) {
     { id: 'specs', label: dict.product.specifications },
     { id: 'shipping', label: dict.product.shippingAndReturns },
   ] as const;
+
+  const rawDescription =
+    product.description?.[locale] ||
+    product.shortDescription?.[locale] ||
+    product.description?.ar ||
+    '';
+
+  const displayDescription =
+    locale === 'en'
+      ? (!product.description?.en || /[\u0600-\u06FF]/.test(product.description.en)
+          ? translateArabicToEnglishDescription(
+              rawDescription,
+              product.name?.en || translateArabicProductName(product.name?.ar || ''),
+              product.category?.en
+            )
+          : product.description.en)
+      : (product.description?.ar || rawDescription);
 
   return (
     <div className="mt-12 pt-8 border-t border-border">
@@ -52,7 +74,7 @@ export function ProductTabs({ product, locale }: ProductTabsProps) {
         {activeTab === 'desc' && (
           <div className="space-y-4 max-w-3xl">
             <p className="text-base text-text-main leading-relaxed">
-              {product.description[locale]}
+              {displayDescription}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
               <div className="p-4 rounded-xl bg-surface-subtle border border-border flex items-start gap-3">
