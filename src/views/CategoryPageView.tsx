@@ -152,7 +152,7 @@ function CategoryPageContent({
           <Breadcrumbs items={breadcrumbItems} locale={locale} />
 
           {/* Category Banner / Title Card */}
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#FAF3ED] via-[#F4ECE2] to-[#EAE0D3] border border-[#E2D5C4] mb-6 sm:mb-8 p-6 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#FAF3ED] via-[#F4ECE2] to-[#EAE0D3] border border-[#E2D5C4] p-6 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="max-w-xl text-start">
               <h1 className="text-2xl sm:text-4xl font-extrabold text-[#25211E] mb-2">
                 {currentCategory.name[locale]}
@@ -175,7 +175,7 @@ function CategoryPageContent({
           </div>
 
           {/* Category Switcher Carousel: Clean circles without header */}
-          <div className="mb-6 bg-white/90 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3.5 border border-[#EFE7DC] shadow-2xs">
+          <div className="lg:mb-14 sm:mt-0 md:sm-12 my-10  ">
             <CategorySlider
               locale={locale}
               categories={allCategories && allCategories.length > 0 ? allCategories : categories}
@@ -193,8 +193,8 @@ function CategoryPageContent({
               <button
                 onClick={() => setActiveSubcategory(undefined)}
                 className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${!activeSubcategory
-                    ? 'bg-primary text-white shadow-xs'
-                    : 'bg-surface-subtle text-text-secondary hover:bg-surface border border-border'
+                  ? 'bg-primary text-white shadow-xs'
+                  : 'bg-surface-subtle text-text-secondary hover:bg-surface border border-border'
                   }`}
               >
                 {locale === 'ar' ? 'جميع التشكيلات' : 'All Subcategories'}
@@ -209,8 +209,8 @@ function CategoryPageContent({
                       setActiveSubcategory(isSelected ? undefined : sub.slug)
                     }
                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${isSelected
-                        ? 'bg-primary text-white shadow-xs'
-                        : 'bg-surface-subtle text-text-secondary hover:bg-surface border border-border'
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'bg-surface-subtle text-text-secondary hover:bg-surface border border-border'
                       }`}
                   >
                     {sub.name[locale]}
