@@ -89,11 +89,11 @@ export function ProductCarousel({
           {viewAllUrl && (
             <Link
               href={viewAllUrl}
-              className="group hidden sm:inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#FAF5EE] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white border border-[#DDD3C6] hover:border-[#2D3F33] shadow-xs hover:shadow-md text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-95 shrink-0"
+              className="group hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#FAF5EE] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white border border-[#DDD3C6] hover:border-[#2D3F33] shadow-xs hover:shadow-md text-sm font-bold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-95 shrink-0"
             >
               <span>{viewAllLabel || (locale === 'ar' ? 'عرض الكل' : 'View All')}</span>
-              <span className="w-6 h-6 rounded-full bg-[#2D3F33] group-hover:bg-white text-white group-hover:text-[#2D3F33] flex items-center justify-center transition-colors shrink-0 ms-1">
-                <ArrowIcon className="w-3.5 h-3.5 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
+              <span className="w-5.5 h-5.5 rounded-full bg-[#2D3F33] group-hover:bg-white text-white group-hover:text-[#2D3F33] flex items-center justify-center transition-colors shrink-0">
+                <ArrowIcon className="w-3 h-3 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
               </span>
             </Link>
           )}
@@ -154,14 +154,14 @@ export function ProductCarousel({
 
       {/* Mobile View All Button */}
       {viewAllUrl && (
-        <div className="mt-8 text-center sm:hidden">
+        <div className="mt-6 text-center sm:hidden px-2">
           <Link
             href={viewAllUrl}
-            className="group inline-flex items-center justify-center gap-2.5 w-full py-3 px-5 text-xs sm:text-sm font-bold text-[#1E1915] hover:text-white bg-[#FAF5EE] hover:bg-[#2D3F33] border border-[#DDD3C6] hover:border-[#2D3F33] rounded-full shadow-xs transition-all duration-300"
+            className="group inline-flex items-center justify-center gap-2.5 w-full h-11 px-5 text-sm font-bold text-[#1E1915] hover:text-white bg-[#FAF5EE] hover:bg-[#2D3F33] border border-[#DDD3C6] hover:border-[#2D3F33] rounded-full shadow-xs transition-all duration-300 active:scale-[0.98]"
           >
             <span>{viewAllLabel || (locale === 'ar' ? 'عرض جميع التشكيلات' : 'View All Products')}</span>
-            <span className="w-6 h-6 rounded-full bg-[#2D3F33] group-hover:bg-white text-white group-hover:text-[#2D3F33] flex items-center justify-center transition-colors shrink-0 ms-1">
-              <ArrowIcon className="w-3.5 h-3.5" />
+            <span className="w-5.5 h-5.5 rounded-full bg-[#2D3F33] group-hover:bg-white text-white group-hover:text-[#2D3F33] flex items-center justify-center transition-colors shrink-0">
+              <ArrowIcon className="w-3 h-3 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
             </span>
           </Link>
         </div>

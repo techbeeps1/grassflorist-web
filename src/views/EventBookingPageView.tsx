@@ -206,7 +206,7 @@ export function EventBookingPageView({ locale }: EventBookingPageViewProps) {
                 <div className="flex flex-wrap items-center gap-3.5">
                   <a
                     href="#booking-form"
-                    className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-[#8CA841] hover:bg-[#7b9636] text-[#141E18] font-extrabold text-xs sm:text-sm shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2.5 px-6 py-3 sm:px-7 sm:py-3.5 rounded-full bg-[#8CA841] hover:bg-[#7b9636] text-[#141E18] font-extrabold text-sm sm:text-base shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
                   >
                     <span>{isRtl ? 'احجز استشارة مناسبتك الآن' : 'Book Your Event Consultation'}</span>
                     <ArrowIcon className="w-4 h-4" />
@@ -216,7 +216,7 @@ export function EventBookingPageView({ locale }: EventBookingPageViewProps) {
                     href="https://wa.me/966555134211"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs sm:text-sm backdrop-blur-xs transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:px-6 sm:py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-sm sm:text-base backdrop-blur-xs transition-all hover:scale-105 active:scale-95 cursor-pointer"
                   >
                     <MessageCircle className="w-4 h-4 text-[#8CA841]" />
                     <span>{isRtl ? 'محادثة فورية واتساب' : 'WhatsApp Concierge'}</span>

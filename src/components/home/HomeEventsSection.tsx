@@ -268,7 +268,7 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
               {/* Dark Olive Pill CTA Button */}
               <Link
                 href={eventBookingUrl}
-                className="inline-flex items-center gap-3 px-7 py-3.5 rounded-full bg-[#3F5438] hover:bg-[#32432C] text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all duration-300 hover:scale-105 active:scale-95 group cursor-pointer"
+                className="inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-full bg-[#3F5438] hover:bg-[#32432C] text-white font-bold text-sm uppercase tracking-wider shadow-md transition-all duration-300 hover:scale-105 active:scale-95 group cursor-pointer"
               >
                 <span>{isRtl ? 'احجز الآن' : 'BOOK NOW'}</span>
                 <ArrowIcon className="w-4 h-4 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />

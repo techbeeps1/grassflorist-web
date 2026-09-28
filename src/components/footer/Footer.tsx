@@ -54,7 +54,7 @@ export function Footer({ locale }: FooterProps) {
         <div className="absolute bottom-0 start-0 w-80 h-80 bg-[#D4C4B5]/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="site-container relative z-10">
-          <div className="max-w-4xl mx-auto bg-white rounded-3xl p-8 sm:p-12 border border-[#E8DFC0]/80 shadow-[0_10px_35px_rgba(40,30,20,0.04)] text-center flex flex-col items-center">
+          <div className="max-w-4xl mx-auto bg-white rounded-3xl p-5 sm:p-8 md:p-12 border border-[#E8DFC0]/80 shadow-[0_10px_35px_rgba(40,30,20,0.04)] text-center flex flex-col items-center">
             {/* VIP Club Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF5EE] text-[#435849] border border-[#DDD3C6] text-[11px] font-bold uppercase tracking-wider mb-3.5 shadow-2xs">
               <Sparkles className="w-3.5 h-3.5 text-[#8CA841]" />
@@ -65,7 +65,7 @@ export function Footer({ locale }: FooterProps) {
             <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1E1915] leading-tight mb-2.5">
               {dict.home.newsletterTitle}
             </h2>
-            <p className="text-sm sm:text-base text-[#6B5E52] max-w-xl mx-auto leading-relaxed mb-7 sm:mb-8">
+            <p className="text-sm sm:text-base text-[#6B5E52] max-w-xl mx-auto leading-relaxed mb-6 sm:mb-8">
               {dict.home.newsletterSubtitle}
             </p>
 
@@ -81,22 +81,22 @@ export function Footer({ locale }: FooterProps) {
               ) : (
                 <form
                   onSubmit={handleSubscribe}
-                  className="relative flex items-center bg-[#FAF8F5] rounded-full p-1.5 border border-[#D5C6B5] shadow-xs hover:border-[#435849]/50 focus-within:border-[#435849] focus-within:ring-3 focus-within:ring-[#435849]/15 transition-all w-full"
+                  className="relative flex items-center bg-[#FAF8F5] rounded-full p-1 sm:p-1.5 border border-[#D5C6B5] shadow-xs hover:border-[#435849]/50 focus-within:border-[#435849] focus-within:ring-3 focus-within:ring-[#435849]/15 transition-all w-full"
                 >
-                  <div className="flex items-center flex-1 min-w-0 ps-4 pe-2">
-                    <Mail className="w-4 h-4 text-[#8C7A6B] shrink-0 me-2.5 opacity-80" />
+                  <div className="flex items-center flex-1 min-w-0 ps-3 sm:ps-4 pe-1">
+                    <Mail className="w-4 h-4 text-[#8C7A6B] shrink-0 me-2 opacity-80" />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder={dict.home.newsletterPlaceholder}
+                      placeholder={locale === 'ar' ? 'أدخل بريدك الإلكتروني...' : 'Enter your email...'}
                       className="w-full h-10 sm:h-11 text-xs sm:text-sm bg-transparent border-0 text-[#1E1915] placeholder:text-[#91857A] focus:outline-none"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="group shrink-0 inline-flex items-center justify-center gap-2 px-5 sm:px-7 py-3 rounded-full bg-[#435849] hover:bg-[#2D3F33] text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 whitespace-nowrap flex-nowrap cursor-pointer"
+                    className="group shrink-0 inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#435849] hover:bg-[#2D3F33] text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 whitespace-nowrap cursor-pointer"
                   >
                     <span>{dict.home.newsletterButton}</span>
                     <span className="w-5 h-5 rounded-full bg-white/20 group-hover:bg-white/30 flex items-center justify-center shrink-0 transition-colors">

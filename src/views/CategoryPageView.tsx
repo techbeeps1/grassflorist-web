@@ -152,7 +152,7 @@ function CategoryPageContent({
           <Breadcrumbs items={breadcrumbItems} locale={locale} />
 
           {/* Category Banner / Title Card */}
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#FAF3ED] via-[#F4ECE2] to-[#EAE0D3] border border-[#E2D5C4] mb-6 sm:mb-8 p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#FAF3ED] via-[#F4ECE2] to-[#EAE0D3] border border-[#E2D5C4] mb-6 sm:mb-8 p-6 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="max-w-xl text-start">
               <h1 className="text-2xl sm:text-4xl font-extrabold text-[#25211E] mb-2">
                 {currentCategory.name[locale]}
