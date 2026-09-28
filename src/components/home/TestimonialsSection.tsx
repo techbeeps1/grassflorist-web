@@ -74,7 +74,7 @@ export function TestimonialsSection({ locale }: TestimonialsSectionProps) {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18]">
             {dict.home.testimonialsTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-[#5A5049] mt-2">
+          <p className="text-sm sm:text-base text-[#5A5049] mt-2">
             {dict.home.testimonialsSubtitle}
           </p>
         </div>
@@ -126,7 +126,7 @@ export function TestimonialsSection({ locale }: TestimonialsSectionProps) {
                       </div>
 
                       {/* Comment */}
-                      <p className="text-[13px] sm:text-[14px] text-[#2C2520] leading-relaxed mb-5 font-serif italic line-clamp-4">
+                      <p className="text-sm sm:text-base text-[#2C2520] leading-relaxed mb-5 italic line-clamp-4">
                         &ldquo;{t.comment[locale]}&rdquo;
                       </p>
 

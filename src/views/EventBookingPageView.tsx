@@ -186,8 +186,7 @@ export function EventBookingPageView({ locale }: EventBookingPageViewProps) {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
               <div className="lg:col-span-7 text-start">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-[#D8E6C8] border border-white/15 text-xs font-bold uppercase tracking-wider mb-4 sm:mb-5 backdrop-blur-xs">
-                  <Sparkles className="w-3.5 h-3.5 text-[#8CA841]" />
+                <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/10 text-[#D8E6C8] border border-white/15 text-xs font-bold uppercase tracking-wider mb-4 sm:mb-5 backdrop-blur-xs">
                   <span>{isRtl ? 'غراس فلوريست | إدارة وتنظيم المناسبات' : 'GRASS ATELIER | BESPOKE EVENTS'}</span>
                 </div>
 
@@ -276,7 +275,7 @@ export function EventBookingPageView({ locale }: EventBookingPageViewProps) {
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18] tracking-tight">
                 {isRtl ? 'حلول تنظيم متكاملة لجميع المناسبات' : 'Comprehensive Event Planning & Styling'}
               </h2>
-              <p className="text-xs sm:text-sm text-[#685D54] mt-2 leading-relaxed">
+              <p className="text-sm sm:text-base text-[#685D54] mt-2 leading-relaxed">
                 {isRtl
                   ? 'من حفلات الزفاف الملكية إلى الفعاليات الرسمية، نقدم حلولاً متكاملة تضمن دقة التنظيم وجمال الديكور.'
                   : 'From royal weddings to corporate galas, our team orchestrates every element with unmatched finesse.'}
@@ -295,11 +294,8 @@ export function EventBookingPageView({ locale }: EventBookingPageViewProps) {
                     )}
                   >
                     <div>
-                      {/* Top Row: Number & Badge */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-2xl bg-[#FAF5EE] text-[#435849] group-hover:bg-[#2D3F33] group-hover:text-white flex items-center justify-center transition-colors">
-                          <IconComp className="w-5 h-5" />
-                        </div>
+                      {/* Top Row: Badge */}
+                      <div className="flex items-center justify-start mb-3">
                         <span className="text-xs font-extrabold text-[#8CA841] tracking-widest uppercase">
                           {service.badge[locale]}
                         </span>
@@ -309,7 +305,7 @@ export function EventBookingPageView({ locale }: EventBookingPageViewProps) {
                         {service.title[locale]}
                       </h3>
 
-                      <p className="text-xs sm:text-sm text-[#685D54] leading-relaxed mb-6">
+                      <p className="text-sm sm:text-base text-[#685D54] leading-relaxed mb-6">
                         {service.desc[locale]}
                       </p>
                     </div>

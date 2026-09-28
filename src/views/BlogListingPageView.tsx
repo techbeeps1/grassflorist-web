@@ -37,7 +37,7 @@ export function BlogListingPageView({ locale }: BlogListingPageViewProps) {
           <h1 className="text-2xl sm:text-4xl font-extrabold text-text-main mb-2">
             {dict.blog.title}
           </h1>
-          <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
+          <p className="text-sm sm:text-base text-text-muted leading-relaxed">
             {dict.blog.subtitle}
           </p>
         </div>
@@ -74,7 +74,7 @@ export function BlogListingPageView({ locale }: BlogListingPageViewProps) {
                     {featuredPost.title[locale]}
                   </h2>
 
-                  <p className="text-xs sm:text-sm text-text-secondary leading-relaxed line-clamp-3">
+                  <p className="text-sm sm:text-base text-text-secondary leading-relaxed line-clamp-3">
                     {featuredPost.excerpt[locale]}
                   </p>
                 </div>

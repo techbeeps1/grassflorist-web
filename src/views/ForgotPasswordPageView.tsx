@@ -74,7 +74,7 @@ export function ForgotPasswordPageView({ locale }: ForgotPasswordPageViewProps) 
           <h1 className="text-3xl sm:text-[34px] font-serif font-black text-[#1E1915] tracking-tight leading-tight">
             {dict.auth.forgotPasswordTitle}
           </h1>
-          <p className="text-xs sm:text-sm text-[#7D7065] mt-1.5 leading-relaxed">
+          <p className="text-sm sm:text-base text-[#7D7065] mt-1.5 leading-relaxed">
             {dict.auth.forgotPasswordSubtitle}
           </p>
         </div>

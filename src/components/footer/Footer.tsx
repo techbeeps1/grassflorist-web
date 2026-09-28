@@ -65,7 +65,7 @@ export function Footer({ locale }: FooterProps) {
             <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1E1915] leading-tight mb-2.5">
               {dict.home.newsletterTitle}
             </h2>
-            <p className="text-xs sm:text-sm text-[#6B5E52] max-w-xl mx-auto leading-relaxed mb-7 sm:mb-8">
+            <p className="text-sm sm:text-base text-[#6B5E52] max-w-xl mx-auto leading-relaxed mb-7 sm:mb-8">
               {dict.home.newsletterSubtitle}
             </p>
 
@@ -291,9 +291,9 @@ export function Footer({ locale }: FooterProps) {
                     <li>
                       <Link
                         href={locale === 'ar' ? '/حجز-مناسبة' : '/en/event-booking'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150 text-[#99C552] font-medium"
+                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150 text-white font-medium"
                       >
-                        {locale === 'ar' ? '🎉 حجز وتنظيم مناسبة' : '🎉 Event & Wedding Booking'}
+                        {locale === 'ar' ? ' حجز وتنظيم مناسبة' : 'Event & Wedding Booking'}
                       </Link>
                     </li>
                     <li>

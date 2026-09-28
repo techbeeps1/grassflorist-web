@@ -34,7 +34,7 @@ export function WishlistPageView({ locale }: WishlistPageViewProps) {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main">
             {dict.wishlist.title}
           </h1>
-          <p className="text-xs sm:text-sm text-text-muted mt-1">
+          <p className="text-sm sm:text-base text-text-muted mt-1">
             {locale === 'ar'
               ? 'احفظ باقاتك وتنسيقاتك المفضلة هنا لطلبها في المناسبات القادمة.'
               : 'Keep track of your admired arrangements and send them when milestones arrive.'}
@@ -61,7 +61,7 @@ export function WishlistPageView({ locale }: WishlistPageViewProps) {
             <h2 className="text-xl font-bold text-text-main mb-2">
               {dict.wishlist.emptyTitle}
             </h2>
-            <p className="text-xs sm:text-sm text-text-muted max-w-sm mb-6 leading-relaxed">
+            <p className="text-sm sm:text-base text-text-muted max-w-sm mb-6 leading-relaxed">
               {dict.wishlist.emptyDesc}
             </p>
             <Link href={catalogUrl}>

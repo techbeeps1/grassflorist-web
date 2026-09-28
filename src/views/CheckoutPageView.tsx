@@ -131,7 +131,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main mb-2">
             {dict.checkout.orderSuccessTitle}
           </h1>
-          <p className="text-xs sm:text-sm text-text-secondary leading-relaxed mb-6">
+          <p className="text-sm sm:text-base text-text-secondary leading-relaxed mb-6">
             {dict.checkout.orderSuccessDesc}
           </p>
 

@@ -154,30 +154,34 @@
   --color-info: var(--info);
   --color-info-bg: var(--info-bg);
 
-  --font-arabic: var(--font-cairo);
-  --font-sans: var(--font-poppins);
-  --font-heading: var(--font-cormorant);
+  --font-arabic: var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif;
+  --font-sans: var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif;
+  --font-heading: var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif;
+  --font-serif: var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif;
 }
 
 html {
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: clip;
+  font-family: var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif;
 }
 
-/* RTL and LTR base font handling with Poppins */
-html[lang="ar"] {
-  font-family: var(--font-cairo), var(--font-poppins), -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
-}
-
+/* Global unified font family for Arabic and English */
+html[lang="ar"],
 html[lang="en"] {
-  font-family: var(--font-poppins), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif;
+  font-size: 16px;
 }
 
-/* Cormorant Garamond Romantic Botanical Headings */
-h1, h2, h3, h4, .font-heading {
-  font-family: var(--font-cormorant), var(--font-cairo), Georgia, serif;
-  letter-spacing: 0.01em;
+/* Headings, text, forms, buttons, cards, menus, events, footer */
+h1, h2, h3, h4, h5, h6,
+p, span, a, button, input, textarea, select, label,
+.font-heading,
+.font-serif,
+.font-sans {
+  font-family: var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif;
   font-variant-numeric: lining-nums;
 }
 
@@ -185,29 +189,44 @@ html[lang="en"] h1,
 html[lang="en"] h2,
 html[lang="en"] h3,
 html[lang="en"] h4,
-html[lang="en"] .font-heading {
-  font-family: var(--font-cormorant), Georgia, serif;
-  letter-spacing: 0.01em;
-  font-variant-numeric: lining-nums;
-}
-
+html[lang="en"] h5,
+html[lang="en"] h6,
+html[lang="en"] .font-heading,
+html[lang="en"] .font-serif,
 html[lang="ar"] h1,
 html[lang="ar"] h2,
 html[lang="ar"] h3,
 html[lang="ar"] h4,
-html[lang="ar"] .font-heading {
-  font-family: var(--font-cairo), var(--font-cormorant), sans-serif;
-  letter-spacing: normal;
+html[lang="ar"] h5,
+html[lang="ar"] h6,
+html[lang="ar"] .font-heading,
+html[lang="ar"] .font-serif {
+  font-family: var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif;
   font-variant-numeric: lining-nums;
 }
 
+/* Responsive Paragraph Scaling: Mobile text-sm (14px) -> Desktop text-base (16px) */
+p {
+  font-size: 0.875rem;
+  line-height: 1.625;
+}
+
+@media (min-width: 640px) {
+  p {
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+}
+
 body {
+  font-size: 16px;
+  line-height: 1.6;
   background-color: var(--background);
   color: var(--text);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family: inherit;
+  font-family: var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif;
   overflow-x: clip;
 }
 

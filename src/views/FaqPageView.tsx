@@ -72,7 +72,7 @@ export function FaqPageView({ locale }: FaqPageViewProps) {
             <h1 className="text-2xl sm:text-4xl font-extrabold text-text-main mb-2">
               {dict.faq.title}
             </h1>
-            <p className="text-xs sm:text-sm text-text-muted leading-relaxed max-w-xl mx-auto">
+            <p className="text-sm sm:text-base text-text-muted leading-relaxed max-w-xl mx-auto">
               {dict.faq.subtitle}
             </p>
 

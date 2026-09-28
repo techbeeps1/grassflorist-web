@@ -117,7 +117,7 @@ export function HomePageView({
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18]">
                       {dict.home.featuredTitle}
                     </h2>
-                    <p className="text-xs sm:text-sm text-[#5A5049] mt-1">
+                    <p className="text-sm sm:text-base text-[#5A5049] mt-1">
                       {dict.home.featuredSubtitle}
                     </p>
                   </div>
@@ -190,7 +190,7 @@ export function HomePageView({
                 <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1E1915] leading-tight">
                   {dict.home.faqTitle}
                 </h2>
-                <p className="text-xs sm:text-sm text-[#6B5E52] mt-2.5 max-w-xl mx-auto leading-relaxed">
+                <p className="text-sm sm:text-base text-[#6B5E52] mt-2.5 max-w-xl mx-auto leading-relaxed">
                   {dict.home.faqSubtitle}
                 </p>
               </div>

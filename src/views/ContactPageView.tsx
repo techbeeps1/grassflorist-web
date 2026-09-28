@@ -52,7 +52,7 @@ export function ContactPageView({ locale }: ContactPageViewProps) {
           <h1 className="text-2xl sm:text-4xl font-extrabold text-text-main mb-2">
             {dict.contact.title}
           </h1>
-          <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
+          <p className="text-sm sm:text-base text-text-muted leading-relaxed">
             {dict.contact.subtitle}
           </p>
         </div>

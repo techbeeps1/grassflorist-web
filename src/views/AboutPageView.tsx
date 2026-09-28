@@ -30,7 +30,7 @@ export function AboutPageView({ locale }: AboutPageViewProps) {
           <h1 className="text-3xl sm:text-4xl font-extrabold text-text-main leading-tight mb-3">
             {dict.about.title}
           </h1>
-          <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
+          <p className="text-sm sm:text-base text-text-muted leading-relaxed">
             {dict.about.subtitle}
           </p>
         </div>
@@ -41,10 +41,10 @@ export function AboutPageView({ locale }: AboutPageViewProps) {
             <h2 className="text-xl sm:text-2xl font-bold text-text-main">
               {dict.about.ourStory}
             </h2>
-            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+            <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
               {dict.about.storyP1}
             </p>
-            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+            <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
               {dict.about.storyP2}
             </p>
 

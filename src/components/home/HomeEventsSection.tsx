@@ -178,7 +178,7 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
                   </h3>
 
                   {/* Card Description */}
-                  <p className="text-xs sm:text-[13px] text-[#6B6057] leading-relaxed max-w-xs mx-auto">
+                  <p className="text-sm sm:text-base text-[#6B6057] leading-relaxed max-w-xs mx-auto">
                     {item.desc}
                   </p>
 
@@ -257,7 +257,7 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
             </h2>
 
             {/* Paragraph Text */}
-            <p className="text-xs sm:text-sm text-[#68625B] leading-relaxed mb-8 max-w-md pt-1">
+            <p className="text-sm sm:text-base text-[#68625B] leading-relaxed mb-8 max-w-md pt-1">
               {isRtl
                 ? 'اكتشف التناغم المثالي بين أناقة الزهور وخبرة تنظيم المناسبات مع بوتيك غراس. دعنا ننبض الحياة في مناسباتكم بعناية فائقة بأدق التفاصيل وتنسيقات زهور مذهلة. من حفلات الزفاف إلى الفعاليات الرسمية، سيبتكر فريقنا من المحترفين أجواءً ساحرة تفوق توقعاتكم.'
                 : 'Discover the perfect harmony of floral elegance and event planning expertise with our flower shop. Let us bring your events to life with our meticulous attention to detail and stunning floral arrangements. From weddings to corporate gatherings, our team of professionals will create a captivating ambiance that exceeds your expectations.'}

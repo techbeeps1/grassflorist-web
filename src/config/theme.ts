@@ -51,9 +51,9 @@ export const theme = {
   },
 
   typography: {
-    heading: 'var(--font-heading), serif',
-    body: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    arabic: 'var(--font-arabic), -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif',
+    heading: 'var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif',
+    body: 'var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif',
+    arabic: 'var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif',
   },
 
   radius: {

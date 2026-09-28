@@ -1,29 +1,15 @@
-import { Cairo, Poppins, Cormorant_Garamond, Plus_Jakarta_Sans } from 'next/font/google';
+import { Tajawal } from 'next/font/google';
 
-export const cairo = Cairo({
+export const tajawal = Tajawal({
   subsets: ['arabic', 'latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-cairo',
+  weight: ['200', '300', '400', '500', '700', '800', '900'],
+  variable: '--font-tajawal',
   display: 'swap',
+  fallback: ['Arial', 'Helvetica', 'sans-serif'],
 });
 
-export const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-poppins',
-  display: 'swap',
-});
-
-export const cormorantGaramond = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-cormorant',
-  display: 'swap',
-});
-
-export const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-plus-jakarta',
-  display: 'swap',
-});
+// Backward compatibility alias
+export const cairo = tajawal;
+export const poppins = tajawal;
+export const cormorantGaramond = tajawal;
+export const plusJakartaSans = tajawal;

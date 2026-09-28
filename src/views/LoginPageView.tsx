@@ -104,7 +104,7 @@ function LoginPageContent({ locale }: LoginPageViewProps) {
           <h1 className="text-3xl sm:text-[34px] font-serif font-black text-[#1E1915] tracking-tight leading-tight">
             {dict.auth.signIn}
           </h1>
-          <p className="text-xs sm:text-sm text-[#7D7065] mt-1.5 leading-relaxed">
+          <p className="text-sm sm:text-base text-[#7D7065] mt-1.5 leading-relaxed">
             {locale === 'ar'
               ? 'أهلاً بك مجدداً في بوتيك جراس للزهور الفاخرة'
               : 'Welcome back to Grass Luxury Floral Boutique'}

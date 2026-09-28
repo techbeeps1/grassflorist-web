@@ -25,8 +25,11 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
   const [isHovered, setIsHovered] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
+  const productSlug =
+    product.slug?.[locale] || product.slug?.ar || product.slug?.en || product.id;
+
   const productUrl =
-    locale === 'ar' ? `/product/${product.slug.ar}` : `/en/product/${product.slug.en}`;
+    locale === 'ar' ? `/product/${productSlug}` : `/en/product/${productSlug}`;
 
   const discount = calculateDiscount(product.price, product.originalPrice);
 
@@ -115,7 +118,7 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
     >
       {/* 1. Main Visual Frame */}
       <div className="relative w-full aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-[#FAF7F2]">
-        <Link href={productUrl} className="block w-full h-full">
+        <Link href={productUrl} prefetch={true} className="block w-full h-full">
           <Image
             src={currentImage}
             alt={product.name[locale]}
@@ -196,7 +199,7 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
       <div className="px-1 pt-3 sm:pt-3.5 pb-0.5 flex flex-col justify-between flex-1">
         <div>
           {/* Product Title */}
-          <Link href={productUrl} className="block group/title mb-2">
+          <Link href={productUrl} prefetch={true} className="block group/title mb-2">
             <h3 className="text-[15px] md:text-[18px] font-bold text-[#1E1915] group-hover/title:text-[#435849] transition-colors line-clamp-1 leading-snug">
               {product.name[locale]}
             </h3>

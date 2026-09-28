@@ -164,6 +164,22 @@ export function parseRegularPrice(prices: WCStorePrices): number | undefined {
   return price > 0 ? price : undefined;
 }
 
+// In-memory cache for ultra-fast instant product retrieval
+const productMemoryCache = new Map<string, Product>();
+
+export function cacheProduct(product: Product) {
+  if (!product) return;
+  if (product.id) productMemoryCache.set(String(product.id), product);
+  if (product.slug?.ar) productMemoryCache.set(product.slug.ar.toLowerCase(), product);
+  if (product.slug?.en) productMemoryCache.set(product.slug.en.toLowerCase(), product);
+}
+
+export function cacheProducts(products: Product[]) {
+  for (const p of products) {
+    cacheProduct(p);
+  }
+}
+
 /**
  * Map WooCommerce Store API Product to Frontend Product Type
  */
@@ -196,7 +212,7 @@ export function mapWCProductToProduct(wc: WCStoreProduct): Product {
 
   const decodedSlug = decodeURIComponent(wc.slug);
 
-  return {
+  const product: Product = {
     id: String(wc.id),
     name: {
       ar: cleanProductName,
@@ -250,6 +266,9 @@ export function mapWCProductToProduct(wc: WCStoreProduct): Product {
       en: cleanShortDesc || `Order ${cleanProductName} from Grass Florist with express delivery across Saudi Arabia.`,
     },
   };
+
+  cacheProduct(product);
+  return product;
 }
 
 /**
@@ -330,7 +349,7 @@ export async function getStoreProducts(params?: {
     if (params?.locale) searchParams.set('wpml_language', params.locale);
 
     const res = await fetch(`${STORE_API_BASE}/products?${searchParams.toString()}`, {
-      next: { revalidate: 120 },
+      next: { revalidate: 3600 },
     });
 
     if (!res.ok) {
@@ -346,8 +365,11 @@ export async function getStoreProducts(params?: {
       return { products: fallbackProducts.slice(0, params?.per_page || 12), total: fallbackProducts.length };
     }
 
+    const products = data.map(mapWCProductToProduct);
+    cacheProducts(products);
+
     return {
-      products: data.map(mapWCProductToProduct),
+      products,
       total: total || data.length,
     };
   } catch (error) {
@@ -360,54 +382,88 @@ export async function getStoreProducts(params?: {
 }
 
 /**
- * Fetch a single product by slug or ID
+ * Fast multi-strategy product lookup with instant cache resolution
  */
 export async function getStoreProductBySlug(slug: string, locale?: Locale): Promise<Product | null> {
+  if (!slug) return null;
+
   try {
-    const cleanSlug = decodeURIComponent(slug).trim().toLowerCase();
+    const rawSlug = String(slug).trim();
+    const decodedSlug = decodeURIComponent(rawSlug).trim().toLowerCase();
+
+    // 1. Check in-memory cache for INSTANT 0ms response
+    if (productMemoryCache.has(decodedSlug)) {
+      return productMemoryCache.get(decodedSlug)!;
+    }
+    const numericId = decodedSlug.replace(/\D/g, '');
+    if (numericId && productMemoryCache.has(numericId)) {
+      return productMemoryCache.get(numericId)!;
+    }
+
+    // 2. Direct high-speed API fetch by slug
     const wpmlQuery = locale ? `&wpml_language=${locale}` : '';
+    const fetchPromises = [
+      fetch(`${STORE_API_BASE}/products?slug=${encodeURIComponent(decodedSlug)}${wpmlQuery}`, {
+        next: { revalidate: 3600 },
+      }).then(async (r) => (r.ok ? ((await r.json()) as WCStoreProduct[]) : []))
+      .catch(() => [] as WCStoreProduct[]),
+    ];
 
-    // Query by slug
-    const res = await fetch(`${STORE_API_BASE}/products?slug=${encodeURIComponent(cleanSlug)}${wpmlQuery}`, {
-      next: { revalidate: 120 },
-    });
+    if (numericId) {
+      fetchPromises.push(
+        fetch(`${STORE_API_BASE}/products/${numericId}${wpmlQuery ? '?' + wpmlQuery.slice(1) : ''}`, {
+          next: { revalidate: 3600 },
+        }).then(async (r) => (r.ok ? [((await r.json()) as WCStoreProduct)] : []))
+        .catch(() => [] as WCStoreProduct[])
+      );
+    }
 
-    if (res.ok) {
-      const list: WCStoreProduct[] = await res.json();
-      if (Array.isArray(list) && list.length > 0) {
-        return mapWCProductToProduct(list[0]);
+    const results = await Promise.all(fetchPromises);
+    for (const list of results) {
+      if (Array.isArray(list) && list.length > 0 && list[0]?.id) {
+        const product = mapWCProductToProduct(list[0]);
+        cacheProduct(product);
+        return product;
       }
     }
 
-    // Try fallback lookup by ID if slug is numeric
-    if (/^\d+$/.test(cleanSlug)) {
-      const idRes = await fetch(`${STORE_API_BASE}/products/${cleanSlug}${wpmlQuery ? '?' + wpmlQuery.slice(1) : ''}`, {
-        next: { revalidate: 120 },
+    // 3. Fast search fallback
+    try {
+      const searchRes = await fetch(`${STORE_API_BASE}/products?search=${encodeURIComponent(decodedSlug)}${wpmlQuery}`, {
+        next: { revalidate: 3600 },
       });
-      if (idRes.ok) {
-        const item: WCStoreProduct = await idRes.json();
-        if (item?.id) {
-          return mapWCProductToProduct(item);
+      if (searchRes.ok) {
+        const list: WCStoreProduct[] = await searchRes.json();
+        if (Array.isArray(list) && list.length > 0) {
+          const match = list.find(
+            (p) =>
+              p.slug.toLowerCase() === decodedSlug ||
+              decodeURIComponent(p.slug).toLowerCase() === decodedSlug ||
+              p.name.toLowerCase() === decodedSlug ||
+              String(p.id) === decodedSlug
+          );
+          const matchedItem = match || list[0];
+          const product = mapWCProductToProduct(matchedItem);
+          cacheProduct(product);
+          return product;
         }
       }
+    } catch {
+      // Continue to mock fallback
     }
 
-    // Fallback search by mock data
+    // 4. Mock fallback
     const fallback = fallbackProducts.find(
       (p) =>
-        p.slug.ar.toLowerCase() === cleanSlug ||
-        p.slug.en.toLowerCase() === cleanSlug ||
-        p.id === cleanSlug
+        p.slug.ar.toLowerCase() === decodedSlug ||
+        p.slug.en.toLowerCase() === decodedSlug ||
+        p.id === decodedSlug ||
+        (numericId && p.id === numericId)
     );
     return fallback || null;
   } catch (error) {
     console.error(`[getStoreProductBySlug] Error for slug ${slug}:`, error);
-    const fallback = fallbackProducts.find(
-      (p) =>
-        p.slug.ar.toLowerCase() === slug.toLowerCase() ||
-        p.slug.en.toLowerCase() === slug.toLowerCase()
-    );
-    return fallback || null;
+    return null;
   }
 }
 

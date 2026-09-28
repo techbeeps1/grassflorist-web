@@ -73,7 +73,7 @@ export function CartPageView({ locale }: CartPageViewProps) {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main">
             {dict.cart.title}
           </h1>
-          <p className="text-xs sm:text-sm text-text-muted mt-1">
+          <p className="text-sm sm:text-base text-text-muted mt-1">
             {locale === 'ar'
               ? 'راجع باقاتك وتنسيقات الهدايا قبل الانتقال إلى مرحلة الدفع وتحديد موعد التوصيل.'
               : 'Review your floral arrangements before proceeding to checkout and delivery scheduling.'}
@@ -303,7 +303,7 @@ export function CartPageView({ locale }: CartPageViewProps) {
             <h2 className="text-xl font-bold text-text-main mb-2">
               {dict.cart.emptyTitle}
             </h2>
-            <p className="text-xs sm:text-sm text-text-muted max-w-sm mb-6 leading-relaxed">
+            <p className="text-sm sm:text-base text-text-muted max-w-sm mb-6 leading-relaxed">
               {dict.cart.emptyDesc}
             </p>
             <Link href={catalogUrl}>

@@ -27,7 +27,7 @@ export function BlogPreviewSection({ locale }: BlogPreviewSectionProps) {
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18]">
               {locale === 'ar' ? 'إلهام وأسرار العناية بالزهور' : 'Floral Inspiration & Care Guides'}
             </h2>
-            <p className="text-xs sm:text-sm text-[#5A5049] mt-1.5">
+            <p className="text-sm sm:text-base text-[#5A5049] mt-1.5">
               {locale === 'ar'
                 ? 'مقالات حصرية من خبراء تنسيق الزهور لإرشادك في اختيار الهدية المثالية والحفاظ على نضارتها.'
                 : 'Curated articles from master florists to guide your gifting choices and prolong bloom life.'}

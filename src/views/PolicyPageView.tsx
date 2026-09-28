@@ -96,7 +96,7 @@ export function PolicyPageView({ type, locale }: PolicyPageViewProps) {
           </span>
         </div>
 
-        <div className="bg-surface rounded-3xl p-6 sm:p-8 border border-border space-y-4 text-start leading-relaxed text-xs sm:text-sm text-text-secondary">
+        <div className="bg-surface rounded-3xl p-6 sm:p-8 border border-border space-y-4 text-start leading-relaxed text-sm sm:text-base text-text-secondary">
           {policyContent[type][locale].map((para, idx) => (
             <p key={idx} className="pb-3 border-b border-border/50 last:border-0 last:pb-0">
               {para}

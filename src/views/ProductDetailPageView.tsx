@@ -12,6 +12,7 @@ import { QuantitySelector } from '@/components/common/QuantitySelector';
 import { Button } from '@/components/ui/Button';
 import { Product } from '@/types/product';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { useGetProductBySlugQuery } from '@/store/api/productsApi';
 import { addItem } from '@/store/slices/cartSlice';
 import { toggleWishlist, selectIsInWishlist } from '@/store/slices/wishlistSlice';
 import { setCartDrawerOpen, addToast } from '@/store/slices/uiSlice';
@@ -21,6 +22,7 @@ import { generateProductSchema, generateBreadcrumbSchema } from '@/lib/schema';
 import {
   Heart,
   ShoppingBag,
+  Loader2,
 } from 'lucide-react';
 
 interface ProductDetailPageViewProps {
@@ -40,9 +42,24 @@ export function ProductDetailPageView({
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  // Lookup product by initialProduct or slug
-  const decodedSlug = decodeURIComponent(slug).trim().toLowerCase();
-  const product = initialProduct;
+  // Client-side fallback if initialProduct is not provided
+  const { data: clientProduct, isLoading: isClientLoading } = useGetProductBySlugQuery(slug, {
+    skip: Boolean(initialProduct),
+  });
+
+  const product = initialProduct || clientProduct;
+
+  if (!product && isClientLoading) {
+    return (
+      <div className="py-24 text-center flex flex-col items-center justify-center min-h-[60vh] bg-surface">
+        <Loader2 className="w-8 h-8 text-primary animate-spin mb-3" />
+        <p className="text-sm font-semibold text-text-muted">
+          {locale === 'ar' ? 'جاري تحميل تفاصيل الباقة...' : 'Loading product details...'}
+        </p>
+      </div>
+    );
+  }
+
   if (!product) {
     notFound();
   }
@@ -191,7 +208,7 @@ export function ProductDetailPageView({
 
               {/* Product Description */}
               {(product.description?.[locale] || product.shortDescription?.[locale]) && (
-                <div className="py-3 text-xs sm:text-sm text-[#5C524B] leading-relaxed border-t border-border/60">
+                <div className="py-3 text-sm sm:text-base text-[#5C524B] leading-relaxed border-t border-border/60">
                   <span className="text-xs font-bold uppercase tracking-wider text-[#25211E] block mb-1.5">
                     {locale === 'ar' ? 'تفاصيل المنتج' : 'Product Description'}
                   </span>

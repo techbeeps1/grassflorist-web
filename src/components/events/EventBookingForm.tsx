@@ -168,8 +168,7 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
 
       {/* Header */}
       <div className="text-start mb-8 sm:mb-10 relative z-10">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF5EE] text-[#435849] border border-[#DDD3C6] text-xs font-bold uppercase tracking-wider mb-3 shadow-2xs">
-          <Sparkles className="w-3.5 h-3.5 text-[#8CA841]" />
+        <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#FAF5EE] text-[#435849] border border-[#DDD3C6] text-xs font-bold uppercase tracking-wider mb-3 shadow-2xs">
           <span>{isRtl ? 'طلب حجز واستشارة مجانية' : 'BOOKING INQUIRY & CONSULTATION'}</span>
         </div>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18] tracking-tight">
@@ -228,7 +227,6 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-3.5">
               {EVENT_TYPES.map((type) => {
-                const IconComponent = type.icon;
                 const isSelected = formData.eventType === type.id;
                 return (
                   <button
@@ -236,20 +234,12 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                     type="button"
                     onClick={() => setFormData({ ...formData, eventType: type.id })}
                     className={cn(
-                      'flex items-center gap-2.5 p-3 sm:p-3.5 rounded-2xl border text-start transition-all cursor-pointer select-none',
+                      'flex items-center justify-center text-center p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer select-none',
                       isSelected
                         ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-sm scale-[1.01]'
                         : 'bg-[#FAF8F5] hover:bg-white text-[#201B18] border-[#E8DFC0] hover:border-[#435849]/50'
                     )}
                   >
-                    <div
-                      className={cn(
-                        'w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors',
-                        isSelected ? 'bg-white/15 text-white' : 'bg-[#EFE8DE] text-[#435849]'
-                      )}
-                    >
-                      <IconComponent className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                    </div>
                     <span className="text-xs sm:text-sm font-bold leading-tight">
                       {type.name[locale]}
                     </span>

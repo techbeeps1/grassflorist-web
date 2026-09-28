@@ -123,7 +123,7 @@ function ProductsPageContent({ locale, initialProducts, allCategories }: Product
             <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main">
               {dict.nav.allProducts}
             </h1>
-            <p className="text-xs sm:text-sm text-text-muted mt-1">
+            <p className="text-sm sm:text-base text-text-muted mt-1">
               {locale === 'ar'
                 ? 'استكشف تشكيلة غراس الكاملة من باقات الزهور الطبيعية، التنسيقات الفاخرة، والهدايا الحصرية.'
                 : 'Browse the complete Grass collection of fresh blossoms, luxury box arrangements, and gifts.'}

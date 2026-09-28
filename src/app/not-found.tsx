@@ -1,10 +1,10 @@
 import Link from 'next/link';
-import { cairo } from './fonts';
+import { tajawal } from './fonts';
 import './globals.css';
 
 export default function RootNotFound() {
   return (
-    <html lang="ar" dir="rtl" className={cairo.variable}>
+    <html lang="ar" dir="rtl" className={tajawal.variable}>
       <body className="min-h-screen flex flex-col items-center justify-center bg-[#FAF8F5] text-[#16191D] font-sans p-6 text-center">
         <div className="max-w-md w-full p-8 bg-white rounded-3xl shadow-lg border border-black/5">
           <div className="w-16 h-16 rounded-full bg-[#0F4C3A]/10 text-[#0F4C3A] flex items-center justify-center mx-auto mb-6 text-2xl font-bold">

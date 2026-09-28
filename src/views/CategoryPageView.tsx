@@ -157,7 +157,7 @@ function CategoryPageContent({
               <h1 className="text-2xl sm:text-4xl font-extrabold text-[#25211E] mb-2">
                 {currentCategory.name[locale]}
               </h1>
-              <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+              <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
                 {currentCategory.description[locale]}
               </p>
             </div>

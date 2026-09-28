@@ -9,7 +9,7 @@ interface PageProps {
 }
 
 export const dynamicParams = true;
-export const revalidate = 120;
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -35,22 +35,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EnglishProductDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const product = await getStoreProductBySlug(slug, 'en');
+  const decodedSlug = decodeURIComponent(slug);
+  const product = await getStoreProductBySlug(decodedSlug, 'en');
 
   let relatedProducts = undefined;
   if (product?.categorySlug) {
-    const res = await getStoreProducts({
-      category: product.categorySlug,
-      per_page: 5,
-      locale: 'en',
-    });
-    relatedProducts = res.products.filter((p) => p.id !== product.id).slice(0, 4);
+    try {
+      const res = await getStoreProducts({
+        category: product.categorySlug,
+        per_page: 5,
+        locale: 'en',
+      });
+      relatedProducts = res.products.filter((p) => p.id !== product.id).slice(0, 4);
+    } catch {
+      // ignore related products fetch failure
+    }
   }
 
   return (
     <Suspense fallback={<div className="py-20 text-center text-sm">Loading arrangement details...</div>}>
       <ProductDetailPageView
-        slug={slug}
+        slug={decodedSlug}
         locale="en"
         initialProduct={product}
         initialRelatedProducts={relatedProducts}

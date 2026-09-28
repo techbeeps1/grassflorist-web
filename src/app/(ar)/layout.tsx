@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { cairo, poppins, cormorantGaramond } from '../fonts';
+import { tajawal } from '../fonts';
 import '../globals.css';
 import { StoreProvider } from '@/store/provider';
 import { Header } from '@/components/header/Header';
@@ -24,8 +24,8 @@ export default function ArabicRootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl" className={`${cairo.variable} ${poppins.variable} ${cormorantGaramond.variable}`}>
-      <body className="min-h-screen flex flex-col font-sans bg-background text-text-main antialiased selection:bg-primary-light selection:text-primary">
+    <html lang="ar" dir="rtl" className={tajawal.variable}>
+      <body className="min-h-screen flex flex-col font-sans text-base bg-background text-text-main antialiased selection:bg-primary-light selection:text-primary">
         <StoreProvider>
           <ScrollToTop />
           <a
