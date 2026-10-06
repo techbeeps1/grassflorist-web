@@ -70,16 +70,16 @@ export const mainNavItems: NavItem[] = [
     hasDropdown: true,
     subcategories: [
       { id: 'for-mother', name: { en: 'For Mother', ar: 'للأم' }, href: { en: '/en/category/for-mother', ar: '/category/للأم' } },
-      { id: 'birthday', name: { en: 'Birthday', ar: 'عيد ميلاد' }, href: { en: '/en/category/birthday', ar: '/category/عيد-ميلاد' } },
+      { id: 'birthday', name: { en: 'Birthday', ar: 'عيد ميلاد سعيد' }, href: { en: '/en/category/birthday', ar: '/category/عيد-ميلاد-سعيد' } },
       { id: 'for-father', name: { en: 'For Father', ar: 'للآب' }, href: { en: '/en/category/for-father', ar: '/category/للآب' } },
       { id: 'for-her', name: { en: 'For Her', ar: 'للمرأة' }, href: { en: '/en/category/for-her', ar: '/category/للمرأة' } },
       { id: 'for-him', name: { en: 'For Him', ar: 'للرجل' }, href: { en: '/en/category/for-him', ar: '/category/للرجل' } },
-      { id: 'love', name: { en: 'Love', ar: 'حب' }, href: { en: '/en/category/love', ar: '/category/حب' } },
-      { id: 'get-well', name: { en: 'Get well', ar: 'تمني بالشفاء' }, href: { en: '/en/category/get-well', ar: '/category/تمني-بالشفاء' } },
+      { id: 'love', name: { en: 'I Love You', ar: 'أحبك' }, href: { en: '/en/category/i-love-you', ar: '/category/أحبك' } },
+      { id: 'get-well', name: { en: 'Get Well Soon', ar: 'تمنيات بالشفاء' }, href: { en: '/en/category/get-well-soon', ar: '/category/تمنيات-بالشفاء' } },
       { id: 'graduation', name: { en: 'Graduation', ar: 'تخرج' }, href: { en: '/en/category/graduation', ar: '/category/تخرج' } },
-      { id: 'hand-bouquet', name: { en: 'Hand Bouquet', ar: 'هاند بوكيه' }, href: { en: '/en/category/hand-bouquet', ar: '/category/هاند-بوكيه' } },
+      { id: 'hand-bouquet', name: { en: 'Hand Bouquets', ar: 'هاند بكيه' }, href: { en: '/en/category/hand-bouquets', ar: '/category/هاند-بكيه' } },
       { id: 'i-am-sorry', name: { en: 'I am Sorry', ar: 'اعتذار' }, href: { en: '/en/category/i-am-sorry', ar: '/category/اعتذار' } },
-      { id: 'new-baby', name: { en: 'New Baby', ar: 'مولود جديد' }, href: { en: '/en/category/new-baby', ar: '/category/مولود-جديد' } },
+      { id: 'new-baby', name: { en: 'New Born', ar: 'تهنئة بالمولود' }, href: { en: '/en/category/new-born', ar: '/category/تهنئة-بالمولود' } },
       { id: 'new-job', name: { en: 'New job and promotion', ar: 'وظيفة وترقية' }, href: { en: '/en/category/new-job', ar: '/category/وظيفة-وترقية' } },
     ],
     featuredCard: {
@@ -104,11 +104,11 @@ export const mainNavItems: NavItem[] = [
   {
     id: 'fruits-bouquet',
     name: {
-      en: 'FRUITS BOUQUET',
+      en: 'FRUITS BOUQUETS',
       ar: 'باقات الفواكه',
     },
     href: {
-      en: '/en/category/fruits-bouquet',
+      en: '/en/category/fruits-bouquets',
       ar: '/category/باقات-الفواكه',
     },
     hasDropdown: false,
@@ -116,12 +116,12 @@ export const mainNavItems: NavItem[] = [
   {
     id: 'hand-bouquet',
     name: {
-      en: 'HAND BOUQUET',
-      ar: 'هاند بوكيه',
+      en: 'HAND BOUQUETS',
+      ar: 'هاند بكيه',
     },
     href: {
-      en: '/en/category/hand-bouquet',
-      ar: '/category/هاند-بوكيه',
+      en: '/en/category/hand-bouquets',
+      ar: '/category/هاند-بكيه',
     },
     hasDropdown: false,
   },
@@ -129,11 +129,11 @@ export const mainNavItems: NavItem[] = [
     id: 'cake-chocolate',
     name: {
       en: 'CAKE & CHOCOLATE',
-      ar: 'كيك وشوكولاته',
+      ar: 'كيك وشوكولاتة',
     },
     href: {
-      en: '/en/category/cake-chocolate',
-      ar: '/category/كيك-وشوكولاته',
+      en: '/en/category/cakes-chocolate',
+      ar: '/category/كيك-وشوكولاتة',
     },
     hasDropdown: true,
     dropdownType: 'simple',

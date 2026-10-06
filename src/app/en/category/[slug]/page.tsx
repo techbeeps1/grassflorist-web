@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { CategoryPageView } from '@/views/CategoryPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
-import { getStoreCategoryBySlug, getStoreCategories } from '@/lib/wordpress/store-api';
+import { getStoreCategoryBySlug, getHomePageBannerCategories } from '@/lib/wordpress/store-api';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -35,9 +35,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EnglishCategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const [{ category, products }, categories] = await Promise.all([
+  const [{ category, products }, bannerCategories] = await Promise.all([
     getStoreCategoryBySlug(slug, 'en'),
-    getStoreCategories('en'),
+    getHomePageBannerCategories('en'),
   ]);
 
   return (
@@ -47,7 +47,7 @@ export default async function EnglishCategoryPage({ params }: PageProps) {
         locale="en"
         initialCategory={category}
         initialProducts={products}
-        allCategories={categories.filter((c) => c.image && c.itemCount > 0)}
+        allCategories={bannerCategories}
       />
     </Suspense>
   );

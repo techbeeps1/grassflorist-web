@@ -663,10 +663,26 @@ export const CATEGORY_DESC_ARABIC_MAP: Record<string, string> = {
   'بالونات الأرقام': 'اطلب بالونات الأرقام المميزة لجميع مناسباتكم من غراس فلوريست',
   'هاند بوكيه': 'اطلب أرقى تشكيلة من الهاند بوكيه مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
   'هاند-بوكيه': 'اطلب أرقى تشكيلة من الهاند بوكيه مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'هاند بكيه': 'اطلب أرقى تشكيلة من الهاند بوكيه مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'هاند-بكيه': 'اطلب أرقى تشكيلة من الهاند بوكيه مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
   'فازات ورد': 'اطلب أرقى تشكيلة من فازات الورد مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
   'بوكسات ورد': 'اطلب أرقى تشكيلة من بوكسات الورد مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
   'باقات الفواكه': 'اطلب أرقى تشكيلة من باقات الفواكة مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
   'باقات الفواكة': 'اطلب أرقى تشكيلة من باقات الفواكة مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'تخرج': 'اطلب أجمل باقات وهدايا التخرج المميزة مع توصيل سريع في جدة من غراس فلوريست',
+  'عيد زواج سعيد': 'أرقى باقات ورد وهدايا عيد الزواج والذكرى السنوية مع توصيل سريع من غراس فلوريست',
+  'ذكرى سنوية': 'أرقى باقات ورد وهدايا عيد الزواج والذكرى السنوية مع توصيل سريع من غراس فلوريست',
+  'تمنيات بالشفاء': 'باقات زهور وتنسيقات أنيقة لعيادة المرضى والتمنيات بالشفاء العاجل مع توصيل سريع',
+  'تمني بالشفاء': 'باقات زهور وتنسيقات أنيقة لعيادة المرضى والتمنيات بالشفاء العاجل مع توصيل سريع',
+  'منزل مبارك': 'أجمل هدايا وتنسيقات النباتات والزهور للتهنئة بالمنزل الجديد من غراس فلوريست',
+  'تهنئة بالمولود': 'أرق باقات وتوزيعات ورد وهدايا استقبال المواليد الجدد من غراس فلوريست',
+  'مولود جديد': 'أرق باقات وتوزيعات ورد وهدايا استقبال المواليد الجدد من غراس فلوريست',
+  'عيد ميلاد سعيد': 'احتفل بأعياد الميلاد مع تشكيلة من أجمل باقات الورد والهدايا المميزة',
+  'عيد ميلاد': 'احتفل بأعياد الميلاد مع تشكيلة من أجمل باقات الورد والهدايا المميزة',
+  'أحبك': 'عبر عن مشاعرك بأرقى باقات الورد الأحمر والهدايا الرومانسية من غراس فلوريست',
+  'حب': 'عبر عن مشاعرك بأرقى باقات الورد الأحمر والهدايا الرومانسية من غراس فلوريست',
+  'الأكثر مبيعاً': 'تسوق المنتجات الأكثر طلباً ومبيعاً في متجر غراس فلوريست بأعلى جودة',
+  'الأفضل مبيعاً': 'تسوق المنتجات الأكثر طلباً ومبيعاً في متجر غراس فلوريست بأعلى جودة',
 };
 
 /**
@@ -696,7 +712,15 @@ export function mapWCCategoryToCategory(
       };
     });
 
+  const bannerMatch = HOME_BANNER_CATEGORIES_CONFIG.find((b) =>
+    b.apiMatch.some((m) => {
+      const ml = m.toLowerCase();
+      return decodedSlug === ml || cleanCategoryName.toLowerCase() === ml || decodedSlug.includes(ml) || cleanCategoryName.toLowerCase().includes(ml);
+    })
+  );
+
   const imageUrl =
+    bannerMatch?.defaultImage ||
     cat.image?.src ||
     'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=600&q=80';
 
@@ -908,10 +932,11 @@ export const PRIMARY_CATEGORY_SLUG_MAP: Record<string, string> = {
   'flower-boxes': 'بوكسات-ورد',
   'luxury-box': 'بوكسات-ورد',
   'flower-vases': 'فازات-ورد',
-  'hand-bouquets': 'هاند-بوكيه',
-  'hand-bouquet': 'هاند-بوكيه',
-  'cake-chocolate': 'كيك-وشوكولاته',
-  'chocolate': 'شوكولاته',
+  'hand-bouquets': 'هاند-بكيه',
+  'hand-bouquet': 'هاند-بكيه',
+  'cakes-chocolate': 'كيك-وشوكولاتة',
+  'cake-chocolate': 'كيك-وشوكولاتة',
+  'chocolate': 'شوكولاتة',
   'cake': 'كيك',
   'chocolate-bouquet': 'بوكيه-شوكولاته',
   'balloons': 'بالونات',
@@ -938,25 +963,25 @@ export const PRIMARY_CATEGORY_SLUG_MAP: Record<string, string> = {
   'valentines': 'فلنتاين',
   'valentines-day': 'فلنتاين',
   'for-mother': 'للأم',
-  'birthday': 'عيد-ميلاد',
+  'birthday': 'عيد-ميلاد-سعيد',
   'for-father': 'للآب',
   'for-her': 'للمرأة',
   'for-him': 'للرجل',
+  'i-love-you': 'أحبك',
   'love': 'حب',
-  'i-love-you': 'حب',
-  'get-well': 'تمني-بالشفاء',
-  'get-well-soon': 'تمني-بالشفاء',
+  'get-well-soon': 'تمنيات-بالشفاء',
+  'get-well': 'تمنيات-بالشفاء',
   'graduation': 'تخرج',
-  'anniversary': 'ذكرى-سنوية',
+  'anniversary': 'عيد-زواج-سعيد',
   'housewarming': 'منزل-مبارك',
   'i-am-sorry': 'اعتذار',
-  'new-baby': 'مولود-جديد',
+  'new-born': 'تهنئة-بالمولود',
+  'new-baby': 'تهنئة-بالمولود',
   'new-baby-boy': 'مولود-جديد',
   'new-baby-girl': 'مولودة-جديدة',
-  'new-born': 'مولود-جديد',
   'new-job': 'وظيفة-وترقية',
-  'fruits-bouquet': 'باقات-الفواكه',
   'fruits-bouquets': 'باقات-الفواكه',
+  'fruits-bouquet': 'باقات-الفواكه',
   'latex-balloons': 'بالونات-مطاطية',
   'golden-letters': 'أحرف-ذهبية',
   'silver-letters': 'أحرف-فضية',
@@ -966,9 +991,9 @@ export const PRIMARY_CATEGORY_SLUG_MAP: Record<string, string> = {
   'eid': 'العيد',
   'national-day': 'اليوم-الوطني',
   'pink-october': 'اكتوبر-الوردي',
-  'best-sellers': 'الأفضل-مبيعاً',
-  'best-seller': 'الأفضل-مبيعاً',
-  'best-selling': 'الأفضل-مبيعاً',
+  'best-selling': 'الأكثر-مبيعاً',
+  'best-sellers': 'الأكثر-مبيعاً',
+  'best-seller': 'الأكثر-مبيعاً',
   'thank-you': 'شكراً',
   'flag-day': 'flag-day-ar',
   'foundation-day': 'foundation-day-ar',
@@ -979,9 +1004,10 @@ export const REVERSE_SLUG_ALIASES: Record<string, string> = {
   'باقات-فاخرة': 'luxury-bouquets',
   'بوكسات-ورد': 'flower-boxes',
   'فازات-ورد': 'flower-vases',
+  'هاند-بكيه': 'hand-bouquets',
   'هاند-بوكيه': 'hand-bouquets',
-  'كيك-وشوكولاته': 'cake-chocolate',
-  'كيك-وشوكولاتة': 'cake-chocolate',
+  'كيك-وشوكولاتة': 'cakes-chocolate',
+  'كيك-وشوكولاته': 'cakes-chocolate',
   'شوكولاته': 'chocolate',
   'شوكولاتة': 'chocolate',
   'كيك': 'cake',
@@ -1026,27 +1052,29 @@ export const REVERSE_SLUG_ALIASES: Record<string, string> = {
   'عيد-الحب': 'valentine',
   'يوم-الحب': 'valentine',
   'للأم': 'for-mother',
+  'عيد-ميلاد-سعيد': 'birthday',
   'عيد-ميلاد': 'birthday',
   'للآب': 'for-father',
   'للمرأة': 'for-her',
   'للرجل': 'for-him',
+  'أحبك': 'i-love-you',
+  'احبك': 'i-love-you',
   'حب': 'love',
-  'أحبك': 'love',
-  'احبك': 'love',
-  'تمني-بالشفاء': 'get-well',
-  'تمنيات-بالشفاء': 'get-well',
-  'تمنيات-بالشفاء-العاجل': 'get-well',
+  'تمنيات-بالشفاء': 'get-well-soon',
+  'تمني-بالشفاء': 'get-well-soon',
+  'تمنيات-بالشفاء-العاجل': 'get-well-soon',
   'تخرج': 'graduation',
-  'ذكرى-سنوية': 'anniversary',
   'عيد-زواج-سعيد': 'anniversary',
+  'ذكرى-سنوية': 'anniversary',
   'زواج': 'wedding',
   'منزل-مبارك': 'housewarming',
-  'تهنئة-بالمولود': 'new-baby',
+  'تهنئة-بالمولود': 'new-born',
   'اعتذار': 'i-am-sorry',
-  'مولود-جديد': 'new-baby',
+  'مولود-جديد': 'new-born',
   'مولودة-جديدة': 'new-baby-girl',
   'وظيفة-وترقية': 'new-job',
-  'باقات-الفواكه': 'fruits-bouquet',
+  'باقات-الفواكه': 'fruits-bouquets',
+  'باقات-الفواكة': 'fruits-bouquets',
   'بالونات-مطاطية': 'latex-balloons',
   'أحرف-ذهبية': 'golden-letters',
   'أحرف-فضية': 'silver-letters',
@@ -1058,8 +1086,10 @@ export const REVERSE_SLUG_ALIASES: Record<string, string> = {
   'العيد': 'eid',
   'اليوم-الوطني': 'national-day',
   'اكتوبر-الوردي': 'pink-october',
-  'الأفضل-مبيعاً': 'best-sellers',
-  'الافضل-مبيعا': 'best-sellers',
+  'الأكثر-مبيعاً': 'best-selling',
+  'الاكثر-مبيعا': 'best-selling',
+  'الأفضل-مبيعاً': 'best-selling',
+  'الافضل-مبيعا': 'best-selling',
   'شكراً': 'thank-you',
   'flag-day-ar': 'flag-day',
   'foundation-day-ar': 'foundation-day',
@@ -1281,6 +1311,21 @@ export async function getStoreCategoryBySlug(
       };
     }
 
+    if (matchedCategory) {
+      const bannerMatch = HOME_BANNER_CATEGORIES_CONFIG.find((b) =>
+        isCategoryMatch(matchedCategory!, b.key) ||
+        isCategoryMatch(matchedCategory!, b.slug.ar) ||
+        isCategoryMatch(matchedCategory!, b.slug.en) ||
+        b.apiMatch.some((m) => isCategoryMatch(matchedCategory!, m))
+      );
+      if (bannerMatch?.defaultImage) {
+        matchedCategory = {
+          ...matchedCategory,
+          image: bannerMatch.defaultImage,
+        };
+      }
+    }
+
     return {
       category: matchedCategory,
       products,
@@ -1468,10 +1513,10 @@ export const HOME_BANNER_CATEGORIES_CONFIG: HomeBannerCategoryConfig[] = [
     defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/anniversary.png',
   },
   {
-    key: 'get-well',
+    key: 'get-well-soon',
     name: { ar: 'تمنيات بالشفاء', en: 'Get Well Soon' },
-    slug: { ar: 'تمنيات-بالشفاء', en: 'get-well' },
-    apiMatch: ['تمنيات بالشفاء', 'تمنيات-بالشفاء', 'تمني بالشفاء', 'تمني-بالشفاء', 'get well', 'get-well', 'شفاء'],
+    slug: { ar: 'تمنيات-بالشفاء', en: 'get-well-soon' },
+    apiMatch: ['تمنيات بالشفاء', 'تمنيات-بالشفاء', 'تمني بالشفاء', 'تمني-بالشفاء', 'get well', 'get-well', 'get-well-soon', 'get well soon', 'شفاء'],
     defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/get-well-soon.png',
   },
   {
@@ -1484,36 +1529,36 @@ export const HOME_BANNER_CATEGORIES_CONFIG: HomeBannerCategoryConfig[] = [
   {
     key: 'new-born',
     name: { ar: 'تهنئة بالمولود', en: 'New Born' },
-    slug: { ar: 'تهنئة-بالمولود', en: 'new-baby' },
-    apiMatch: ['تهنئة بالمولود', 'تهنئة-بالمولود', 'مولود جديد', 'مولود-جديد', 'مولودة جديدة', 'مولودة-جديدة', 'new baby', 'new-baby', 'new-born'],
+    slug: { ar: 'تهنئة-بالمولود', en: 'new-born' },
+    apiMatch: ['تهنئة بالمولود', 'تهنئة-بالمولود', 'مولود جديد', 'مولود-جديد', 'مولودة جديدة', 'مولودة-جديدة', 'new baby', 'new-baby', 'new-born', 'new born'],
     defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/new-born.png',
   },
   {
     key: 'birthday',
     name: { ar: 'عيد ميلاد سعيد', en: 'Birthday' },
-    slug: { ar: 'عيد-ميلاد', en: 'birthday' },
+    slug: { ar: 'عيد-ميلاد-سعيد', en: 'birthday' },
     apiMatch: ['عيد ميلاد سعيد', 'عيد-ميلاد-سعيد', 'عيد ميلاد', 'عيد-ميلاد', 'birthday'],
     defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/happy-birthday-1.png',
   },
   {
-    key: 'love',
+    key: 'i-love-you',
     name: { ar: 'أحبك', en: 'I Love You' },
-    slug: { ar: 'أحبك', en: 'love' },
-    apiMatch: ['أحبك', 'احبك', 'حب', 'love', 'i love you'],
+    slug: { ar: 'أحبك', en: 'i-love-you' },
+    apiMatch: ['أحبك', 'احبك', 'حب', 'love', 'i love you', 'i-love-you'],
     defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/i-love-you.png',
   },
   {
     key: 'best-selling',
     name: { ar: 'الأكثر مبيعاً', en: 'Best Selling' },
-    slug: { ar: 'الأكثر-مبيعاً', en: 'best-seller' },
+    slug: { ar: 'الأكثر-مبيعاً', en: 'best-selling' },
     apiMatch: ['الأكثر مبيعاً', 'الأكثر-مبيعاً', 'الاكثر مبيعا', 'الاكثر-مبيعا', 'الأفضل-مبيعاً', 'الأفضل مبيعاً', 'الافضل-مبيعا', 'الافضل مبيعا', 'best-seller', 'best seller', 'best-selling', 'best selling', 'best-sellers'],
     defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/best-seller.png',
   },
   {
     key: 'cakes-chocolate',
     name: { ar: 'كيك وشوكولاتة', en: 'Cakes & Chocolate' },
-    slug: { ar: 'كيك-وشوكولاتة', en: 'cake-chocolate' },
-    apiMatch: ['كيك وشوكولاتة', 'كيك-وشوكولاتة', 'كيك وشوكولاته', 'كيك-وشوكولاته', 'cake & chocolate', 'cake-chocolate', 'cakes-chocolate'],
+    slug: { ar: 'كيك-وشوكولاتة', en: 'cakes-chocolate' },
+    apiMatch: ['كيك وشوكولاتة', 'كيك-وشوكولاتة', 'كيك وشوكولاته', 'كيك-وشوكولاته', 'cake & chocolate', 'cake-chocolate', 'cakes-chocolate', 'cakes & chocolate'],
     defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/Cakes-chocolate.png',
   },
   {
@@ -1526,15 +1571,15 @@ export const HOME_BANNER_CATEGORIES_CONFIG: HomeBannerCategoryConfig[] = [
   {
     key: 'fruits-bouquets',
     name: { ar: 'باقات الفواكه', en: 'Fruits Bouquets' },
-    slug: { ar: 'باقات-الفواكه', en: 'fruits-bouquet' },
-    apiMatch: ['باقات الفواكه', 'باقات-الفواكه', 'fruits bouquet', 'fruits-bouquet', 'fruits-bouquets'],
+    slug: { ar: 'باقات-الفواكه', en: 'fruits-bouquets' },
+    apiMatch: ['باقات الفواكه', 'باقات-الفواكه', 'fruits bouquet', 'fruits-bouquet', 'fruits-bouquets', 'fruits bouquets'],
     defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/fruits-bouquets.png',
   },
   {
     key: 'hand-bouquets',
     name: { ar: 'هاند بكيه', en: 'Hand Bouquets' },
-    slug: { ar: 'هاند-بوكيه', en: 'hand-bouquet' },
-    apiMatch: ['هاند بكيه', 'هاند-بكيه', 'هاند بوكيه', 'هاند-بوكيه', 'hand bouquet', 'hand-bouquet', 'hand-bouquets'],
+    slug: { ar: 'هاند-بكيه', en: 'hand-bouquets' },
+    apiMatch: ['هاند بكيه', 'هاند-بكيه', 'هاند بوكيه', 'هاند-بوكيه', 'hand bouquet', 'hand-bouquet', 'hand-bouquets', 'hand bouquets'],
     defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/hand-bouquets.png',
   },
   {

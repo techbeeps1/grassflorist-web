@@ -39,9 +39,13 @@ function CategoryPageContent({
   const dict = getDictionary(locale);
   const searchParams = useSearchParams();
 
-  const currentCategory: Category =
-    initialCategory ||
+  const matchedCuratedCategory =
     (allCategories && allCategories.find((c) => isCategoryMatch(c, slug))) ||
+    (initialCategory && allCategories && allCategories.find((c) => isCategoryMatch(c, initialCategory.slug || '')));
+
+  const rawCategory: Category =
+    initialCategory ||
+    matchedCuratedCategory ||
     categories.find((c) => isCategoryMatch(c, slug)) || {
       id: slug,
       name: {
@@ -66,6 +70,11 @@ function CategoryPageContent({
       itemCount: 0,
       subcategories: [],
     };
+
+  const currentCategory: Category = {
+    ...rawCategory,
+    image: matchedCuratedCategory?.image || rawCategory.image,
+  };
 
   const subcategoryParam = searchParams?.get('subcategory') || undefined;
 
@@ -169,7 +178,7 @@ function CategoryPageContent({
               </p>
             </div>
 
-            <div className="relative w-36 h-36 sm:w-48 sm:h-48 rounded-2xl overflow-hidden shadow-lg border-2 border-white shrink-0">
+            <div className="relative w-36 h-36 sm:w-48 sm:h-48 bg-white rounded-2xl overflow-hidden shadow-lg border-2 border-white shrink-0 flex items-center justify-center p-3">
               <Image
                 src={currentCategory.image}
                 alt={currentCategory.name[locale]}
@@ -177,7 +186,7 @@ function CategoryPageContent({
                 width={380}
                 priority
                 sizes="200px"
-                className="object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>

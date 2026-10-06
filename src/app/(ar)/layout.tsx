@@ -16,6 +16,14 @@ export const metadata: Metadata = {
     template: seoConfig.titleTemplate.ar,
   },
   description: seoConfig.defaultDescription.ar,
+  icons: {
+    icon: [
+      { url: '/icon.png', sizes: 'any' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: [{ url: '/apple-icon.png' }],
+    shortcut: ['/icon.png'],
+  },
 };
 
 export default function ArabicRootLayout({
