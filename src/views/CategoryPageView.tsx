@@ -19,6 +19,7 @@ import { SlidersHorizontal } from 'lucide-react';
 
 import { Product } from '@/types/product';
 import { Category } from '@/types/category';
+import { isCategoryMatch } from '@/lib/wordpress/store-api';
 
 interface CategoryPageViewProps {
   slug: string;
@@ -38,27 +39,33 @@ function CategoryPageContent({
   const dict = getDictionary(locale);
   const searchParams = useSearchParams();
 
-  const decodedSlug = decodeURIComponent(slug).trim();
-  const currentCategory =
+  const currentCategory: Category =
     initialCategory ||
-    (allCategories && allCategories.find(
-      (c) =>
-        c.slug === slug ||
-        decodeURIComponent(c.slug) === decodedSlug ||
-        c.name.ar === decodedSlug ||
-        c.name.en.toLowerCase() === decodedSlug.toLowerCase()
-    )) ||
-    categories.find(
-      (c) =>
-        c.slug === slug ||
-        decodeURIComponent(c.slug) === decodedSlug ||
-        c.name.ar === decodedSlug ||
-        c.name.en.toLowerCase() === decodedSlug.toLowerCase()
-    );
-
-  if (!currentCategory) {
-    notFound();
-  }
+    (allCategories && allCategories.find((c) => isCategoryMatch(c, slug))) ||
+    categories.find((c) => isCategoryMatch(c, slug)) || {
+      id: slug,
+      name: {
+        ar: decodeURIComponent(slug).replace(/[-_]+/g, ' '),
+        en: decodeURIComponent(slug).replace(/[-_]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+      },
+      slug: slug,
+      description: {
+        ar: `اطلب أرقى تشكيلة من الزهور والهدايا مع توصيل سريع من غراس فلوريست`,
+        en: `Order the finest collection of flowers and gifts with express delivery from Grass Florist`,
+      },
+      image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=600&q=80',
+      seoTitle: {
+        ar: `غراس فلوريست للزهور والهدايا`,
+        en: `Grass Florist Flowers & Gifts`,
+      },
+      seoDescription: {
+        ar: `أرقى تشكيلات الزهور والهدايا مع توصيل سريع في المملكة العربية السعودية`,
+        en: `Luxury flowers and gifts collection with express delivery in Saudi Arabia`,
+      },
+      featured: true,
+      itemCount: 0,
+      subcategories: [],
+    };
 
   const subcategoryParam = searchParams?.get('subcategory') || undefined;
 
@@ -153,7 +160,7 @@ function CategoryPageContent({
 
           {/* Category Banner / Title Card */}
           <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#FAF3ED] via-[#F4ECE2] to-[#EAE0D3] border border-[#E2D5C4] p-6 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="max-w-xl text-start">
+            <div className="max-w-2xl text-start">
               <h1 className="text-2xl sm:text-4xl font-extrabold text-[#25211E] mb-2">
                 {currentCategory.name[locale]}
               </h1>

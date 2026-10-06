@@ -8,7 +8,7 @@ import { occasions } from '@/data/occasions';
 import { type Locale } from '@/config/site';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Category } from '@/types/category';
-import { getCategorySlugForLocale, decodeHtmlEntities } from '@/lib/wordpress/store-api';
+import { getCategorySlugForLocale, decodeHtmlEntities, isCategoryMatch } from '@/lib/wordpress/store-api';
 import { cn } from '@/lib/utils';
 
 interface CategorySliderProps {
@@ -85,14 +85,7 @@ export function CategorySlider({
         const arSlug = getCategorySlugForLocale(cat.slug, 'ar');
         const enSlug = getCategorySlugForLocale(cat.slug, 'en');
         const isSelected = Boolean(
-          decodedActiveSlug &&
-          (cat.slug.toLowerCase() === decodedActiveSlug ||
-            decodeURIComponent(cat.slug).toLowerCase() === decodedActiveSlug ||
-            cat.id.toString().toLowerCase() === decodedActiveSlug ||
-            arSlug.toLowerCase() === decodedActiveSlug ||
-            enSlug.toLowerCase() === decodedActiveSlug ||
-            (cat.name.en && cat.name.en.toLowerCase() === decodedActiveSlug) ||
-            (cat.name.ar && cat.name.ar.toLowerCase() === decodedActiveSlug))
+          decodedActiveSlug && isCategoryMatch(cat, decodedActiveSlug)
         );
 
         return {
@@ -134,8 +127,8 @@ export function CategorySlider({
   const defaultTitle = locale === 'ar' ? 'هدايا لكل لحظة' : 'Gifts for Every Moment';
   const defaultSubtitle =
     locale === 'ar'
-      ? 'اختر الهدية المثالية لتوثيق أروع لحظاتك ومناسباتك السعيدة'
-      : 'Handcrafted floral statements and curated keepsakes for life’s most precious celebrations';
+      ? 'اختر الهدية المناسبة لمناسباتك السعيدة.'
+      : 'Find the perfect gift for every special occasion.';
 
   const headingText = title ?? defaultTitle;
   const subtitleText = subtitle ?? defaultSubtitle;
@@ -193,8 +186,7 @@ export function CategorySlider({
                   <Link
                     href={item.link}
                     className="group flex flex-col items-center text-center select-none cursor-pointer focus:outline-none rounded-2xl p-1"
-                  >
-                    {/* Circular Pastel Disc (#EFE8DE) */}
+                  >                    
                     <div
                       className={cn(
                         'relative w-20 h-20 sm:w-26 sm:h-26 md:w-28 md:h-28 lg:w-30 lg:h-30 xl:w-32 xl:h-32 rounded-full transition-all duration-300 flex items-center justify-center shadow-2xs overflow-hidden',

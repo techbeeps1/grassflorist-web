@@ -123,8 +123,8 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
       icon: Package,
       title: isRtl ? 'التسليم في نفس اليوم' : 'Same day delivery',
       desc: isRtl
-        ? 'مدة التسليم يوم واحد أو أقل، خيار تسليم سريع مع أسطول مبرد.'
-        : '1-day or less delivery time, an expedited delivery option.',
+        ? 'مدة التسليم يوم واحد أو أقل، خيار تسليم سريع واحترافي.'
+        : '1-day or less delivery time, fast and professional delivery option.',
     },
     {
       id: 'payment',

@@ -26,8 +26,8 @@ export const siteConfig = {
     phone: '+966 55 513 4211',
     whatsapp: '+966 55 513 4211',
     hours: {
-      ar: 'يومياً من 9:00 صباحاً حتى 11:30 مساءً',
-      en: 'Daily 9:00 AM – 11:30 PM AST',
+      ar: 'يومياً من 9:00 صباحاً حتى 11:00 مساءً',
+      en: 'Daily 9:00 AM – 11:00 PM AST',
     },
   },
   locations: [

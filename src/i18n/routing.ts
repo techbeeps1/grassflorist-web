@@ -1,8 +1,40 @@
 import { type Locale } from './config';
 
-const CATEGORY_SLUG_ALIASES: Record<string, string> = {
+const PRIMARY_CATEGORY_SLUG_MAP: Record<string, string> = {
   'all-flowers': 'جميع-الزهور',
+  'luxury-bouquets': 'باقات-فاخرة',
+  'flower-boxes': 'بوكسات-ورد',
+  'luxury-box': 'بوكسات-ورد',
+  'flower-vases': 'فازات-ورد',
+  'hand-bouquets': 'هاند-بوكيه',
+  'hand-bouquet': 'هاند-بوكيه',
+  'cake-chocolate': 'كيك-وشوكولاته',
+  'chocolate': 'شوكولاته',
+  'cake': 'كيك',
+  'chocolate-bouquet': 'بوكيه-شوكولاته',
+  'balloons': 'بالونات',
   'occasions': 'المناسبات',
+  'bridal-bouquet': 'مسكات-عروس',
+  'bridal-bouquets': 'مسكات-عروس',
+  'bridal': 'مسكات-عروس',
+  'colors': 'الألوان',
+  'beige': 'بيج-2',
+  'white': 'أبيض',
+  'red': 'أحمر',
+  'green': 'أخضر',
+  'yellow': 'أصفر',
+  'purple': 'بنفسجي',
+  'pink': 'وردي',
+  'blue': 'أزرق',
+  'orange': 'برتقالي',
+  'black': 'أسود',
+  'letters-balloons': 'بالونات-الحروف',
+  'letter-balloons': 'بالونات-الحروف',
+  'ramadan': 'رمضان',
+  'suggestions': 'اقتراحات',
+  'valentine': 'فلنتاين',
+  'valentines': 'فلنتاين',
+  'valentines-day': 'فلنتاين',
   'for-mother': 'للأم',
   'birthday': 'عيد-ميلاد',
   'for-father': 'للآب',
@@ -11,32 +43,122 @@ const CATEGORY_SLUG_ALIASES: Record<string, string> = {
   'love': 'حب',
   'get-well': 'تمني-بالشفاء',
   'graduation': 'تخرج',
-  'hand-bouquet': 'هاند-بوكيه',
   'i-am-sorry': 'اعتذار',
   'new-baby': 'مولود-جديد',
+  'new-baby-boy': 'مولود-جديد',
+  'new-baby-girl': 'مولودة-جديدة',
   'new-job': 'وظيفة-وترقية',
-  'luxury-bouquets': 'باقات-فاخرة',
   'fruits-bouquet': 'باقات-الفواكه',
-  'cake-chocolate': 'كيك-وشوكولاته',
-  'chocolate': 'شوكولاته',
-  'cake': 'كيك',
-  'chocolate-bouquet': 'بوكيه-شوكولاته',
-  'balloons': 'بالونات',
   'latex-balloons': 'بالونات-مطاطية',
-  'letters-balloons': 'بالونات-الحروف',
   'golden-letters': 'أحرف-ذهبية',
   'silver-letters': 'أحرف-فضية',
   'numbers-balloons': 'بالونات-الأرقام',
   'golden-numbers': 'الأرقام-الذهبية',
   'silver-numbers': 'أرقام-فضية',
-  'flowers': 'جميع-الزهور',
-  'luxury-arrangements': 'باقات-فاخرة',
-  'chocolates-cakes': 'كيك-وشوكولاته',
+  'eid': 'العيد',
+  'national-day': 'اليوم-الوطني',
+  'pink-october': 'اكتوبر-الوردي',
+  'best-sellers': 'الأفضل-مبيعاً',
+  'thank-you': 'شكراً',
+  'flag-day': 'flag-day-ar',
+  'foundation-day': 'foundation-day-ar',
 };
 
-const REVERSE_SLUG_ALIASES: Record<string, string> = Object.fromEntries(
-  Object.entries(CATEGORY_SLUG_ALIASES).map(([en, ar]) => [ar, en])
-);
+const REVERSE_SLUG_ALIASES: Record<string, string> = {
+  'جميع-الزهور': 'all-flowers',
+  'باقات-فاخرة': 'luxury-bouquets',
+  'بوكسات-ورد': 'flower-boxes',
+  'فازات-ورد': 'flower-vases',
+  'هاند-بوكيه': 'hand-bouquets',
+  'كيك-وشوكولاته': 'cake-chocolate',
+  'كيك-وشوكولاتة': 'cake-chocolate',
+  'شوكولاته': 'chocolate',
+  'شوكولاتة': 'chocolate',
+  'كيك': 'cake',
+  'بوكيه-شوكولاته': 'chocolate-bouquet',
+  'بالونات': 'balloons',
+  'المناسبات': 'occasions',
+  'جميع-المناسبات': 'occasions',
+  'مناسبات': 'occasions',
+  'مسكات-عروس': 'bridal-bouquet',
+  'مسكة-عروس': 'bridal-bouquet',
+  'باقات-العروس': 'bridal-bouquet',
+  'الألوان': 'colors',
+  'الوان': 'colors',
+  'بيج-2': 'beige',
+  'بيج': 'beige',
+  '2-بيج': 'beige',
+  'أبيض': 'white',
+  'ابيض': 'white',
+  'أحمر': 'red',
+  'احمر': 'red',
+  'أخضر': 'green',
+  'اخضر': 'green',
+  'أصفر': 'yellow',
+  'اصفر': 'yellow',
+  'بنفسجي': 'purple',
+  'وردي': 'pink',
+  'زهري': 'pink',
+  'أزرق': 'blue',
+  'ازرق': 'blue',
+  'برتقالي': 'orange',
+  'أسود': 'black',
+  'اسود': 'black',
+  'فضي': 'silver',
+  'ذهبي': 'gold',
+  'بالونات-الحروف': 'letters-balloons',
+  'بالونات-أحرف': 'letters-balloons',
+  'بالونات-احرف': 'letters-balloons',
+  'رمضان': 'ramadan',
+  'اقتراحات': 'suggestions',
+  'فلنتاين': 'valentine',
+  'فالنتاين': 'valentine',
+  'عيد-الحب': 'valentine',
+  'يوم-الحب': 'valentine',
+  'للأم': 'for-mother',
+  'عيد-ميلاد': 'birthday',
+  'للآب': 'for-father',
+  'للمرأة': 'for-her',
+  'للرجل': 'for-him',
+  'حب': 'love',
+  'تمني-بالشفاء': 'get-well',
+  'تخرج': 'graduation',
+  'اعتذار': 'i-am-sorry',
+  'مولود-جديد': 'new-baby',
+  'مولودة-جديدة': 'new-baby-girl',
+  'وظيفة-وترقية': 'new-job',
+  'باقات-الفواكه': 'fruits-bouquet',
+  'بالونات-مطاطية': 'latex-balloons',
+  'أحرف-ذهبية': 'golden-letters',
+  'أحرف-فضية': 'silver-letters',
+  'بالونات-الأرقام': 'numbers-balloons',
+  'الأرقام-الذهبية': 'golden-numbers',
+  'أرقام-ذهبية': 'golden-numbers',
+  'أرقام-فضية': 'silver-numbers',
+  'الأرقام-الفضية': 'silver-numbers',
+  'العيد': 'eid',
+  'اليوم-الوطني': 'national-day',
+  'اكتوبر-الوردي': 'pink-october',
+  'الأفضل-مبيعاً': 'best-sellers',
+  'شكراً': 'thank-you',
+  'flag-day-ar': 'flag-day',
+  'foundation-day-ar': 'foundation-day',
+};
+
+const CATEGORY_SLUG_ALIASES: Record<string, string> = {
+  ...PRIMARY_CATEGORY_SLUG_MAP,
+  'flowers': 'جميع-الزهور',
+  'luxury-arrangements': 'بوكسات-ورد',
+  'chocolates-cakes': 'كيك-وشوكولاته',
+  'flower-box': 'بوكسات-ورد',
+  'boxes': 'بوكسات-ورد',
+  'all-occasions': 'المناسبات',
+  'letter-balloons': 'بالونات-الحروف',
+  'letters-balloon': 'بالونات-الحروف',
+  'color': 'الألوان',
+  'by-color': 'الألوان',
+  'suggestion': 'اقتراحات',
+};
 
 const EN_TO_AR_PAGE_ALIASES: Record<string, string> = {
   '/about': '/عن-غراس',
@@ -71,6 +193,34 @@ const AR_TO_EN_PAGE_ALIASES: Record<string, string> = {
   '/الشحن-والتوصيل': '/policies/shipping',
 };
 
+function normalizeArString(str: string): string {
+  return str
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/[-_]+/g, '-')
+    .trim();
+}
+
+function resolveCategorySlug(rawSlug: string, targetLocale: Locale): string {
+  const clean = rawSlug.trim().toLowerCase();
+  if (targetLocale === 'ar') {
+    if (CATEGORY_SLUG_ALIASES[clean]) return CATEGORY_SLUG_ALIASES[clean];
+    const stripped = clean.replace(/-\d+$/, '');
+    if (CATEGORY_SLUG_ALIASES[stripped]) return CATEGORY_SLUG_ALIASES[stripped];
+    return clean;
+  } else {
+    if (REVERSE_SLUG_ALIASES[clean]) return REVERSE_SLUG_ALIASES[clean];
+    const stripped = clean.replace(/-\d+$/, '');
+    if (REVERSE_SLUG_ALIASES[stripped]) return REVERSE_SLUG_ALIASES[stripped];
+    const norm = normalizeArString(clean);
+    for (const [k, v] of Object.entries(REVERSE_SLUG_ALIASES)) {
+      if (normalizeArString(k) === norm) return v;
+    }
+    return clean;
+  }
+}
+
 /**
  * Generates the corresponding URL path in the target language.
  * Arabic lives strictly at root (e.g. / or /product/abc).
@@ -97,13 +247,8 @@ export function getLocalizedPath(currentPath: string, targetLocale: Locale): str
   const categoryMatch = basePath.match(/^\/category\/(.+)$/);
   if (categoryMatch) {
     const rawSlug = decodeURIComponent(categoryMatch[1]).trim().toLowerCase();
-    if (targetLocale === 'ar') {
-      const translatedSlug = CATEGORY_SLUG_ALIASES[rawSlug] || rawSlug;
-      basePath = `/category/${encodeURIComponent(translatedSlug)}`;
-    } else {
-      const translatedSlug = REVERSE_SLUG_ALIASES[rawSlug] || rawSlug;
-      basePath = `/category/${encodeURIComponent(translatedSlug)}`;
-    }
+    const translatedSlug = resolveCategorySlug(rawSlug, targetLocale);
+    basePath = `/category/${encodeURIComponent(translatedSlug)}`;
   } else if (targetLocale === 'ar') {
     if (EN_TO_AR_PAGE_ALIASES[decodedBasePath]) {
       basePath = EN_TO_AR_PAGE_ALIASES[decodedBasePath];

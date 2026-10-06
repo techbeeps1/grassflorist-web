@@ -410,16 +410,50 @@ export function translateArabicCategoryName(categoryName: string, slug?: string)
     'كيك وشوكولاتة': 'Cakes & Chocolates',
     'بالونات': 'Balloons',
     'المناسبات': 'Occasions',
+    'جميع المناسبات': 'All Occasions',
+    'مسكات عروس': 'Bridal Bouquet',
+    'مسكة عروس': 'Bridal Bouquet',
+    'باقات العروس': 'Bridal Bouquet',
+    'الألوان': 'Colors',
+    'الوان': 'Colors',
+    'بيج': 'Beige',
+    'بيج-2': 'Beige',
+    'أبيض': 'White',
+    'ابيض': 'White',
+    'أحمر': 'Red',
+    'احمر': 'Red',
+    'أخضر': 'Green',
+    'اخضر': 'Green',
+    'أصفر': 'Yellow',
+    'اصفر': 'Yellow',
+    'بنفسجي': 'Purple',
+    'وردي': 'Pink',
+    'زهري': 'Pink',
+    'أزرق': 'Blue',
+    'ازرق': 'Blue',
+    'برتقالي': 'Orange',
+    'أسود': 'Black',
+    'اسود': 'Black',
+    'فضي': 'Silver',
+    'ذهبي': 'Gold',
+    'بالونات الحروف': 'Letters Balloons',
+    'بالونات أحرف': 'Letters Balloons',
+    'رمضان': 'Ramadan',
+    'اقتراحات': 'Suggestions',
+    'فلنتاين': 'Valentine',
+    'فالنتاين': 'Valentine',
+    'عيد الحب': 'Valentine',
     'هاند بوكيه': 'Hand Bouquets',
     'هاند-بوكيه': 'Hand Bouquets',
     'فازات ورد': 'Flower Vases',
-    'بوكسات ورد': 'Flower Boxes',
+    'بوكسات ورد': 'Luxury Box',
     'زهور وهدايا': 'Flowers & Gifts',
     'هدايا': 'Gifts',
     'للأم': "For Mother",
     'عيد ميلاد': 'Birthday',
     'تخرج': 'Graduation',
     'مولود جديد': 'New Baby',
+    'مولودة جديدة': 'New Baby Girl',
     'حب': 'Love & Romance',
     'تمني بالشفاء': 'Get Well Soon',
     'اعتذار': 'Apology',
@@ -429,12 +463,20 @@ export function translateArabicCategoryName(categoryName: string, slug?: string)
     'كيك': 'Cakes',
     'بوكيه شوكولاته': 'Chocolate Bouquets',
     'بالونات مطاطية': 'Latex Balloons',
-    'بالونات الحروف': 'Letter Balloons',
     'أحرف ذهبية': 'Golden Letters',
     'أحرف فضية': 'Silver Letters',
     'بالونات الأرقام': 'Number Balloons',
     'الأرقام الذهبية': 'Golden Numbers',
     'أرقام فضية': 'Silver Numbers',
+    'العيد': 'Eid',
+    'اليوم الوطني': 'National Day',
+    'اكتوبر الوردي': 'Pink October',
+    'الأفضل مبيعاً': 'Best Sellers',
+    'شكراً': 'Thank You',
+    'Flag Day': 'Flag Day',
+    'Foundation day': 'Foundation Day',
+    'flag-day-ar': 'Flag Day',
+    'foundation-day-ar': 'Foundation Day',
   };
 
   if (CATEGORY_MAP[clean]) {
@@ -599,6 +641,34 @@ export function mapWCProductToProduct(wc: WCStoreProduct): Product {
   return product;
 }
 
+export const CATEGORY_DESC_ARABIC_MAP: Record<string, string> = {
+  'جميع الزهور': 'اطلب أرقى تشكيلة من الزهور مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'باقات فاخرة': 'اطلب أرقى تشكيلة من الباقات الفاخرة مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'مسكات عروس': 'اطلب أرقى باقات ومسكات العروس الفاخرة مع توصيل سريع من غراس فلوريست',
+  'الألوان': 'تصفح تشكيلة الزهور والهدايا حسب لونك المفضل مع توصيل سريع من غراس فلوريست',
+  'المناسبات': 'اطلب أجمل تنسيقات الزهور والهدايا لجميع مناسباتكم السعيدة من غراس فلوريست',
+  'رمضان': 'أجمل باقات وتنسيقات زهور وهدايا شهر رمضان المبارك مع توصيل سريع من غراس فلوريست',
+  'اقتراحات': 'اكتشف أفضل اقتراحات وتنسيقات الزهور المختارة بعناية من خبراء غراس فلوريست',
+  'فلنتاين': 'أرقى باقات الورد والهدايا الرومانسية للاحتفال بأجمل اللحظات من غراس فلوريست',
+  'كيك وشوكولاته': 'اطلب أرقى تشكيلة من الكيك والشكولاتة مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'كيك وشوكولاتة': 'اطلب أرقى تشكيلة من الكيك والشكولاتة مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'شوكولاته': 'اطلب أرقى تشكيلة من الشوكولاتة الفاخرة مع توصيل سريع من غراس فلوريست',
+  'شوكولاتة': 'اطلب أرقى تشكيلة من الشوكولاتة الفاخرة مع توصيل سريع من غراس فلوريست',
+  'كيك': 'اطلب أرقى تشكيلة من الكيك الفاخر مع توصيل سريع من غراس فلوريست',
+  'بالونات': 'اطلب أرقى تشكيلة من البالونات مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'بالونات مطاطية': 'اطلب أرقى تشكيلة من البالونات مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'بالونات المطاطية': 'اطلب أرقى تشكيلة من البالونات مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'بالونات الحروف': 'اطلب بالونات الحروف المميزة لجميع مناسباتكم واحتفالاتكم من غراس فلوريست',
+  'بالونات أحرف': 'اطلب بالونات الحروف المميزة لجميع مناسباتكم واحتفالاتكم من غراس فلوريست',
+  'بالونات الأرقام': 'اطلب بالونات الأرقام المميزة لجميع مناسباتكم من غراس فلوريست',
+  'هاند بوكيه': 'اطلب أرقى تشكيلة من الهاند بوكيه مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'هاند-بوكيه': 'اطلب أرقى تشكيلة من الهاند بوكيه مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'فازات ورد': 'اطلب أرقى تشكيلة من فازات الورد مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'بوكسات ورد': 'اطلب أرقى تشكيلة من بوكسات الورد مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'باقات الفواكه': 'اطلب أرقى تشكيلة من باقات الفواكة مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+  'باقات الفواكة': 'اطلب أرقى تشكيلة من باقات الفواكة مع توصيل سريع وهدايا فاخرة من غراس فلوريست',
+};
+
 /**
  * Map WooCommerce Store API Category to Frontend Category Type
  */
@@ -640,8 +710,8 @@ export function mapWCCategoryToCategory(
     },
     slug: decodedSlug,
     description: {
-      ar: cleanDesc || `تصفح أرقى تشكيلة من ${cleanCategoryName} مع توصيل سريع وهدايا فاخرة من غراس فلوريست.`,
-      en: cleanDesc && !hasArabicText(cleanDesc) ? cleanDesc : `Explore premium handcrafted ${englishCategoryName.toLowerCase()} collections curated with love by Grass Florist.`,
+      ar: CATEGORY_DESC_ARABIC_MAP[cleanCategoryName] || CATEGORY_DESC_ARABIC_MAP[decodedSlug] || cleanDesc || `اطلب أرقى تشكيلة من ${cleanCategoryName} مع توصيل سريع وهدايا فاخرة من غراس فلوريست`,
+      en: cleanDesc && !hasArabicText(cleanDesc) ? cleanDesc : `Order the finest collection of ${englishCategoryName === 'All Flowers' ? 'flowers' : englishCategoryName.toLowerCase()} with express delivery and luxury gifts from Grass Florist`,
     },
     image: imageUrl,
     seoTitle: {
@@ -740,7 +810,7 @@ export async function getStoreProductBySlug(slug: string, locale?: Locale): Prom
       fetch(`${STORE_API_BASE}/products?slug=${encodeURIComponent(decodedSlug)}${wpmlQuery}`, {
         next: { revalidate: 3600 },
       }).then(async (r) => (r.ok ? ((await r.json()) as WCStoreProduct[]) : []))
-      .catch(() => [] as WCStoreProduct[]),
+        .catch(() => [] as WCStoreProduct[]),
     ];
 
     if (numericId) {
@@ -748,7 +818,7 @@ export async function getStoreProductBySlug(slug: string, locale?: Locale): Prom
         fetch(`${STORE_API_BASE}/products/${numericId}${wpmlQuery ? '?' + wpmlQuery.slice(1) : ''}`, {
           next: { revalidate: 3600 },
         }).then(async (r) => (r.ok ? [((await r.json()) as WCStoreProduct)] : []))
-        .catch(() => [] as WCStoreProduct[])
+          .catch(() => [] as WCStoreProduct[])
       );
     }
 
@@ -832,10 +902,41 @@ export async function getStoreCategories(locale?: Locale): Promise<Category[]> {
   }
 }
 
-export const CATEGORY_SLUG_ALIASES: Record<string, string> = {
-  // English to Arabic slug mappings
+export const PRIMARY_CATEGORY_SLUG_MAP: Record<string, string> = {
   'all-flowers': 'جميع-الزهور',
+  'luxury-bouquets': 'باقات-فاخرة',
+  'flower-boxes': 'بوكسات-ورد',
+  'luxury-box': 'بوكسات-ورد',
+  'flower-vases': 'فازات-ورد',
+  'hand-bouquets': 'هاند-بوكيه',
+  'hand-bouquet': 'هاند-بوكيه',
+  'cake-chocolate': 'كيك-وشوكولاته',
+  'chocolate': 'شوكولاته',
+  'cake': 'كيك',
+  'chocolate-bouquet': 'بوكيه-شوكولاته',
+  'balloons': 'بالونات',
   'occasions': 'المناسبات',
+  'bridal-bouquet': 'مسكات-عروس',
+  'bridal-bouquets': 'مسكات-عروس',
+  'bridal': 'مسكات-عروس',
+  'colors': 'الألوان',
+  'beige': 'بيج-2',
+  'white': 'أبيض',
+  'red': 'أحمر',
+  'green': 'أخضر',
+  'yellow': 'أصفر',
+  'purple': 'بنفسجي',
+  'pink': 'وردي',
+  'blue': 'أزرق',
+  'orange': 'برتقالي',
+  'black': 'أسود',
+  'letters-balloons': 'بالونات-الحروف',
+  'letter-balloons': 'بالونات-الحروف',
+  'ramadan': 'رمضان',
+  'suggestions': 'اقتراحات',
+  'valentine': 'فلنتاين',
+  'valentines': 'فلنتاين',
+  'valentines-day': 'فلنتاين',
   'for-mother': 'للأم',
   'birthday': 'عيد-ميلاد',
   'for-father': 'للآب',
@@ -844,32 +945,180 @@ export const CATEGORY_SLUG_ALIASES: Record<string, string> = {
   'love': 'حب',
   'get-well': 'تمني-بالشفاء',
   'graduation': 'تخرج',
-  'hand-bouquet': 'هاند-بوكيه',
   'i-am-sorry': 'اعتذار',
   'new-baby': 'مولود-جديد',
+  'new-baby-boy': 'مولود-جديد',
+  'new-baby-girl': 'مولودة-جديدة',
   'new-job': 'وظيفة-وترقية',
-  'luxury-bouquets': 'باقات-فاخرة',
   'fruits-bouquet': 'باقات-الفواكه',
-  'cake-chocolate': 'كيك-وشوكولاته',
-  'chocolate': 'شوكولاته',
-  'cake': 'كيك',
-  'chocolate-bouquet': 'بوكيه-شوكولاته',
-  'balloons': 'بالونات',
   'latex-balloons': 'بالونات-مطاطية',
-  'letters-balloons': 'بالونات-الحروف',
   'golden-letters': 'أحرف-ذهبية',
   'silver-letters': 'أحرف-فضية',
   'numbers-balloons': 'بالونات-الأرقام',
   'golden-numbers': 'الأرقام-الذهبية',
   'silver-numbers': 'أرقام-فضية',
-  'flowers': 'جميع-الزهور',
-  'luxury-arrangements': 'باقات-فاخرة',
-  'chocolates-cakes': 'كيك-وشوكولاته',
+  'eid': 'العيد',
+  'national-day': 'اليوم-الوطني',
+  'pink-october': 'اكتوبر-الوردي',
+  'best-sellers': 'الأفضل-مبيعاً',
+  'thank-you': 'شكراً',
+  'flag-day': 'flag-day-ar',
+  'foundation-day': 'foundation-day-ar',
 };
 
-export const REVERSE_SLUG_ALIASES: Record<string, string> = Object.fromEntries(
-  Object.entries(CATEGORY_SLUG_ALIASES).map(([en, ar]) => [ar, en])
-);
+export const REVERSE_SLUG_ALIASES: Record<string, string> = {
+  'جميع-الزهور': 'all-flowers',
+  'باقات-فاخرة': 'luxury-bouquets',
+  'بوكسات-ورد': 'flower-boxes',
+  'فازات-ورد': 'flower-vases',
+  'هاند-بوكيه': 'hand-bouquets',
+  'كيك-وشوكولاته': 'cake-chocolate',
+  'كيك-وشوكولاتة': 'cake-chocolate',
+  'شوكولاته': 'chocolate',
+  'شوكولاتة': 'chocolate',
+  'كيك': 'cake',
+  'بوكيه-شوكولاته': 'chocolate-bouquet',
+  'بالونات': 'balloons',
+  'المناسبات': 'occasions',
+  'جميع-المناسبات': 'occasions',
+  'مناسبات': 'occasions',
+  'مسكات-عروس': 'bridal-bouquet',
+  'مسكة-عروس': 'bridal-bouquet',
+  'باقات-العروس': 'bridal-bouquet',
+  'الألوان': 'colors',
+  'الوان': 'colors',
+  'بيج-2': 'beige',
+  'بيج': 'beige',
+  '2-بيج': 'beige',
+  'أبيض': 'white',
+  'ابيض': 'white',
+  'أحمر': 'red',
+  'احمر': 'red',
+  'أخضر': 'green',
+  'اخضر': 'green',
+  'أصفر': 'yellow',
+  'اصفر': 'yellow',
+  'بنفسجي': 'purple',
+  'وردي': 'pink',
+  'زهري': 'pink',
+  'أزرق': 'blue',
+  'ازرق': 'blue',
+  'برتقالي': 'orange',
+  'أسود': 'black',
+  'اسود': 'black',
+  'فضي': 'silver',
+  'ذهبي': 'gold',
+  'بالونات-الحروف': 'letters-balloons',
+  'بالونات-أحرف': 'letters-balloons',
+  'بالونات-احرف': 'letters-balloons',
+  'رمضان': 'ramadan',
+  'اقتراحات': 'suggestions',
+  'فلنتاين': 'valentine',
+  'فالنتاين': 'valentine',
+  'عيد-الحب': 'valentine',
+  'يوم-الحب': 'valentine',
+  'للأم': 'for-mother',
+  'عيد-ميلاد': 'birthday',
+  'للآب': 'for-father',
+  'للمرأة': 'for-her',
+  'للرجل': 'for-him',
+  'حب': 'love',
+  'تمني-بالشفاء': 'get-well',
+  'تخرج': 'graduation',
+  'اعتذار': 'i-am-sorry',
+  'مولود-جديد': 'new-baby',
+  'مولودة-جديدة': 'new-baby-girl',
+  'وظيفة-وترقية': 'new-job',
+  'باقات-الفواكه': 'fruits-bouquet',
+  'بالونات-مطاطية': 'latex-balloons',
+  'أحرف-ذهبية': 'golden-letters',
+  'أحرف-فضية': 'silver-letters',
+  'بالونات-الأرقام': 'numbers-balloons',
+  'الأرقام-الذهبية': 'golden-numbers',
+  'أرقام-ذهبية': 'golden-numbers',
+  'أرقام-فضية': 'silver-numbers',
+  'الأرقام-الفضية': 'silver-numbers',
+  'العيد': 'eid',
+  'اليوم-الوطني': 'national-day',
+  'اكتوبر-الوردي': 'pink-october',
+  'الأفضل-مبيعاً': 'best-sellers',
+  'شكراً': 'thank-you',
+  'flag-day-ar': 'flag-day',
+  'foundation-day-ar': 'foundation-day',
+};
+
+export const CATEGORY_SLUG_ALIASES: Record<string, string> = {
+  ...PRIMARY_CATEGORY_SLUG_MAP,
+  'flowers': 'جميع-الزهور',
+  'luxury-arrangements': 'بوكسات-ورد',
+  'chocolates-cakes': 'كيك-وشوكولاته',
+  'flower-box': 'بوكسات-ورد',
+  'boxes': 'بوكسات-ورد',
+  'all-occasions': 'المناسبات',
+  'letter-balloons': 'بالونات-الحروف',
+  'letters-balloon': 'بالونات-الحروف',
+  'color': 'الألوان',
+  'by-color': 'الألوان',
+  'suggestion': 'اقتراحات',
+};
+
+export function normalizeCategoryMatchString(str?: string): string {
+  if (!str) return '';
+  return decodeURIComponent(str)
+    .trim()
+    .toLowerCase()
+    .replace(/[-_]+/g, ' ')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/\s+/g, ' ');
+}
+
+export function isCategoryMatch(category: Category, targetSlugOrName: string): boolean {
+  if (!category || !targetSlugOrName) return false;
+
+  const rawDecoded = decodeURIComponent(targetSlugOrName).trim().toLowerCase();
+  const normalizedTarget = normalizeCategoryMatchString(targetSlugOrName);
+
+  const mappedSlug =
+    CATEGORY_SLUG_ALIASES[rawDecoded] ||
+    REVERSE_SLUG_ALIASES[rawDecoded] ||
+    CATEGORY_SLUG_ALIASES[normalizedTarget.replace(/\s+/g, '-')] ||
+    REVERSE_SLUG_ALIASES[normalizedTarget.replace(/\s+/g, '-')] ||
+    '';
+
+  const normalizedMapped = normalizeCategoryMatchString(mappedSlug);
+
+  // Exact ID match
+  if (String(category.id).toLowerCase() === rawDecoded || (mappedSlug && String(category.id).toLowerCase() === mappedSlug)) {
+    return true;
+  }
+
+  // Exact slug match
+  const catSlugDecoded = decodeURIComponent(category.slug || '').trim().toLowerCase();
+  if (
+    catSlugDecoded === rawDecoded ||
+    (mappedSlug && catSlugDecoded === mappedSlug) ||
+    catSlugDecoded.replace(/[-_]+/g, ' ') === normalizedTarget
+  ) {
+    return true;
+  }
+
+  // Normalized Name & Slug matches
+  const normCatSlug = normalizeCategoryMatchString(category.slug);
+  const normCatAr = normalizeCategoryMatchString(category.name?.ar);
+  const normCatEn = normalizeCategoryMatchString(category.name?.en);
+
+  if (
+    (normCatSlug && (normCatSlug === normalizedTarget || normCatSlug === normalizedMapped)) ||
+    (normCatAr && (normCatAr === normalizedTarget || normCatAr === normalizedMapped)) ||
+    (normCatEn && (normCatEn === normalizedTarget || normCatEn === normalizedMapped))
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
 /**
  * Helper to resolve category slug in either language
@@ -877,9 +1126,19 @@ export const REVERSE_SLUG_ALIASES: Record<string, string> = Object.fromEntries(
 export function getCategorySlugForLocale(slug: string, targetLocale: Locale): string {
   const decoded = decodeURIComponent(slug).trim().toLowerCase();
   if (targetLocale === 'en') {
-    return REVERSE_SLUG_ALIASES[decoded] || decoded;
+    if (REVERSE_SLUG_ALIASES[decoded]) return REVERSE_SLUG_ALIASES[decoded];
+    const stripped = decoded.replace(/-\d+$/, '');
+    if (REVERSE_SLUG_ALIASES[stripped]) return REVERSE_SLUG_ALIASES[stripped];
+    const norm = normalizeCategoryMatchString(decoded);
+    for (const [k, v] of Object.entries(REVERSE_SLUG_ALIASES)) {
+      if (normalizeCategoryMatchString(k) === norm) return v;
+    }
+    return decoded;
   }
-  return CATEGORY_SLUG_ALIASES[decoded] || decoded;
+  if (CATEGORY_SLUG_ALIASES[decoded]) return CATEGORY_SLUG_ALIASES[decoded];
+  const stripped = decoded.replace(/-\d+$/, '');
+  if (CATEGORY_SLUG_ALIASES[stripped]) return CATEGORY_SLUG_ALIASES[stripped];
+  return decoded;
 }
 
 /**
@@ -898,39 +1157,53 @@ export async function getStoreCategoryBySlug(
 
     const categories = await getStoreCategories(locale);
 
-    // Match category by slug, alias, name, or id
+    // Match category by robust isCategoryMatch
     let matchedCategory =
-      categories.find(
-        (c) =>
-          c.slug.toLowerCase() === decodedSlug ||
-          c.slug.toLowerCase() === mappedSlug ||
-          c.name.ar.toLowerCase() === decodedSlug ||
-          c.name.ar.toLowerCase() === mappedSlug ||
-          c.name.en.toLowerCase() === decodedSlug ||
-          c.name.en.toLowerCase() === mappedSlug ||
-          c.id === decodedSlug ||
-          c.id === mappedSlug
-      ) || null;
+      categories.find((c) => isCategoryMatch(c, decodedSlug)) || null;
 
     // Check in subcategories if not in top level
     if (!matchedCategory) {
       for (const parentCat of categories) {
-        const sub = parentCat.subcategories.find(
-          (s) =>
-            s.slug.toLowerCase() === decodedSlug ||
-            s.slug.toLowerCase() === mappedSlug ||
-            s.id === decodedSlug ||
-            s.id === mappedSlug
-        );
+        const sub = parentCat.subcategories?.find((s) => {
+          const subMock: Category = {
+            id: String(s.id),
+            name: s.name,
+            slug: s.slug,
+            description: {
+              ar: CATEGORY_DESC_ARABIC_MAP[s.name?.ar] || CATEGORY_DESC_ARABIC_MAP[s.slug] || parentCat.description?.ar || `اطلب أرقى تشكيلة من ${s.name?.ar} مع توصيل سريع وهدايا فاخرة من غراس فلوريست`,
+              en: parentCat.description?.en || `Order the finest collection of ${s.name?.en?.toLowerCase() || 'flowers'} with express delivery and luxury gifts from Grass Florist`,
+            },
+            image: parentCat.image,
+            seoTitle: s.name,
+            seoDescription: parentCat.seoDescription,
+            featured: true,
+            itemCount: s.count || 0,
+            subcategories: [],
+          };
+          return isCategoryMatch(subMock, decodedSlug);
+        });
+
         if (sub) {
+          const subDescAr =
+            CATEGORY_DESC_ARABIC_MAP[sub.name?.ar] ||
+            CATEGORY_DESC_ARABIC_MAP[sub.slug] ||
+            `اطلب أرقى تشكيلة من ${sub.name?.ar} مع توصيل سريع وهدايا فاخرة من غراس فلوريست`;
+          const subDescEn = `Order the finest collection of ${sub.name?.en?.toLowerCase() || 'flowers'} with express delivery and luxury gifts from Grass Florist`;
+
           matchedCategory = {
-            id: sub.id,
+            id: String(sub.id),
             name: sub.name,
             slug: sub.slug,
-            description: parentCat.description,
+            description: {
+              ar: subDescAr,
+              en: subDescEn,
+            },
             image: parentCat.image,
             seoTitle: sub.name,
-            seoDescription: parentCat.seoDescription,
+            seoDescription: {
+              ar: subDescAr,
+              en: subDescEn,
+            },
             featured: true,
             itemCount: sub.count || 0,
             subcategories: [],
@@ -943,13 +1216,7 @@ export async function getStoreCategoryBySlug(
     // If still not matched, check fallback categories
     if (!matchedCategory) {
       matchedCategory =
-        fallbackCategories.find(
-          (c) =>
-            c.slug === decodedSlug ||
-            c.slug === mappedSlug ||
-            c.id === decodedSlug ||
-            c.id === mappedSlug
-        ) || null;
+        fallbackCategories.find((c) => isCategoryMatch(c, decodedSlug)) || null;
     }
 
     // Fetch products for category
@@ -960,6 +1227,42 @@ export async function getStoreCategoryBySlug(
       locale,
     });
 
+    // If still not matched, construct a solid fallback category so it never 404s
+    if (!matchedCategory) {
+      const cleanName = hasArabicText(decodedSlug)
+        ? decodedSlug.replace(/[-_]+/g, ' ')
+        : (CATEGORY_SLUG_ALIASES[decodedSlug] || decodedSlug).replace(/[-_]+/g, ' ');
+      const englishName = translateArabicCategoryName(cleanName, decodedSlug);
+      const arabicName = hasArabicText(decodedSlug)
+        ? decodedSlug.replace(/[-_]+/g, ' ')
+        : (PRIMARY_CATEGORY_SLUG_MAP[decodedSlug] || decodedSlug).replace(/[-_]+/g, ' ');
+
+      matchedCategory = {
+        id: decodedSlug,
+        name: {
+          ar: arabicName,
+          en: englishName,
+        },
+        slug: decodedSlug,
+        description: {
+          ar: `اطلب أرقى تشكيلة من ${arabicName} مع توصيل سريع وهدايا فاخرة من غراس فلوريست`,
+          en: `Order the finest collection of ${englishName.toLowerCase()} with express delivery and luxury gifts from Grass Florist`,
+        },
+        image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=600&q=80',
+        seoTitle: {
+          ar: `${arabicName} | غراس فلوريست`,
+          en: `${englishName} | Grass Florist`,
+        },
+        seoDescription: {
+          ar: `اكتشف أجمل تشكيلات ${arabicName} في المملكة العربية السعودية مع توصيل سريع في نفس اليوم.`,
+          en: `Discover beautiful ${englishName.toLowerCase()} collections in Saudi Arabia with same-day express delivery.`,
+        },
+        featured: true,
+        itemCount: products.length || 10,
+        subcategories: [],
+      };
+    }
+
     return {
       category: matchedCategory,
       products,
@@ -967,20 +1270,42 @@ export async function getStoreCategoryBySlug(
   } catch (error) {
     console.error(`[getStoreCategoryBySlug] Error for slug ${slug}:`, error);
     const decodedSlug = decodeURIComponent(slug).trim().toLowerCase();
-    const mappedSlug =
-      CATEGORY_SLUG_ALIASES[decodedSlug] ||
-      REVERSE_SLUG_ALIASES[decodedSlug] ||
-      decodedSlug;
-    const fallbackCat =
-      fallbackCategories.find(
-        (c) => c.slug === decodedSlug || c.slug === mappedSlug
-      ) || null;
-    const fallbackProds = fallbackProducts.filter(
-      (p) => p.categorySlug === decodedSlug || p.categorySlug === mappedSlug
-    );
+    const cleanName = hasArabicText(decodedSlug)
+      ? decodedSlug.replace(/[-_]+/g, ' ')
+      : (CATEGORY_SLUG_ALIASES[decodedSlug] || decodedSlug).replace(/[-_]+/g, ' ');
+    const englishName = translateArabicCategoryName(cleanName, decodedSlug);
+    const arabicName = hasArabicText(decodedSlug)
+      ? decodedSlug.replace(/[-_]+/g, ' ')
+      : (PRIMARY_CATEGORY_SLUG_MAP[decodedSlug] || decodedSlug).replace(/[-_]+/g, ' ');
+
+    const fallback: Category = {
+      id: decodedSlug,
+      name: {
+        ar: arabicName,
+        en: englishName,
+      },
+      slug: decodedSlug,
+      description: {
+        ar: `اطلب أرقى تشكيلة من ${arabicName} مع توصيل سريع وهدايا فاخرة من غراس فلوريست`,
+        en: `Order the finest collection of ${englishName.toLowerCase()} with express delivery and luxury gifts from Grass Florist`,
+      },
+      image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=600&q=80',
+      seoTitle: {
+        ar: `${arabicName} | غراس فلوريست`,
+        en: `${englishName} | Grass Florist`,
+      },
+      seoDescription: {
+        ar: `اكتشف أجمل تشكيلات ${arabicName} في المملكة العربية السعودية مع توصيل سريع في نفس اليوم.`,
+        en: `Discover beautiful ${englishName.toLowerCase()} collections in Saudi Arabia with same-day express delivery.`,
+      },
+      featured: true,
+      itemCount: 0,
+      subcategories: [],
+    };
+
     return {
-      category: fallbackCat,
-      products: fallbackProds,
+      category: fallback,
+      products: [],
     };
   }
 }
@@ -1045,8 +1370,8 @@ export async function getHomeCategorySections(locale: Locale): Promise<HomeCateg
           en: 'Luxury Bouquets',
         },
         subtitle: {
-          ar: 'يمكنك أرسال باقاتنا الفاخرة إلى أصدقائك وعائلتك وأحبتك.',
-          en: 'Send our Luxury Bouquets to impress your friends, family and loved ones.',
+          ar: 'باقة فاخرة تُهديها لمن تحب، في كل مناسبة.',
+          en: 'Send a luxurious bouquet to the ones you love.',
         },
         categorySlug: 'باقات-فاخرة',
         viewAllUrl: {
@@ -1058,12 +1383,12 @@ export async function getHomeCategorySections(locale: Locale): Promise<HomeCateg
       {
         id: 'cakes-chocolate',
         title: {
-          ar: 'اكتشف الكيك و الشوكولاتة',
-          en: 'Explore Cakes & Chocolate',
+          ar: 'كيك وشوكلاتة',
+          en: 'Cakes & Chocolate',
         },
         subtitle: {
-          ar: 'نقوم بتوصيل الكيك والشوكولاتة لكل مناسبة.',
-          en: 'We deliver cakes & chocolate for every occasion.',
+          ar: 'اهدي من تحب كيك وشوكلاته لكل مناسبة',
+          en: 'Send Cakes & Chocolate to the ones you love.',
         },
         categorySlug: 'كيك-وشوكولاته',
         viewAllUrl: {
@@ -1075,12 +1400,12 @@ export async function getHomeCategorySections(locale: Locale): Promise<HomeCateg
       {
         id: 'balloons',
         title: {
-          ar: 'بالوناتنا',
-          en: 'Our Balloons',
+          ar: 'بالونات',
+          en: 'Balloons',
         },
         subtitle: {
-          ar: 'لونوا مناسباتكم بالبالونات الرائعة.',
-          en: 'Color your occasions by wonderful balloons.',
+          ar: 'زيّنوا مناسباتكم ببالوناتنا الرائعة',
+          en: 'Make Every Celebration Special with Our Beautiful Balloons.',
         },
         categorySlug: 'بالونات',
         viewAllUrl: {

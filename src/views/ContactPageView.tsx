@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { useAppDispatch } from '@/store';
 import { addToast } from '@/store/slices/uiSlice';
 import { Mail, Phone, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
 
 interface ContactPageViewProps {
   locale: Locale;
@@ -149,7 +150,7 @@ export function ContactPageView({ locale }: ContactPageViewProps) {
 
                 <div className="flex items-center gap-3">
                   <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <a
+                  <Link
                     href={`https://wa.me/${siteConfig.contact.whatsapp.replace(/\D/g, '')}`}
                     target="_blank"
                     rel="noreferrer"
@@ -157,17 +158,17 @@ export function ContactPageView({ locale }: ContactPageViewProps) {
                     dir="ltr"
                   >
                     {siteConfig.contact.whatsapp} (WhatsApp Concierge)
-                  </a>
+                  </Link>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-primary shrink-0" />
-                  <a
+                  <Link
                     href={`mailto:${siteConfig.contact.email}`}
                     className="font-bold text-text-main hover:text-primary transition-colors"
                   >
                     {siteConfig.contact.email}
-                  </a>
+                  </Link>
                 </div>
 
                 <div className="flex items-center gap-3 pt-2 border-t border-border">

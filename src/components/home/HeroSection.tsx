@@ -15,8 +15,8 @@ export function HeroSection({ locale }: HeroSectionProps) {
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
-  const flowersUrl = locale === 'ar' ? '/category/flowers' : '/en/category/flowers';
-  const luxuryUrl = locale === 'ar' ? '/category/luxury-arrangements' : '/en/category/luxury-arrangements';
+  const flowersUrl = locale === 'ar' ? '/category/جميع-الزهور' : '/en/category/all-flowers';
+  const luxuryUrl = locale === 'ar' ? '/category/باقات-فاخرة' : '/en/category/luxury-bouquets';
 
   return (
     <section aria-label="Hero Showcase" className="relative overflow-hidden bg-[#FAF8F5] py-8 sm:py-16">

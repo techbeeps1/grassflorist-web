@@ -6,8 +6,8 @@ import { getDictionary } from '@/i18n/get-dictionary';
 import { categories as defaultCategories } from '@/data/categories';
 import { ProductFilterState } from '@/types/product';
 import { Category } from '@/types/category';
-import { getCategorySlugForLocale, decodeHtmlEntities } from '@/lib/wordpress/store-api';
-import { Star, RotateCcw, Check } from 'lucide-react';
+import { getCategorySlugForLocale, decodeHtmlEntities, isCategoryMatch } from '@/lib/wordpress/store-api';
+import { RotateCcw, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CategoryFiltersProps {
@@ -104,19 +104,9 @@ export function CategoryFilters({
           {displayCategories.map((cat) => {
             const arSlug = getCategorySlugForLocale(cat.slug, 'ar');
             const enSlug = getCategorySlugForLocale(cat.slug, 'en');
-            const decodedCatSlug = decodeURIComponent(cat.slug).toLowerCase();
-            const decodedCatId = cat.id.toString().toLowerCase();
-            const decodedArSlug = decodeURIComponent(arSlug).toLowerCase();
-            const decodedEnSlug = decodeURIComponent(enSlug).toLowerCase();
 
             const isSelected = Boolean(
-              currentActiveSlug &&
-              (currentActiveSlug === decodedCatSlug ||
-                currentActiveSlug === decodedCatId ||
-                currentActiveSlug === decodedArSlug ||
-                currentActiveSlug === decodedEnSlug ||
-                (cat.name.en && cat.name.en.toLowerCase() === currentActiveSlug) ||
-                (cat.name.ar && cat.name.ar.toLowerCase() === currentActiveSlug))
+              currentActiveSlug && isCategoryMatch(cat, currentActiveSlug)
             );
 
             const categoryUrl =
@@ -170,43 +160,6 @@ export function CategoryFilters({
             );
           })}
         </div>
-      </div>
-
-      {/* In Stock Availability Toggle */}
-      <div className="pt-4 border-t border-border">
-        <label className="flex items-center justify-between cursor-pointer py-1">
-          <span className="text-xs font-bold text-text-main">
-            {dict.category.inStockOnly}
-          </span>
-          <input
-            type="checkbox"
-            checked={!!filters.inStockOnly}
-            onChange={handleInStockToggle}
-            className="w-4 h-4 text-primary rounded border-border focus:ring-primary cursor-pointer"
-          />
-        </label>
-      </div>
-
-      {/* Minimum Rating Filter */}
-      <div className="pt-4 border-t border-border">
-        <h4 className="text-xs font-bold text-text-main uppercase tracking-wider mb-3">
-          {dict.product.rating}
-        </h4>
-        <button
-          onClick={() => handleRatingChange(4.8)}
-          className={cn(
-            'w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-start',
-            filters.minRating === 4.8
-              ? 'bg-primary text-white'
-              : 'text-text-secondary hover:bg-surface-subtle hover:text-text-main'
-          )}
-        >
-          <div className="flex items-center gap-1.5">
-            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-            <span>4.8 {locale === 'ar' ? 'فما فوق' : '& Above'}</span>
-          </div>
-          {filters.minRating === 4.8 && <Check className="w-3.5 h-3.5" />}
-        </button>
       </div>
     </aside>
   );

@@ -6,26 +6,15 @@ export const faqs: FAQItem[] = [
     id: 'faq-01',
     category: 'delivery',
     question: {
-      ar: 'كم يستغرق توصيل الطلب في الرياض وجدة والخبر؟',
-      en: 'How fast is express delivery in Riyadh, Jeddah, and Khobar?',
+      ar: 'كم يستغرق توصيل الطلب ؟',
+      en: 'How long does it take to deliver the order?',
     },
     answer: {
-      ar: 'نوفر خدمة التوصيل الفوري السريع في نفس اليوم خلال ساعتين إلى ثلاث ساعات من تأكيد الطلب للطلبات داخل المدن الرئيسية (الرياض، جدة، الخبر، الدمام). كما يمكنك جدولة الطلب واختيار موعد وتاريخ محدد يناسبك أو يناسب المستلم.',
-      en: 'We offer express same-day refrigerated delivery within 2 to 3 hours of order confirmation across major metropolitan areas (Riyadh, Jeddah, Khobar, and Dammam). You can also schedule advance delivery for any specific date and time slot.',
+      ar: 'نوفر خدمة التوصيل السريع في نفس اليوم خلال ساعتين إلى ثلاث ساعات من تأكيد الطلب كما يمكنك جدولة الطلب و اختيار موعد و تاريخ محدد يناسبك أو يناسب المستلم .',
+      en: 'We offer a fast, same-day delivery service within two to three hours of order confirmation; you can also schedule your order by selecting a specific date and time that suits you or the recipient.',
     },
   },
-  {
-    id: 'faq-02',
-    category: 'delivery',
-    question: {
-      ar: 'كيف تضمنون وصول الزهور طازجة وغير ذابلة في حرارة الصيف؟',
-      en: 'How do you preserve floral freshness during hot summer weather?',
-    },
-    answer: {
-      ar: 'نمتلك أسطولاً خاصاً من سيارات النقل المجهزة بنظام تبريد حراري مدروس (درجة حرارة 16-18 مئوية)، كما يتم تزويد سيقان الزهور بكبسولات ترطيب مائية تحافظ على امتصاص الماء حتى لحظة التسليم لباب العميل أو المستلم.',
-      en: 'Our entire delivery fleet is custom-fitted with temperature-regulated climate control (16–18°C). Stems are hydrated with individual water reservoirs ensuring zero wilting between our atelier and the recipient doorstep.',
-    },
-  },
+
   {
     id: 'faq-03',
     category: 'delivery',
@@ -52,24 +41,13 @@ export const faqs: FAQItem[] = [
   },
 
   // 2. ORDERING & CUSTOMIZATION
-  {
-    id: 'faq-05',
-    category: 'ordering',
-    question: {
-      ar: 'هل يمكنني إضافة رسالة إهداء خاصة مكتوبة بخط اليد؟',
-      en: 'Can I include a personalized handwritten greeting card?',
-    },
-    answer: {
-      ar: 'نعم، نوفر مع كل باقة أو هدية بطاقة إهداء فاخرة مجانية مختومة بختم الشمع. يمكنك كتابة رسالتك أثناء إتمام الطلب وسيقوم خطاط محترف بكتابتها بخط أنيق قبل تسليم الهدية.',
-      en: 'Complimentary bespoke greeting cards sealed with artisan wax are included with every order. Type your heartfelt words at checkout, and our calligrapher will handwrite them prior to delivery.',
-    },
-  },
+
   {
     id: 'faq-06',
     category: 'ordering',
     question: {
-      ar: 'هل يمكن إرسال الهدية كمجهول الهوية دون الكشف عن اسمي؟',
-      en: 'Is it possible to send a gift completely anonymously?',
+      ar: 'هل يمكنني إرسال الهدية كمجهول دون الكشف عن اسمي ؟',
+      en: 'Can I send the gift anonymously without revealing my name?',
     },
     answer: {
       ar: 'نعم، يتوفر خيار "إرسال كمجهول" عند صفحة الدفع. في هذه الحالة لن يتم ذكر اسم المرسل أو رقم هاتفه للمستلم، ونلتزم بالسرية التامة للبيانات وفق سياسة الخصوصية.',

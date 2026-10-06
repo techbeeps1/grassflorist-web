@@ -43,14 +43,12 @@ export function EditorialStoryBanner({ locale }: EditorialStoryBannerProps) {
               {locale === 'ar' ? (
                 <>
                   توصيل في نفس اليوم
-                  <br />
-                  زهور وهدايا فاخرة
+                  زهور وهدايا فاخرة لكل مناسبة
                 </>
               ) : (
                 <>
-                  Same Day Delivery
-                  <br />
-                  Flowers & Gifts
+                  Same-Day Delivery Luxury Flowers & Gifts for Every Occasion
+
                 </>
               )}
             </h2>
@@ -61,7 +59,7 @@ export function EditorialStoryBanner({ locale }: EditorialStoryBannerProps) {
               className="group inline-flex items-center justify-center gap-2.5 px-6 py-2.5 sm:px-7 sm:py-3 rounded-full bg-[#FAF5EE] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white border border-[#DDD3C6] hover:border-[#2D3F33] shadow-xs hover:shadow-md text-sm sm:text-base font-bold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-95"
             >
               <span>
-                {locale === 'ar' ? 'تسوق زهور اليوم نفسه' : 'Shop Same Day Flowers'}
+                {locale === 'ar' ? 'اطلب الان للتوصيل في نفس اليوم' : 'Order Now for Same-Day Delivery'}
               </span>
               <span className="w-5.5 h-5.5 rounded-full bg-[#2D3F33] group-hover:bg-white text-white group-hover:text-[#2D3F33] flex items-center justify-center transition-colors shrink-0">
                 <ArrowIcon className="w-3 h-3 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
