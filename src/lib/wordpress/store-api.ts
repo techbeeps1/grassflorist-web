@@ -1,4 +1,4 @@
-import { Product } from '@/types/product';
+import { Product, LocalizedString } from '@/types/product';
 import { Category, Subcategory } from '@/types/category';
 import { type Locale } from '@/config/site';
 import { products as fallbackProducts } from '@/data/products';
@@ -943,14 +943,20 @@ export const PRIMARY_CATEGORY_SLUG_MAP: Record<string, string> = {
   'for-her': 'للمرأة',
   'for-him': 'للرجل',
   'love': 'حب',
+  'i-love-you': 'حب',
   'get-well': 'تمني-بالشفاء',
+  'get-well-soon': 'تمني-بالشفاء',
   'graduation': 'تخرج',
+  'anniversary': 'ذكرى-سنوية',
+  'housewarming': 'منزل-مبارك',
   'i-am-sorry': 'اعتذار',
   'new-baby': 'مولود-جديد',
   'new-baby-boy': 'مولود-جديد',
   'new-baby-girl': 'مولودة-جديدة',
+  'new-born': 'مولود-جديد',
   'new-job': 'وظيفة-وترقية',
   'fruits-bouquet': 'باقات-الفواكه',
+  'fruits-bouquets': 'باقات-الفواكه',
   'latex-balloons': 'بالونات-مطاطية',
   'golden-letters': 'أحرف-ذهبية',
   'silver-letters': 'أحرف-فضية',
@@ -961,6 +967,8 @@ export const PRIMARY_CATEGORY_SLUG_MAP: Record<string, string> = {
   'national-day': 'اليوم-الوطني',
   'pink-october': 'اكتوبر-الوردي',
   'best-sellers': 'الأفضل-مبيعاً',
+  'best-seller': 'الأفضل-مبيعاً',
+  'best-selling': 'الأفضل-مبيعاً',
   'thank-you': 'شكراً',
   'flag-day': 'flag-day-ar',
   'foundation-day': 'foundation-day-ar',
@@ -1023,8 +1031,17 @@ export const REVERSE_SLUG_ALIASES: Record<string, string> = {
   'للمرأة': 'for-her',
   'للرجل': 'for-him',
   'حب': 'love',
+  'أحبك': 'love',
+  'احبك': 'love',
   'تمني-بالشفاء': 'get-well',
+  'تمنيات-بالشفاء': 'get-well',
+  'تمنيات-بالشفاء-العاجل': 'get-well',
   'تخرج': 'graduation',
+  'ذكرى-سنوية': 'anniversary',
+  'عيد-زواج-سعيد': 'anniversary',
+  'زواج': 'wedding',
+  'منزل-مبارك': 'housewarming',
+  'تهنئة-بالمولود': 'new-baby',
   'اعتذار': 'i-am-sorry',
   'مولود-جديد': 'new-baby',
   'مولودة-جديدة': 'new-baby-girl',
@@ -1042,6 +1059,7 @@ export const REVERSE_SLUG_ALIASES: Record<string, string> = {
   'اليوم-الوطني': 'national-day',
   'اكتوبر-الوردي': 'pink-october',
   'الأفضل-مبيعاً': 'best-sellers',
+  'الافضل-مبيعا': 'best-sellers',
   'شكراً': 'thank-you',
   'flag-day-ar': 'flag-day',
   'foundation-day-ar': 'foundation-day',
@@ -1424,12 +1442,193 @@ export async function getHomeCategorySections(locale: Locale): Promise<HomeCateg
 }
 
 /**
+ * 13 Curated categories for the category banner slider in exact requested order
+ */
+export interface HomeBannerCategoryConfig {
+  key: string;
+  name: LocalizedString;
+  slug: { ar: string; en: string };
+  apiMatch: string[];
+  defaultImage: string;
+}
+
+export const HOME_BANNER_CATEGORIES_CONFIG: HomeBannerCategoryConfig[] = [
+  {
+    key: 'graduation',
+    name: { ar: 'تخرج', en: 'Graduation' },
+    slug: { ar: 'تخرج', en: 'graduation' },
+    apiMatch: ['تخرج', 'graduation'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/graduation.png',
+  },
+  {
+    key: 'anniversary',
+    name: { ar: 'عيد زواج سعيد', en: 'Anniversary' },
+    slug: { ar: 'عيد-زواج-سعيد', en: 'anniversary' },
+    apiMatch: ['عيد زواج سعيد', 'عيد-زواج-سعيد', 'ذكرى-سنوية', 'ذكرى سنوية', 'ذكرى', 'anniversary', 'wedding', 'زواج', 'زفاف'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/anniversary.png',
+  },
+  {
+    key: 'get-well',
+    name: { ar: 'تمنيات بالشفاء', en: 'Get Well Soon' },
+    slug: { ar: 'تمنيات-بالشفاء', en: 'get-well' },
+    apiMatch: ['تمنيات بالشفاء', 'تمنيات-بالشفاء', 'تمني بالشفاء', 'تمني-بالشفاء', 'get well', 'get-well', 'شفاء'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/get-well-soon.png',
+  },
+  {
+    key: 'housewarming',
+    name: { ar: 'منزل مبارك', en: 'Housewarming' },
+    slug: { ar: 'منزل-مبارك', en: 'housewarming' },
+    apiMatch: ['منزل مبارك', 'منزل-مبارك', 'housewarming', 'وظيفة وترقية', 'وظيفة-وترقية', 'new-job'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/housewarming.png',
+  },
+  {
+    key: 'new-born',
+    name: { ar: 'تهنئة بالمولود', en: 'New Born' },
+    slug: { ar: 'تهنئة-بالمولود', en: 'new-baby' },
+    apiMatch: ['تهنئة بالمولود', 'تهنئة-بالمولود', 'مولود جديد', 'مولود-جديد', 'مولودة جديدة', 'مولودة-جديدة', 'new baby', 'new-baby', 'new-born'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/new-born.png',
+  },
+  {
+    key: 'birthday',
+    name: { ar: 'عيد ميلاد سعيد', en: 'Birthday' },
+    slug: { ar: 'عيد-ميلاد', en: 'birthday' },
+    apiMatch: ['عيد ميلاد سعيد', 'عيد-ميلاد-سعيد', 'عيد ميلاد', 'عيد-ميلاد', 'birthday'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/happy-birthday-1.png',
+  },
+  {
+    key: 'love',
+    name: { ar: 'أحبك', en: 'I Love You' },
+    slug: { ar: 'أحبك', en: 'love' },
+    apiMatch: ['أحبك', 'احبك', 'حب', 'love', 'i love you'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/i-love-you.png',
+  },
+  {
+    key: 'best-selling',
+    name: { ar: 'الأكثر مبيعاً', en: 'Best Selling' },
+    slug: { ar: 'الأكثر-مبيعاً', en: 'best-seller' },
+    apiMatch: ['الأكثر مبيعاً', 'الأكثر-مبيعاً', 'الاكثر مبيعا', 'الاكثر-مبيعا', 'الأفضل-مبيعاً', 'الأفضل مبيعاً', 'الافضل-مبيعا', 'الافضل مبيعا', 'best-seller', 'best seller', 'best-selling', 'best selling', 'best-sellers'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/best-seller.png',
+  },
+  {
+    key: 'cakes-chocolate',
+    name: { ar: 'كيك وشوكولاتة', en: 'Cakes & Chocolate' },
+    slug: { ar: 'كيك-وشوكولاتة', en: 'cake-chocolate' },
+    apiMatch: ['كيك وشوكولاتة', 'كيك-وشوكولاتة', 'كيك وشوكولاته', 'كيك-وشوكولاته', 'cake & chocolate', 'cake-chocolate', 'cakes-chocolate'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/Cakes-chocolate.png',
+  },
+  {
+    key: 'balloons',
+    name: { ar: 'بالونات', en: 'Balloons' },
+    slug: { ar: 'بالونات', en: 'balloons' },
+    apiMatch: ['بالونات', 'balloons'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/balloons.png',
+  },
+  {
+    key: 'fruits-bouquets',
+    name: { ar: 'باقات الفواكه', en: 'Fruits Bouquets' },
+    slug: { ar: 'باقات-الفواكه', en: 'fruits-bouquet' },
+    apiMatch: ['باقات الفواكه', 'باقات-الفواكه', 'fruits bouquet', 'fruits-bouquet', 'fruits-bouquets'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/fruits-bouquets.png',
+  },
+  {
+    key: 'hand-bouquets',
+    name: { ar: 'هاند بكيه', en: 'Hand Bouquets' },
+    slug: { ar: 'هاند-بوكيه', en: 'hand-bouquet' },
+    apiMatch: ['هاند بكيه', 'هاند-بكيه', 'هاند بوكيه', 'هاند-بوكيه', 'hand bouquet', 'hand-bouquet', 'hand-bouquets'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/hand-bouquets.png',
+  },
+  {
+    key: 'luxury-bouquets',
+    name: { ar: 'باقات فاخرة', en: 'Luxury Bouquets' },
+    slug: { ar: 'باقات-فاخرة', en: 'luxury-bouquets' },
+    apiMatch: ['باقات فاخرة', 'باقات-فاخرة', 'luxury bouquets', 'luxury-bouquets'],
+    defaultImage: 'https://grassflorist.com/wp-content/uploads/2026/10/luxury-bouquets.png',
+  },
+];
+
+/**
+ * Fetch the 13 curated category banner slider items matching live API data
+ */
+export async function getHomePageBannerCategories(locale: Locale = 'ar'): Promise<Category[]> {
+  try {
+    const [arRes, enRes] = await Promise.all([
+      fetch(`${STORE_API_BASE}/products/categories?per_page=100`, { next: { revalidate: 300 } }),
+      fetch(`${STORE_API_BASE}/products/categories?per_page=100&wpml_language=en`, { next: { revalidate: 300 } }),
+    ]);
+
+    const arCats: WCStoreCategory[] = arRes.ok ? await arRes.json() : [];
+    const enCats: WCStoreCategory[] = enRes.ok ? await enRes.json() : [];
+    const rawCats: WCStoreCategory[] = [
+      ...(Array.isArray(arCats) ? arCats : []),
+      ...(Array.isArray(enCats) ? enCats : []),
+    ];
+
+    return HOME_BANNER_CATEGORIES_CONFIG.map((config) => {
+      const matched = rawCats.find((c) => {
+        const decodedSlug = decodeURIComponent(c.slug || '').toLowerCase();
+        const catName = (c.name || '').toLowerCase();
+        return config.apiMatch.some((m) => {
+          const ml = m.toLowerCase();
+          return decodedSlug === ml || catName === ml || decodedSlug.includes(ml) || catName.includes(ml);
+        });
+      });
+
+      const slug = locale === 'ar' ? config.slug.ar : config.slug.en;
+
+      const categoryImage =
+        matched?.image?.src && (matched.image.src.includes('2026/10') || !config.defaultImage)
+          ? matched.image.src
+          : config.defaultImage || matched?.image?.src || '';
+
+      return {
+        id: matched ? String(matched.id) : config.key,
+        name: config.name,
+        slug,
+        description: {
+          ar: `اطلب أجمل تشكيلة من ${config.name.ar} من غراس فلوريست مع توصيل سريع في نفس اليوم`,
+          en: `Order the finest collection of ${config.name.en} with same-day express delivery from Grass Florist`,
+        },
+        image: categoryImage,
+        seoTitle: config.name,
+        seoDescription: {
+          ar: `تسوق ${config.name.ar} بأعلى جودة مع توصيل سريع في جدة من غراس فلوريست`,
+          en: `Shop ${config.name.en} with express delivery in Jeddah from Grass Florist`,
+        },
+        featured: true,
+        itemCount: matched?.count || 12,
+        subcategories: [],
+      };
+    });
+  } catch (error) {
+    console.error('[getHomePageBannerCategories] Error loading banner categories:', error);
+    return HOME_BANNER_CATEGORIES_CONFIG.map((config) => ({
+      id: config.key,
+      name: config.name,
+      slug: locale === 'ar' ? config.slug.ar : config.slug.en,
+      description: {
+        ar: `اطلب أجمل تشكيلة من ${config.name.ar} من غراس فلوريست مع توصيل سريع في نفس اليوم`,
+        en: `Order the finest collection of ${config.name.en} with same-day express delivery from Grass Florist`,
+      },
+      image: config.defaultImage,
+      seoTitle: config.name,
+      seoDescription: {
+        ar: `تسوق ${config.name.ar} بأعلى جودة مع توصيل سريع في جدة من غراس فلوريست`,
+        en: `Shop ${config.name.en} with express delivery in Jeddah from Grass Florist`,
+      },
+      featured: true,
+      itemCount: 12,
+      subcategories: [],
+    }));
+  }
+}
+
+/**
  * Fetch home page live collections (Categories, Featured, Best Sellers, New Arrivals, Category Sections)
  */
 export async function getHomePageData(locale: Locale) {
   try {
     const [categories, featuredRes, bestsellersRes, newArrivalsRes, categorySections] = await Promise.all([
-      getStoreCategories(locale),
+      getHomePageBannerCategories(locale),
       getStoreProducts({ per_page: 4, orderby: 'popularity', locale }),
       getStoreProducts({ per_page: 8, orderby: 'popularity', locale }),
       getStoreProducts({ per_page: 8, orderby: 'date', order: 'desc', locale }),
@@ -1437,7 +1636,7 @@ export async function getHomePageData(locale: Locale) {
     ]);
 
     return {
-      categories: categories.filter((c) => c.image && c.itemCount > 0),
+      categories,
       featuredProducts: featuredRes.products.length > 0 ? featuredRes.products : fallbackProducts.slice(0, 4),
       bestsellers: bestsellersRes.products.length > 0 ? bestsellersRes.products : fallbackProducts.slice(0, 8),
       newArrivals: newArrivalsRes.products.length > 0 ? newArrivalsRes.products : fallbackProducts.slice(0, 8),
@@ -1446,7 +1645,7 @@ export async function getHomePageData(locale: Locale) {
   } catch (error) {
     console.error('[getHomePageData] Error loading home page collections:', error);
     return {
-      categories: fallbackCategories,
+      categories: await getHomePageBannerCategories(locale),
       featuredProducts: fallbackProducts.slice(0, 4),
       bestsellers: fallbackProducts.slice(0, 8),
       newArrivals: fallbackProducts.slice(0, 8),

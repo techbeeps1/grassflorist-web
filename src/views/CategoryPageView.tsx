@@ -173,7 +173,8 @@ function CategoryPageContent({
               <Image
                 src={currentCategory.image}
                 alt={currentCategory.name[locale]}
-                fill
+                height={380}
+                width={380}
                 priority
                 sizes="200px"
                 className="object-cover"

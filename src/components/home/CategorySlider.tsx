@@ -8,7 +8,7 @@ import { occasions } from '@/data/occasions';
 import { type Locale } from '@/config/site';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Category } from '@/types/category';
-import { getCategorySlugForLocale, decodeHtmlEntities, isCategoryMatch } from '@/lib/wordpress/store-api';
+import { getCategorySlugForLocale, decodeHtmlEntities, isCategoryMatch, HOME_BANNER_CATEGORIES_CONFIG } from '@/lib/wordpress/store-api';
 import { cn } from '@/lib/utils';
 
 interface CategorySliderProps {
@@ -99,16 +99,20 @@ export function CategorySlider({
           isSelected,
         };
       })
-      : occasions.map((occ) => {
+      : HOME_BANNER_CATEGORIES_CONFIG.map((cfg) => {
+        const arSlug = cfg.slug.ar;
+        const enSlug = cfg.slug.en;
         const isSelected = Boolean(
           decodedActiveSlug &&
-          (occ.slug.toLowerCase() === decodedActiveSlug || occ.id.toLowerCase() === decodedActiveSlug)
+          (arSlug.toLowerCase() === decodedActiveSlug ||
+           enSlug.toLowerCase() === decodedActiveSlug ||
+           cfg.key.toLowerCase() === decodedActiveSlug)
         );
         return {
-          id: occ.id,
-          name: occ.name,
-          image: occ.image,
-          link: locale === 'ar' ? `/products?occasion=${occ.slug}` : `/en/products?occasion=${occ.slug}`,
+          id: cfg.key,
+          name: cfg.name,
+          image: cfg.defaultImage,
+          link: locale === 'ar' ? `/category/${arSlug}` : `/en/category/${enSlug}`,
           isSelected,
         };
       });
@@ -186,7 +190,7 @@ export function CategorySlider({
                   <Link
                     href={item.link}
                     className="group flex flex-col items-center text-center select-none cursor-pointer focus:outline-none rounded-2xl p-1"
-                  >                    
+                  >
                     <div
                       className={cn(
                         'relative w-20 h-20 sm:w-26 sm:h-26 md:w-28 md:h-28 lg:w-30 lg:h-30 xl:w-32 xl:h-32 rounded-full transition-all duration-300 flex items-center justify-center shadow-2xs overflow-hidden',
@@ -195,13 +199,14 @@ export function CategorySlider({
                           : 'bg-[#EFE8DE] group-hover:bg-[#EAE0D4] group-hover:scale-105 group-hover:shadow-md'
                       )}
                     >
-                      <div className="relative w-full h-full p-2">
+                      <div className="relative w-full h-full flex items-center justify-center">
                         <Image
                           src={item.image}
-                          alt=""
-                          fill
+                          alt={displayName}
+                          height={380}
+                          width={380}
                           sizes="(max-width: 640px) 80px, (max-width: 1024px) 112px, 128px"
-                          className="object-contain group-hover:scale-110 transition-transform duration-300 ease-out"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-out"
                         />
                       </div>
                     </div>
