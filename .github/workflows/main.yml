@@ -1,4 +1,4 @@
-name: Deploy Next.js to Cloudways
+name: Deploy Next.js Frontend
 
 on:
   push:
@@ -10,32 +10,58 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Cloudways via SSH Password
+      - name: Deploy Next.js Frontend via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_PASSWORD  }}
           port: ${{ secrets.SSH_PORT }}
+
           script: |
             set -e
 
-            echo "Node Version:"
+            echo "======================================"
+            echo "🚀 Starting Next.js deployment"
+            echo "======================================"
+
+            echo "📌 Node Version:"
             node -v
+
+            echo "📌 NPM Version:"
             npm -v
 
-            cd /home/bookwindow/htdocs/bookwindow.in
+            echo "📌 PM2 Version:"
+            pm2 -v
 
-            echo "📥 Pulling latest code"
+            cd /home/bitnami/htdocs/grass2026/frontend
+
+            echo "📂 Current directory:"
+            pwd
+
+            echo "📥 Pulling latest code..."
             git pull origin main
 
-            echo "📦 Installing dependencies"
-            npm install
+            echo "📦 Installing dependencies..."
+            npm ci
 
-            echo "🏗️ Building Next.js app"
+            echo "🏗️ Building Next.js application..."
             npm run build
 
-            echo "♻️ Restarting PM2"
-            pm2 restart all
+            echo "♻️ Restarting Next.js application..."
 
-            echo "✅ Deployment successful"
+            if pm2 describe grass-frontend > /dev/null 2>&1; then
+              pm2 restart grass-frontend
+            else
+              pm2 start npm --name grass-frontend -- start
+            fi
+
+            echo "💾 Saving PM2 process list..."
+            pm2 save
+
+            echo "📊 PM2 Status:"
+            pm2 status
+
+            echo "======================================"
+            echo "✅ Next.js deployment successful"
+            echo "======================================"
