@@ -21,11 +21,18 @@ interface CategorySliderProps {
   className?: string;
   isContained?: boolean;
   hideHeader?: boolean;
+  onCategorySelect?: (slug?: string) => void;
 }
 
 function cleanTitle(str?: string): string {
   if (!str) return '';
-  return decodeHtmlEntities(str);
+  let cleaned = decodeHtmlEntities(str);
+  if (cleaned.includes('%')) {
+    try {
+      cleaned = decodeURIComponent(cleaned);
+    } catch {}
+  }
+  return cleaned;
 }
 
 export function CategorySlider({
@@ -38,6 +45,7 @@ export function CategorySlider({
   className,
   isContained = true,
   hideHeader = false,
+  onCategorySelect,
 }: CategorySliderProps) {
   const isRtl = locale === 'ar';
   const isCompact = variant === 'compact';
@@ -98,6 +106,7 @@ export function CategorySlider({
         return {
           id: cat.id,
           name: cat.name,
+          slug: cat.slug,
           image: cat.image || 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=400&q=80',
           link:
             locale === 'ar'
@@ -114,6 +123,7 @@ export function CategorySlider({
         return {
           id: occ.id,
           name: occ.name,
+          slug: occ.slug,
           image: occ.image,
           link: locale === 'ar' ? `/products?occasion=${occ.slug}` : `/en/products?occasion=${occ.slug}`,
           isSelected,
@@ -192,6 +202,12 @@ export function CategorySlider({
                 <div key={item.id} className="shrink-0">
                   <Link
                     href={item.link}
+                    onClick={(e) => {
+                      if (onCategorySelect) {
+                        e.preventDefault();
+                        onCategorySelect(item.isSelected ? undefined : item.slug);
+                      }
+                    }}
                     className="group flex flex-col items-center text-center select-none cursor-pointer focus:outline-none rounded-2xl p-1"
                   >
                     {/* Circular Pastel Disc (#EFE8DE) */}

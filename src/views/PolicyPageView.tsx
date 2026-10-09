@@ -2,15 +2,17 @@ import React from 'react';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
+import { CmsPageData } from '@/lib/wordpress/store-api';
 
 export type PolicyType = 'privacy' | 'terms' | 'shipping' | 'returns';
 
 interface PolicyPageViewProps {
-  type: PolicyType;
+  type?: PolicyType;
   locale: Locale;
+  page?: CmsPageData | null;
 }
 
-export function PolicyPageView({ type, locale }: PolicyPageViewProps) {
+export function PolicyPageView({ type = 'terms', locale, page }: PolicyPageViewProps) {
   const dict = getDictionary(locale);
 
   const titles: Record<PolicyType, string> = {
@@ -20,9 +22,11 @@ export function PolicyPageView({ type, locale }: PolicyPageViewProps) {
     returns: dict.policies.returnsTitle,
   };
 
+  const displayTitle = page?.title || titles[type] || dict.policies.termsTitle;
+
   const breadcrumbItems = [
     { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },
-    { label: titles[type] },
+    { label: displayTitle },
   ];
 
   const policyContent: Record<PolicyType, { ar: string[]; en: string[] }> = {
@@ -82,6 +86,8 @@ export function PolicyPageView({ type, locale }: PolicyPageViewProps) {
     },
   };
 
+  const lastUpdatedDate = page?.updated_at || '2026-03-14';
+
   return (
     <div className="py-6 bg-surface min-h-[80vh]">
       <div className="max-w-[800px] mx-auto px-4">
@@ -89,20 +95,27 @@ export function PolicyPageView({ type, locale }: PolicyPageViewProps) {
 
         <div className="my-8 text-start">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main mb-2">
-            {titles[type]}
+            {displayTitle}
           </h1>
           <span className="text-xs text-text-muted">
-            {dict.policies.lastUpdated}: 2026-03-14
+            {dict.policies.lastUpdated}: {lastUpdatedDate}
           </span>
         </div>
 
-        <div className="bg-surface rounded-3xl p-6 sm:p-8 border border-border space-y-4 text-start leading-relaxed text-sm sm:text-base text-text-secondary">
-          {policyContent[type][locale].map((para, idx) => (
-            <p key={idx} className="pb-3 border-b border-border/50 last:border-0 last:pb-0">
-              {para}
-            </p>
-          ))}
-        </div>
+        {page?.content ? (
+          <div
+            className="bg-surface rounded-3xl p-6 sm:p-8 border border-border space-y-4 text-start leading-relaxed text-sm sm:text-base text-text-secondary [&>p]:pb-3 [&>p]:border-b [&>p]:border-border/50 [&>p:last-child]:border-0 [&>p:last-child]:pb-0 [&>ul]:list-disc [&>ul]:ps-5 [&>ol]:list-decimal [&>ol]:ps-5 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-text-main [&>h3]:text-lg [&>h3]:font-bold [&>h3]:text-text-main"
+            dangerouslySetInnerHTML={{ __html: page.content }}
+          />
+        ) : (
+          <div className="bg-surface rounded-3xl p-6 sm:p-8 border border-border space-y-4 text-start leading-relaxed text-sm sm:text-base text-text-secondary">
+            {policyContent[type][locale].map((para, idx) => (
+              <p key={idx} className="pb-3 border-b border-border/50 last:border-0 last:pb-0">
+                {para}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,14 +9,27 @@ import { BookOpen, Clock, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface BlogPreviewSectionProps {
   locale: Locale;
+  title?: string;
+  subtitle?: string;
+  posts?: any[];
 }
 
-export function BlogPreviewSection({ locale }: BlogPreviewSectionProps) {
+export function BlogPreviewSection({ locale, title, subtitle, posts }: BlogPreviewSectionProps) {
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
   const blogListingUrl = locale === 'ar' ? '/blog' : '/en/blog';
 
-  const previewPosts = blogPosts.slice(0, 3);
+  const defaultTitle =
+    locale === 'ar' ? 'إلهام وأسرار العناية بالزهور' : 'Floral Inspiration & Care Guides';
+  const defaultSubtitle =
+    locale === 'ar'
+      ? 'مقالات حصرية من خبراء تنسيق الزهور لإرشادك في اختيار الهدية المثالية والحفاظ على نضارتها.'
+      : 'Curated articles from master florists to guide your gifting choices and prolong bloom life.';
+
+  const displayTitle = title || defaultTitle;
+  const displaySubtitle = subtitle || defaultSubtitle;
+
+  const displayPosts = (posts && posts.length > 0) ? posts.slice(0, 3) : blogPosts.slice(0, 3);
 
   return (
     <section aria-label="Floral Journal" className="py-10 sm:py-14 lg:py-16 bg-white">
@@ -25,12 +38,10 @@ export function BlogPreviewSection({ locale }: BlogPreviewSectionProps) {
         <div className="flex items-end justify-between mb-6 sm:mb-8">
           <div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18]">
-              {locale === 'ar' ? 'إلهام وأسرار العناية بالزهور' : 'Floral Inspiration & Care Guides'}
+              {displayTitle}
             </h2>
             <p className="text-sm sm:text-base text-[#5A5049] mt-1.5">
-              {locale === 'ar'
-                ? 'مقالات حصرية من خبراء تنسيق الزهور لإرشادك في اختيار الهدية المثالية والحفاظ على نضارتها.'
-                : 'Curated articles from master florists to guide your gifting choices and prolong bloom life.'}
+              {displaySubtitle}
             </p>
           </div>
 
@@ -47,28 +58,37 @@ export function BlogPreviewSection({ locale }: BlogPreviewSectionProps) {
 
         {/* 3-Column Editorial Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-          {previewPosts.map((post) => {
-            const postUrl =
-              locale === 'ar'
-                ? `/blog/${post.slug.ar}`
-                : `/en/blog/${post.slug.en}`;
+          {displayPosts.map((post: any, idx: number) => {
+            const rawSlug = typeof post.slug === 'object' ? (post.slug[locale] || post.slug.en || post.slug.ar) : (post.slug || `post-${idx}`);
+            const postUrl = locale === 'ar' ? `/blog/${rawSlug}` : `/en/blog/${rawSlug}`;
+
+            const postTitle = typeof post.title === 'object' ? (post.title[locale] || post.title.en || post.title.ar) : (post.title || '');
+            const postExcerpt = post.short_description || (typeof post.excerpt === 'object' ? (post.excerpt[locale] || post.excerpt.en) : (post.excerpt || ''));
+            const postImage = post.image || post.coverImage || '/images/blog-placeholder.svg';
+            const postCat = typeof post.category === 'object' ? (post.category[locale] || post.category.en) : (post.category || (locale === 'ar' ? 'أسرار الزهور' : 'Floral Care'));
+
+            const authorName = typeof post.author === 'object'
+              ? (post.author?.name?.[locale] || post.author?.name || 'Grass Florist')
+              : (post.author || (locale === 'ar' ? 'خبراء جراس' : 'Grass Atelier'));
+            const authorAvatar = post.author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
 
             return (
               <article
-                key={post.id}
+                key={post.id || idx}
                 className="group flex flex-col bg-[#FAF7F2] rounded-3xl overflow-hidden shadow-2xs hover:shadow-card hover:-translate-y-1 transition-all duration-300"
               >
                 {/* Image */}
                 <Link href={postUrl} className="relative aspect-[16/10] w-full overflow-hidden block">
                   <Image
-                    src={post.coverImage}
-                    alt={post.title[locale]}
+                    src={postImage}
+                    alt={postTitle}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover group-hover:scale-106 transition-transform duration-500 ease-out"
                   />
                   <div className="absolute top-3 start-3 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-[11px] font-bold text-[#435849] shadow-xs">
-                    {post.category[locale]}
+                    {postCat}
                   </div>
                 </Link>
 
@@ -82,12 +102,12 @@ export function BlogPreviewSection({ locale }: BlogPreviewSectionProps) {
 
                     <Link href={postUrl}>
                       <h3 className="text-sm sm:text-base font-bold text-[#201B18] group-hover:text-[#435849] transition-colors line-clamp-2 leading-snug mb-2">
-                        {post.title[locale]}
+                        {postTitle}
                       </h3>
                     </Link>
 
                     <p className="text-xs text-[#5A5049] line-clamp-3 leading-relaxed">
-                      {post.excerpt[locale]}
+                      {postExcerpt}
                     </p>
                   </div>
 
@@ -96,15 +116,15 @@ export function BlogPreviewSection({ locale }: BlogPreviewSectionProps) {
                     <div className="flex items-center gap-2.5">
                       <div className="relative w-7 h-7 rounded-full overflow-hidden shrink-0 border border-[#E2D5C4]">
                         <Image
-                          src={post.author.avatar}
-                          alt={post.author.name[locale]}
+                          src={authorAvatar}
+                          alt={authorName}
                           fill
                           sizes="28px"
                           className="object-cover"
                         />
                       </div>
                       <span className="text-xs font-semibold text-[#201B18]">
-                        {post.author.name[locale]}
+                        {authorName}
                       </span>
                     </div>
 

@@ -26,20 +26,56 @@ import { HomeCategorySection } from '@/lib/wordpress/store-api';
 
 interface HomePageViewProps {
   locale: Locale;
+  heroSlides?: any[];
   categories?: Category[];
+  popularSection?: {
+    title?: string;
+    subtitle?: string;
+  };
+  editorialBanner?: {
+    title?: string;
+    buttonText?: string;
+    buttonUrl?: string;
+    image?: string;
+  };
+  benefitsSection?: any[];
+  eventsSection?: any;
   featuredProducts?: Product[];
   bestsellers?: Product[];
   newArrivals?: Product[];
   categorySections?: HomeCategorySection[];
+  blogSection?: {
+    title?: string;
+    subtitle?: string;
+    posts?: any[];
+  };
+  testimonialsSection?: {
+    title?: string;
+    subtitle?: string;
+    testimonials?: any[];
+  };
+  faqSection?: {
+    title?: string;
+    subtitle?: string;
+    faqs?: any[];
+  };
 }
 
 export function HomePageView({
   locale,
+  heroSlides,
   categories: initialCategories,
+  popularSection,
+  editorialBanner,
+  benefitsSection,
+  eventsSection,
   featuredProducts: initialFeatured,
   bestsellers: initialBestsellers,
   newArrivals: initialNewArrivals,
   categorySections,
+  blogSection,
+  testimonialsSection,
+  faqSection,
 }: HomePageViewProps) {
   const dict = getDictionary(locale);
   const isRtl = locale === 'ar';
@@ -49,7 +85,7 @@ export function HomePageView({
   const bestsellers = initialBestsellers || [];
   const newArrivals = initialNewArrivals || [];
 
-  const homeFaqs = faqs.slice(0, 6);
+  const homeFaqs = faqs.slice(0, 5);
 
   // Structured Data
   const orgSchema = generateOrganizationSchema();
@@ -77,35 +113,54 @@ export function HomePageView({
 
       <div className="w-full">
         {/* 1. Full-Width Hero Banner Slider & Trust Perks Ribbon (Theme: White) */}
-        <HeroBannerSlider locale={locale} />
+        <HeroBannerSlider locale={locale} slides={heroSlides} />
 
         {/* 2. Horizontal Category Discovery Slider (Theme: White) */}
-        <CategorySlider locale={locale} categories={initialCategories} />
+        <CategorySlider
+          locale={locale}
+          categories={initialCategories}
+          title={popularSection?.title}
+          subtitle={popularSection?.subtitle}
+        />
 
         {/* 3. Category-Wise Product Carousel Sections (Matching Live Store API) */}
         {categorySections && categorySections.length > 0 ? (
           <>
-            {categorySections.map((section, idx) => (
-              <React.Fragment key={section.id}>
-                <section
-                  aria-label={`${section.title[locale]} Carousel`}
-                  className="pt-10 sm:pt-14 lg:pt-16 bg-white"
-                >
-                  <div className="site-container">
-                    <ProductCarousel
-                      products={section.products}
+            {(() => {
+              // Condition: If 2 carousel sections -> between them (after idx 0)
+              // If more than 2 -> after 2 sections (after idx 1)
+              const bannerInsertionIndex = categorySections.length <= 2 ? 0 : 1;
+
+              return categorySections.map((section, idx) => (
+                <React.Fragment key={section.id}>
+                  <section
+                    aria-label={`${section.title[locale]} Carousel`}
+                    className="pt-10 sm:pt-14 lg:pt-16 bg-white"
+                  >
+                    <div className="site-container">
+                      <ProductCarousel
+                        products={section.products}
+                        locale={locale}
+                        title={section.title[locale]}
+                        subtitle={section.subtitle[locale]}
+                        viewAllUrl={section.viewAllUrl[locale]}
+                        viewAllLabel={dict.common.viewAll}
+                      />
+                    </div>
+                  </section>
+                  {/* Lifestyle editorial banner placed conditionally based on number of carousel sections */}
+                  {idx === bannerInsertionIndex && (
+                    <EditorialStoryBanner
                       locale={locale}
-                      title={section.title[locale]}
-                      subtitle={section.subtitle[locale]}
-                      viewAllUrl={section.viewAllUrl[locale]}
-                      viewAllLabel={dict.common.viewAll}
+                      title={editorialBanner?.title}
+                      buttonText={editorialBanner?.buttonText}
+                      buttonUrl={editorialBanner?.buttonUrl}
+                      image={editorialBanner?.image}
                     />
-                  </div>
-                </section>
-                {/* Lifestyle editorial banner placed between flower arrangements and sweets/balloons */}
-                {idx === 1 && <EditorialStoryBanner locale={locale} />}
-              </React.Fragment>
-            ))}
+                  )}
+                </React.Fragment>
+              ));
+            })()}
           </>
         ) : (
           <>
@@ -137,21 +192,14 @@ export function HomePageView({
               </div>
             </section>
 
-            <section aria-label="Best Sellers Carousel" className="py-10 sm:py-14 lg:py-16 bg-white">
-              <div className="site-container">
-                <ProductCarousel
-                  products={bestsellers}
-                  locale={locale}
-                  badge={locale === 'ar' ? 'خيارات النخبة' : 'CLIENT FAVORITES'}
-                  title={dict.home.bestSellersTitle}
-                  subtitle={dict.home.bestSellersSubtitle}
-                  viewAllUrl={catalogUrl}
-                  viewAllLabel={dict.common.viewAll}
-                />
-              </div>
-            </section>
-
-            <EditorialStoryBanner locale={locale} />
+            {/* Between the 2 fallback sections */}
+            <EditorialStoryBanner
+              locale={locale}
+              title={editorialBanner?.title}
+              buttonText={editorialBanner?.buttonText}
+              buttonUrl={editorialBanner?.buttonUrl}
+              image={editorialBanner?.image}
+            />
 
             <section aria-label="New Arrivals Carousel" className="py-10 sm:py-14 lg:py-16 bg-white">
               <div className="site-container">
@@ -170,13 +218,23 @@ export function HomePageView({
         )}
 
         {/* 8. Brand Benefits & Events Planning Showcase */}
-        <HomeEventsSection locale={locale} />
+        <HomeEventsSection locale={locale} benefits={benefitsSection} events={eventsSection} />
 
         {/* 10. Verified Client Testimonials (Theme: White) */}
-        <TestimonialsSection locale={locale} />
+        <TestimonialsSection
+          locale={locale}
+          title={testimonialsSection?.title}
+          subtitle={testimonialsSection?.subtitle}
+          testimonials={testimonialsSection?.testimonials}
+        />
 
         {/* 11. Atelier Journal & Floral Inspiration (Theme: Pastel Sand) */}
-        <BlogPreviewSection locale={locale} />
+        <BlogPreviewSection
+          locale={locale}
+          title={blogSection?.title}
+          subtitle={blogSection?.subtitle}
+          posts={blogSection?.posts}
+        />
 
         {/* 12. FAQ Accordion Section on Homepage (Theme: White) */}
         <section aria-label="Frequently Asked Questions" className="py-10 sm:py-14 lg:py-16 bg-white">
@@ -188,20 +246,20 @@ export function HomePageView({
                   <span>{locale === 'ar' ? 'مركز المساعدة والإرشادات' : 'HELP & FLORAL GUIDANCE'}</span>
                 </div>
                 <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1E1915] leading-tight">
-                  {dict.home.faqTitle}
+                  {faqSection?.title || dict.home.faqTitle}
                 </h2>
                 <p className="text-sm sm:text-base text-[#6B5E52] mt-2.5 max-w-xl mx-auto leading-relaxed">
-                  {dict.home.faqSubtitle}
+                  {faqSection?.subtitle || dict.home.faqSubtitle}
                 </p>
               </div>
 
               <div className="bg-[#FAF8F5] rounded-3xl p-4 sm:p-7 md:p-9 border border-[#EFE7DC] shadow-sm">
                 <Accordion
                   variant="card"
-                  items={homeFaqs.map((faq) => ({
-                    id: faq.id,
-                    title: faq.question[locale],
-                    content: faq.answer[locale],
+                  items={(faqSection?.faqs && faqSection.faqs.length > 0 ? faqSection.faqs : homeFaqs).slice(0, 5).map((faq: any, idx: number) => ({
+                    id: faq.id || `faq-${idx}`,
+                    title: typeof faq.question === 'object' ? (faq.question[locale] || faq.question.en || faq.question.ar) : (faq.question || ''),
+                    content: typeof faq.answer === 'object' ? (faq.answer[locale] || faq.answer.en || faq.answer.ar) : (faq.answer || ''),
                   }))}
                 />
               </div>

@@ -35,6 +35,9 @@ export interface Product {
   categorySlug: string;
   subcategory?: LocalizedString;
   subcategorySlug?: string;
+  categoryIds?: number[];
+  categorySlugs?: string[];
+  categoriesList?: Array<{ id: number; name: string; slug: string; slug_en?: string; slug_ar?: string }>;
   rating: number;
   reviewCount: number;
   stock: number;

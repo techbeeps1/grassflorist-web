@@ -1,167 +1,692 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { type Locale, siteConfig } from '@/config/site';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
+import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
-import { Breadcrumbs } from '@/components/common/Breadcrumbs';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { clearCart, selectCartTotals } from '@/store/slices/cartSlice';
+import {
+  clearCart,
+  removeItem,
+  updateQuantity,
+  applyCoupon,
+  removeCoupon,
+  selectCartTotals,
+} from '@/store/slices/cartSlice';
 import { useCreateOrderMutation } from '@/store/api/ordersApi';
+import { useGetUserOrdersQuery, useGetUserProfileQuery } from '@/store/api/authApi';
+import {
+  useGetPaymentMethodsQuery,
+  useGetDeliverySlotsQuery,
+  useInitiatePaymentMutation,
+} from '@/store/api/checkoutApi';
+import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
+import { useCurrency } from '@/hooks/useCurrency';
+import {
+  useRemoveCartItemMutation,
+  useUpdateCartQuantityMutation,
+  getLocalizedProductName,
+} from '@/store/api/cartApi';
 import { formatPrice } from '@/lib/utils';
+import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 import { Order } from '@/types/order';
 import {
   CheckCircle2,
   Calendar,
   Clock,
-  CreditCard,
-  Truck,
-  Gift,
   Lock,
-  ArrowRight,
-  ArrowLeft,
+  AlertTriangle,
+  AlertCircle,
+  X,
+  Plus,
+  Minus,
+  MapPin,
+  ExternalLink,
+  ShieldCheck,
+  Music,
+  Gift,
+  Sunrise,
+  Sunset,
 } from 'lucide-react';
+
+import { CountryCodePicker, ALL_COUNTRY_CODES } from '@/components/checkout/CountryCodePicker';
+import { DeliveryDatePicker } from '@/components/checkout/DeliveryDatePicker';
+import { CountrySelect } from '@/components/common/CountrySelect';
+
+// Dynamically load Leaflet Map to avoid SSR issues
+const AddressMapPicker = dynamic(
+  () => import('@/components/checkout/AddressMapPicker').then((mod) => mod.AddressMapPicker),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 sm:h-72 w-full bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse flex items-center justify-center text-xs text-text-muted">
+        Loading interactive map...
+      </div>
+    ),
+  }
+);
 
 interface CheckoutPageViewProps {
   locale: Locale;
 }
 
+// Helper to get current date in Saudi Arabia timezone (Asia/Riyadh)
+function getSaudiTodayDate(): string {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Riyadh',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    return formatter.format(new Date()); // Formats as YYYY-MM-DD
+  } catch {
+    return new Date().toISOString().split('T')[0];
+  }
+}
+
+function addDaysToDate(dateStr: string, days: number): string {
+  try {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dateObj = new Date(Date.UTC(y, m - 1, d + days));
+    return dateObj.toISOString().split('T')[0];
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatDisplayDate(dateStr: string, locale: Locale): string {
+  try {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA' : 'en-US', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(dateObj);
+  } catch {
+    return dateStr;
+  }
+}
+
+function splitPhone(fullPhone: string): { code: string; number: string } {
+  if (!fullPhone) return { code: '+966', number: '' };
+  const cleaned = fullPhone.trim();
+  const matched = ALL_COUNTRY_CODES.find((c) => cleaned.startsWith(c.dialCode));
+  if (matched) {
+    return {
+      code: matched.dialCode,
+      number: cleaned.slice(matched.dialCode.length).replace(/^0+/, ''),
+    };
+  }
+  if (cleaned.startsWith('+')) {
+    return { code: '+966', number: cleaned.replace(/^\+966/, '').replace(/^\+/, '') };
+  }
+  return { code: '+966', number: cleaned.replace(/^0+/, '') };
+}
+
 export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const dict = getDictionary(locale);
   const dispatch = useAppDispatch();
+  const isRtl = locale === 'ar';
+
   const cartItems = useAppSelector((state) => state.cart.items);
-  const { subtotal, discount, vat, shippingFee, total } = useAppSelector(selectCartTotals);
+  const couponCode = useAppSelector((state) => state.cart.couponCode);
+  const { subtotal, discount, shippingFee } = useAppSelector(selectCartTotals);
+  const user = useAppSelector((state) => state.auth.user);
+
+  // Dynamic VAT percentage and currency conversion from Global Settings
+  const { data: globalSettings } = useGetGlobalSettingsQuery();
+  const { currency: activeCurrency, isUSD, sarToUsdRate } = useCurrency(locale);
+  const vatPercentage = Number(globalSettings?.tax?.vat_percentage ?? 15);
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  const vat = Math.round(discountedSubtotal * (vatPercentage / 100));
+  const total = discountedSubtotal + shippingFee;
+
+  // Real-time USD conversions
+  const subtotalUsd = Number((subtotal * sarToUsdRate).toFixed(2));
+  const discountUsd = Number((discount * sarToUsdRate).toFixed(2));
+  const shippingFeeUsd = Number((shippingFee * sarToUsdRate).toFixed(2));
+  const vatUsd = Number((vat * sarToUsdRate).toFixed(2));
+  const totalUsd = Number((total * sarToUsdRate).toFixed(2));
 
   const [createOrder, { isLoading }] = useCreateOrderMutation();
+  const [removeServerCartItem] = useRemoveCartItemMutation();
+  const [updateServerCartQuantity] = useUpdateCartQuantityMutation();
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
 
-  // Form State
-  const [recipientType, setRecipientType] = useState<'myself' | 'gift'>('gift');
+  // Saudi current date as minimum / default date
+  const saudiToday = getSaudiTodayDate();
+
+  const quickDates = React.useMemo(() => {
+    return [
+      {
+        dateStr: saudiToday,
+        label: locale === 'ar' ? 'اليوم' : 'Today',
+        subLabel: new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'short' }).format(new Date(saudiToday + 'T12:00:00Z')),
+      },
+      {
+        dateStr: addDaysToDate(saudiToday, 1),
+        label: locale === 'ar' ? 'غداً' : 'Tomorrow',
+        subLabel: new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'short' }).format(new Date(addDaysToDate(saudiToday, 1) + 'T12:00:00Z')),
+      },
+      {
+        dateStr: addDaysToDate(saudiToday, 2),
+        label: locale === 'ar' ? 'بعد غد' : 'Day After',
+        subLabel: new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'short' }).format(new Date(addDaysToDate(saudiToday, 2) + 'T12:00:00Z')),
+      },
+    ];
+  }, [saudiToday, locale]);
+
+  // --- SENDER INFORMATION STATE ---
+  const [senderFirstName, setSenderFirstName] = useState('');
+  const [senderLastName, setSenderLastName] = useState('');
+  const [senderCountry, setSenderCountry] = useState('Saudi Arabia');
+  const [senderCountryCode, setSenderCountryCode] = useState('+966');
+  const [senderEmail, setSenderEmail] = useState('');
+  const [senderPhone, setSenderPhone] = useState('');
+
+  // Prefill sender from authenticated user if available
+  useEffect(() => {
+    if (user) {
+      if (user.name) {
+        const parts = user.name.trim().split(' ');
+        setSenderFirstName((prev) => prev || parts[0] || '');
+        setSenderLastName((prev) => prev || parts.slice(1).join(' ') || '');
+      }
+      if (user.email) setSenderEmail((prev) => prev || user.email);
+      if (user.phone) {
+        const parsed = splitPhone(user.phone);
+        setSenderCountryCode(parsed.code);
+        setSenderPhone((prev) => prev || parsed.number);
+      }
+    }
+  }, [user]);
+
+  // --- SAVED ADDRESSES FOR LOGGED-IN USERS ---
+  interface SavedAddressOption {
+    id: string;
+    label: string;
+    recipientFirstName: string;
+    recipientLastName: string;
+    recipientPhone: string;
+    shippingAddress: string;
+    shippingAddressLink: string;
+    city: string;
+    district: string;
+    latitude?: number;
+    longitude?: number;
+  }
+
+  // --- RECEIVER INFORMATION STATE ---
+  const [localAddresses, setLocalAddresses] = useState<SavedAddressOption[]>([]);
+  const [selectedSavedAddress, setSelectedSavedAddress] = useState('');
   const [recipientName, setRecipientName] = useState('');
+  const [recipientFirstName, setRecipientFirstName] = useState('');
+  const [recipientLastName, setRecipientLastName] = useState('');
+  const [recipientCountryCode, setRecipientCountryCode] = useState('+966');
   const [recipientPhone, setRecipientPhone] = useState('');
-  const [city, setCity] = useState(locale === 'ar' ? 'جدة' : 'Jeddah');
+  const [shippingAddress, setShippingAddress] = useState('');
+  const [shippingAddressLink, setShippingAddressLink] = useState('');
+  const city = locale === 'ar' ? 'جدة' : 'Jeddah';
   const [district, setDistrict] = useState('');
-  const [street, setStreet] = useState('');
+  const [latitude, setLatitude] = useState<number | undefined>(undefined);
+  const [longitude, setLongitude] = useState<number | undefined>(undefined);
 
-  const [deliveryDate, setDeliveryDate] = useState<'today' | 'tomorrow' | 'custom'>('today');
-  const [customDate, setCustomDate] = useState('');
-  const [timeSlot, setTimeSlot] = useState<'morning' | 'afternoon' | 'evening'>('afternoon');
+  // Queries for user's past orders and profile
+  const userId = user?.id;
+  const { data: userOrders } = useGetUserOrdersQuery(userId, {
+    skip: !userId,
+  });
+  const { data: profileUser } = useGetUserProfileQuery(undefined, {
+    skip: !userId,
+  });
 
+  // Load localStorage saved addresses once when userId changes
+  useEffect(() => {
+    if (!userId) {
+      setLocalAddresses([]);
+      return;
+    }
+    try {
+      const storageKey = `grass_saved_addresses_${userId}`;
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed: SavedAddressOption[] = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setLocalAddresses(parsed);
+        }
+      }
+    } catch {
+      // Ignore JSON errors
+    }
+  }, [userId]);
+
+  // Purely computed saved addresses: ZERO setState inside an effect, eliminates infinite loop
+  const savedAddresses = useMemo<SavedAddressOption[]>(() => {
+    if (!user) return [];
+
+    const list: SavedAddressOption[] = [];
+    const seenKeys = new Set<string>();
+
+    // 1. From LocalStorage
+    localAddresses.forEach((addr) => {
+      const key = `${addr.shippingAddress || ''}_${addr.recipientPhone || ''}`.trim().toLowerCase();
+      if (key && !seenKeys.has(key)) {
+        seenKeys.add(key);
+        list.push(addr);
+      }
+    });
+
+    // 2. From User Past Orders
+    if (Array.isArray(userOrders) && userOrders.length > 0) {
+      userOrders.forEach((order, idx) => {
+        const rec = order.recipient;
+        if (rec && (rec.street || rec.city)) {
+          const street = rec.street || '';
+          const phone = rec.phone || '';
+          const key = `${street}_${phone}`.trim().toLowerCase();
+          if (key && !seenKeys.has(key)) {
+            seenKeys.add(key);
+            const nameParts = (rec.name || '').trim().split(' ');
+            const fName = nameParts[0] || '';
+            const lName = nameParts.slice(1).join(' ') || '';
+            list.push({
+              id: `order_${order.orderNumber || idx}`,
+              label: `${rec.name || 'Recipient'} - ${street}${rec.district ? `, ${rec.district}` : ''} (${rec.city || 'Jeddah'})`,
+              recipientFirstName: fName,
+              recipientLastName: lName,
+              recipientPhone: phone.replace(/^\+966/, ''),
+              shippingAddress: street,
+              shippingAddressLink: (order as any).location_link || (order as any).shipping_address_link || '',
+              city: rec.city || (locale === 'ar' ? 'جدة' : 'Jeddah'),
+              district: rec.district || '',
+            });
+          }
+        }
+      });
+    }
+
+    // 3. From User Profile
+    const activeProfile = profileUser || user;
+    if (activeProfile && (activeProfile.street || activeProfile.city)) {
+      const street = activeProfile.street || '';
+      const phone = activeProfile.phone || '';
+      const key = `${street}_${phone}`.trim().toLowerCase();
+      if (key && !seenKeys.has(key)) {
+        seenKeys.add(key);
+        const nameParts = (activeProfile.name || '').trim().split(' ');
+        list.unshift({
+          id: 'profile_address',
+          label: `${activeProfile.name || 'My Profile'} - ${street}${activeProfile.district ? `, ${activeProfile.district}` : ''} (${activeProfile.city || 'Jeddah'})`,
+          recipientFirstName: nameParts[0] || '',
+          recipientLastName: nameParts.slice(1).join(' ') || '',
+          recipientPhone: (activeProfile.phone || '').replace(/^\+966/, ''),
+          shippingAddress: street,
+          shippingAddressLink: '',
+          city: activeProfile.city || (locale === 'ar' ? 'جدة' : 'Jeddah'),
+          district: activeProfile.district || '',
+        });
+      }
+    }
+
+    return list;
+  }, [user, localAddresses, userOrders, profileUser, locale]);
+
+  // Handler for selecting an address from the saved addresses dropdown
+  const handleSelectSavedAddress = (addressId: string) => {
+    setSelectedSavedAddress(addressId);
+    if (!addressId) return;
+
+    const found = savedAddresses.find((a) => a.id === addressId);
+    if (found) {
+      const fullName = [found.recipientFirstName, found.recipientLastName].filter(Boolean).join(' ').trim();
+      if (fullName) setRecipientName(fullName);
+      if (found.recipientFirstName) setRecipientFirstName(found.recipientFirstName);
+      if (found.recipientLastName) setRecipientLastName(found.recipientLastName);
+      if (found.recipientPhone) {
+        const parsed = splitPhone(found.recipientPhone);
+        setRecipientCountryCode(parsed.code);
+        setRecipientPhone(parsed.number);
+      }
+      if (found.shippingAddress) setShippingAddress(found.shippingAddress);
+      if (found.shippingAddressLink) setShippingAddressLink(found.shippingAddressLink);
+      if (found.district) setDistrict(found.district);
+      if (found.latitude !== undefined) setLatitude(found.latitude);
+      if (found.longitude !== undefined) setLongitude(found.longitude);
+    }
+  };
+
+  // Helper to persist address into user saved list
+  const saveAddressForUser = (addrData: {
+    recipientFirstName: string;
+    recipientLastName: string;
+    recipientPhone: string;
+    shippingAddress: string;
+    shippingAddressLink?: string;
+    city: string;
+    district?: string;
+    latitude?: number;
+    longitude?: number;
+  }) => {
+    if (!user || !addrData.shippingAddress) return;
+    try {
+      const storageKey = `grass_saved_addresses_${user.id}`;
+      const raw = localStorage.getItem(storageKey);
+      const existing: SavedAddressOption[] = raw ? JSON.parse(raw) : [];
+
+      const labelName = `${addrData.recipientFirstName} ${addrData.recipientLastName}`.trim();
+      const label = `${labelName ? `${labelName} - ` : ''}${addrData.shippingAddress}${addrData.district ? `, ${addrData.district}` : ''} (${addrData.city || 'Jeddah'})`;
+
+      const newOption: SavedAddressOption = {
+        id: `saved_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        label,
+        recipientFirstName: addrData.recipientFirstName,
+        recipientLastName: addrData.recipientLastName,
+        recipientPhone: addrData.recipientPhone,
+        shippingAddress: addrData.shippingAddress,
+        shippingAddressLink: addrData.shippingAddressLink || '',
+        city: addrData.city || (locale === 'ar' ? 'جدة' : 'Jeddah'),
+        district: addrData.district || '',
+        latitude: addrData.latitude,
+        longitude: addrData.longitude,
+      };
+
+      const deduped = existing.filter(
+        (item) =>
+          `${item.shippingAddress}_${item.recipientPhone}`.trim().toLowerCase() !==
+          `${addrData.shippingAddress}_${addrData.recipientPhone}`.trim().toLowerCase()
+      );
+
+      deduped.unshift(newOption);
+      localStorage.setItem(storageKey, JSON.stringify(deduped));
+
+      setLocalAddresses(deduped);
+    } catch {
+      // Ignore errors
+    }
+  };
+
+  // Delivery Scheduling
+  const [deliveryDate, setDeliveryDate] = useState(saudiToday);
+  const [deliveryTimeSlot, setDeliveryTimeSlot] = useState<string>('afternoon');
+
+  // Gift & Card Fields
+  const [senderNameOnCard, setSenderNameOnCard] = useState('');
   const [cardMessage, setCardMessage] = useState('');
-  const [cardSender, setCardSender] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [songLink, setSongLink] = useState('');
 
-  const [paymentMethod, setPaymentMethod] = useState<'mada' | 'apple_pay' | 'credit_card' | 'cod' | 'tabby'>('mada');
+  // Order Options & Terms
+  const [promoInput, setPromoInput] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'mada' | 'apple_pay' | 'stc_pay' | 'tabby' | 'tamara' | 'cod'>('credit_card');
+  const [agreeTerms, setAgreeTerms] = useState(true);
 
+  // Errors state
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const isRtl = locale === 'ar';
-  const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
+  // Backend queries
+  const { data: serverGateways } = useGetPaymentMethodsQuery();
+  const {
+    data: slotsResponse,
+    isLoading: isSlotsLoading,
+    isFetching: isSlotsFetching,
+  } = useGetDeliverySlotsQuery(deliveryDate);
+  const isSlotsPending = isSlotsLoading || isSlotsFetching;
+  const rawSlots = slotsResponse?.slots;
+  const serverSlots = rawSlots || [];
+  const isDateBlocked = Boolean(slotsResponse?.is_blocked);
+  const blockedInfo = slotsResponse?.blocked_info;
+  const [initiatePayment] = useInitiatePaymentMutation();
 
-  const breadcrumbItems = [
-    { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },
-    { label: dict.cart.title, href: locale === 'ar' ? '/cart' : '/en/cart' },
-    { label: dict.checkout.title },
-  ];
+  // Ensure a valid slot is selected when slots data loads or changes
+  useEffect(() => {
+    if (rawSlots && rawSlots.length > 0) {
+      const isCurrentSlotValid = rawSlots.some(
+        (s) => String(s.code || s.start_time || s.id) === deliveryTimeSlot && s.is_available
+      );
+      if (!isCurrentSlotValid) {
+        const firstAvailable = rawSlots.find((s) => s.is_available);
+        if (firstAvailable) {
+          setDeliveryTimeSlot(String(firstAvailable.code || firstAvailable.start_time || firstAvailable.id));
+        }
+      }
+    }
+  }, [rawSlots]);
 
-  const validate = () => {
+  // Handle map selection
+  const handleMapLocationSelect = (data: {
+    address: string;
+    locationLink: string;
+    latitude: number;
+    longitude: number;
+    district?: string;
+  }) => {
+    setShippingAddress(data.address);
+    setShippingAddressLink(data.locationLink);
+    setLatitude(data.latitude);
+    setLongitude(data.longitude);
+    if (data.district) {
+      setDistrict(data.district);
+    }
+  };
+
+  // Quantity helpers
+  const handleUpdateQty = (cartItemId: string, productId: string | number, newQty: number, currentQty: number) => {
+    if (newQty <= 0) {
+      handleRemoveItem(cartItemId, productId);
+      return;
+    }
+    dispatch(updateQuantity({ cartItemId, quantity: newQty }));
+    const quantityChange: 1 | -1 = newQty > currentQty ? 1 : -1;
+    updateServerCartQuantity({ productId, quantityChange }).unwrap().catch(() => { });
+  };
+
+  const handleRemoveItem = (cartItemId: string, productId: string | number) => {
+    dispatch(removeItem(cartItemId));
+    removeServerCartItem({ productId }).unwrap().catch(() => { });
+  };
+
+  // Coupon helper
+  const handleApplyCoupon = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!promoInput.trim()) return;
+    dispatch(applyCoupon(promoInput.trim()));
+    setPromoInput('');
+  };
+
+  // Validate inputs
+  const validateForm = () => {
     const errs: Record<string, string> = {};
-    if (!recipientName.trim()) errs.recipientName = dict.validation.required;
-    if (!recipientPhone.trim()) errs.recipientPhone = dict.validation.required;
-    if (!district.trim()) errs.district = dict.validation.required;
-    if (!street.trim()) errs.street = dict.validation.required;
+
+    // Sender
+    if (!senderFirstName.trim()) errs.senderFirstName = locale === 'ar' ? 'الاسم الأول مطلوب' : 'First name is required';
+    if (!senderLastName.trim()) errs.senderLastName = locale === 'ar' ? 'اسم العائلة مطلوب' : 'Last name is required';
+    if (!senderEmail.trim() || !senderEmail.includes('@')) {
+      errs.senderEmail = locale === 'ar' ? 'البريد الإلكتروني غير صحيح' : 'Valid email is required';
+    }
+    if (!senderPhone.trim()) errs.senderPhone = locale === 'ar' ? 'رقم الهاتف مطلوب' : 'Phone number is required';
+
+    // Receiver
+    if (!shippingAddress.trim()) errs.shippingAddress = locale === 'ar' ? 'عنوان الشحن مطلوب' : 'Shipping address is required';
+    if (!recipientFirstName.trim()) errs.recipientFirstName = locale === 'ar' ? 'اسم المستلم الأول مطلوب' : 'Recipient first name is required';
+    if (!recipientLastName.trim()) errs.recipientLastName = locale === 'ar' ? 'اسم عائلة المستلم مطلوب' : 'Recipient last name is required';
+    if (!recipientPhone.trim()) errs.recipientPhone = locale === 'ar' ? 'رقم هاتف المستلم مطلوب' : 'Recipient phone is required';
+    if (!deliveryDate) errs.deliveryDate = locale === 'ar' ? 'تاريخ التوصيل مطلوب' : 'Delivery date is required';
+
+    if (isDateBlocked) {
+      errs.deliveryDate = locale === 'ar'
+        ? 'عذراً، التوصيل غير متاح في هذا التاريخ. يرجى اختيار تاريخ آخر.'
+        : 'Sorry, delivery is unavailable on this date. Please pick another date.';
+    }
+
+    if (!agreeTerms) {
+      errs.agreeTerms = locale === 'ar'
+        ? 'يرجى الموافقة على الشروط والأحكام للمتابعة'
+        : 'Please agree to terms and conditions to proceed';
+    }
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
+  // Place Order submission
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validateForm()) {
+      window.scrollTo({ top: 100, behavior: 'smooth' });
+      return;
+    }
 
     try {
+      const recipientFullName = `${recipientFirstName} ${recipientLastName}`.trim();
+      const senderFullName = `${senderFirstName} ${senderLastName}`.trim();
+      const fullSenderPhone = `${senderCountryCode}${senderPhone.replace(/^0+/, '')}`;
+      const fullRecipientPhone = `${recipientCountryCode}${recipientPhone.replace(/^0+/, '')}`;
+
       const result = await createOrder({
         items: cartItems,
+        sender: {
+          firstName: senderFirstName,
+          lastName: senderLastName,
+          country: senderCountry,
+          email: senderEmail,
+          phone: fullSenderPhone,
+        },
         recipient: {
-          type: recipientType,
-          name: recipientName,
-          phone: recipientPhone,
+          type: 'gift',
+          name: recipientFullName,
+          firstName: recipientFirstName,
+          lastName: recipientLastName,
+          phone: fullRecipientPhone,
           city,
-          district,
-          street,
+          district: district || 'Jeddah',
+          street: shippingAddress,
+          locationLink: shippingAddressLink,
+          latitude,
+          longitude,
         },
         delivery: {
-          date: deliveryDate === 'today' ? 'Today' : deliveryDate === 'tomorrow' ? 'Tomorrow' : customDate,
-          timeSlot,
+          date: deliveryDate,
+          timeSlot: deliveryTimeSlot,
         },
         giftCard: {
+          senderName: senderNameOnCard.trim(),
           message: cardMessage,
-          senderName: cardSender,
-          isAnonymous,
         },
+        songLink,
         paymentMethod,
         subtotal,
         vat,
         shippingFee,
         discount,
         total,
-      }).unwrap();
+        couponCode: couponCode || undefined,
+        currency: activeCurrency,
+        exchange_rate: sarToUsdRate,
+        currency_amount: activeCurrency === 'USD' ? totalUsd : total,
+        sar_amount: total,
+        meta_data: {
+          currency: activeCurrency,
+          exchange_rate: sarToUsdRate,
+          sar_total: total,
+          currency_total: activeCurrency === 'USD' ? totalUsd : total,
+          usd_total: totalUsd,
+          sar_subtotal: subtotal,
+          usd_subtotal: subtotalUsd,
+        },
+      } as any).unwrap();
+
+      if (paymentMethod !== 'cod' && result.orderNumber) {
+        initiatePayment({ orderId: result.orderNumber, gateway: paymentMethod }).unwrap().catch(() => { });
+      }
+
+      if (user) {
+        saveAddressForUser({
+          recipientFirstName,
+          recipientLastName,
+          recipientPhone: fullRecipientPhone,
+          shippingAddress,
+          shippingAddressLink,
+          city,
+          district,
+          latitude,
+          longitude,
+        });
+      }
 
       setConfirmedOrder(result);
       dispatch(clearCart());
-    } catch {
-      // Error handling
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
+      alert(
+        err?.data?.message ||
+        (locale === 'ar' ? 'تعذر إتمام الطلب، يرجى المحاولة لاحقاً.' : 'Failed to place order. Please check fields and try again.')
+      );
     }
   };
 
-  // If Order Confirmed Screen
+  // Success Confirmation Screen
   if (confirmedOrder) {
     return (
-      <div className="py-16 bg-surface min-h-[80vh] flex items-center justify-center">
+      <div className="py-16 bg-[#FDFCFB] min-h-[80vh] flex items-center justify-center">
         <div className="max-w-xl mx-auto px-4 w-full text-center">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-sm">
+          <div className="w-20 h-20 rounded-full bg-[#EBF3E8] text-[#546e3a] flex items-center justify-center mx-auto mb-6 shadow-xs">
             <CheckCircle2 className="w-10 h-10" />
           </div>
 
-          <span className="text-xs font-bold uppercase tracking-widest text-secondary block mb-1">
-            {locale === 'ar' ? 'تم الدفع بنجاح' : 'PAYMENT SUCCESSFUL'}
+          <span className="text-xs font-bold uppercase tracking-widest text-[#8fae2a] block mb-1">
+            {locale === 'ar' ? 'تم استلام طلبك بنجاح' : 'ORDER RECEIVED SUCCESSFULLY'}
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main mb-2">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1F2937] mb-2">
             {dict.checkout.orderSuccessTitle}
           </h1>
-          <p className="text-sm sm:text-base text-text-secondary leading-relaxed mb-6">
+          <p className="text-sm text-gray-600 leading-relaxed mb-6">
             {dict.checkout.orderSuccessDesc}
           </p>
 
-          <div className="p-6 bg-surface-subtle border border-border rounded-2xl text-start space-y-3 mb-8">
-            <div className="flex justify-between text-xs pb-3 border-b border-border">
-              <span className="text-text-muted">{dict.checkout.orderNumber}:</span>
-              <span className="font-mono font-bold text-text-main">{confirmedOrder.orderNumber}</span>
+          <div className="p-6 bg-white border border-gray-200 rounded-2xl text-start space-y-3 mb-8 shadow-xs">
+            <div className="flex justify-between text-xs pb-3 border-b border-gray-100">
+              <span className="text-gray-500">{dict.checkout.orderNumber}:</span>
+              <span className="font-mono font-bold text-gray-900">{confirmedOrder.orderNumber}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-text-muted">{dict.checkout.recipientName}:</span>
-              <span className="font-semibold text-text-main">{confirmedOrder.recipient.name}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-text-muted">{dict.checkout.deliveryCity}:</span>
-              <span className="font-semibold text-text-main">
-                {confirmedOrder.recipient.city} - {confirmedOrder.recipient.district}
+              <span className="text-gray-500">{locale === 'ar' ? 'المرسل:' : 'Sender:'}</span>
+              <span className="font-semibold text-gray-900">
+                {confirmedOrder.sender?.firstName} {confirmedOrder.sender?.lastName}
               </span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-text-muted">{dict.cart.total}:</span>
-              <span dir="ltr" className="font-bold text-primary inline-flex items-center gap-1">
-                <CurrencySymbol className="w-3.5 h-3.5" />
-                <span>{confirmedOrder.total}</span>
+              <span className="text-gray-500">{locale === 'ar' ? 'المستلم:' : 'Recipient:'}</span>
+              <span className="font-semibold text-gray-900">{confirmedOrder.recipient.name}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-500">{dict.checkout.deliveryCity}:</span>
+              <span className="font-semibold text-gray-900">
+                {confirmedOrder.recipient.city} - {confirmedOrder.recipient.street}
+              </span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-500">{dict.cart.total}:</span>
+              <span dir="ltr" className="font-bold text-[#546e3a] inline-flex items-center gap-1.5">
+                <CurrencySymbol className="w-3.5 h-3.5" forcedCurrency="SAR" />
+                <span>{confirmedOrder.total} SAR</span>
+                {sarToUsdRate > 0 && (
+                  <span className="text-gray-600 font-semibold ms-1">
+                    (~${(confirmedOrder.total * sarToUsdRate).toFixed(2)} USD)
+                  </span>
+                )}
               </span>
             </div>
           </div>
 
           <Link href={locale === 'ar' ? '/' : '/en'}>
-            <Button variant="primary" size="lg" className="font-bold shadow-md">
-              <span>{locale === 'ar' ? 'العودة إلى الصفحة الرئيسية' : 'Return to Home'}</span>
+            <Button variant="primary" size="lg" className="font-bold shadow-md bg-[#8fae2a] hover:bg-[#7d9b23] text-white">
+              <span>{locale === 'ar' ? 'العودة إلى المتجر' : 'Continue Shopping'}</span>
             </Button>
           </Link>
         </div>
@@ -170,330 +695,920 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   }
 
   return (
-    <div className="py-6 bg-surface min-h-[80vh]">
-      <div className="max-w-[1280px] mx-auto px-4">
-        <Breadcrumbs items={breadcrumbItems} locale={locale} />
-
-        <div className="mb-8 text-start">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main">
-            {dict.checkout.title}
-          </h1>
-          <div className="flex items-center gap-2 text-xs text-text-muted mt-1">
-            <Lock className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{dict.footer.securePayments}</span>
-          </div>
+    <div className="py-6 sm:py-10 bg-[#FAFAFA] min-h-[90vh]">
+      <div className="max-w-[1240px] mx-auto px-4">
+        {/* Header Breadcrumbs / Progress matching WordPress layout */}
+        <div className="mb-8 text-center">
+          <nav className="inline-flex items-center justify-center gap-2 sm:gap-4 text-[12px] sm:text-[13px] font-bold tracking-wider uppercase text-gray-400">
+            <Link
+              href={locale === 'ar' ? '/cart' : '/en/cart'}
+              className="hover:text-gray-700 transition-colors"
+            >
+              {locale === 'ar' ? 'سلة التسوق' : 'SHOPPING CART'}
+            </Link>
+            <span>&rarr;</span>
+            <span className="text-[#8fae2a] font-extrabold pb-0.5 border-b-2 border-[#8fae2a]">
+              {locale === 'ar' ? 'إتمام الطلب' : 'CHECKOUT'}
+            </span>
+            <span>&rarr;</span>
+            <span className="text-gray-400">
+              {locale === 'ar' ? 'اكتمل الطلب' : 'ORDER COMPLETE'}
+            </span>
+          </nav>
         </div>
 
         {cartItems.length > 0 ? (
-          <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Steps Form */}
-            <div className="lg:col-span-8 space-y-6 text-start">
-              {/* Step 1: Recipient Information */}
-              <div className="p-6 bg-surface rounded-2xl border border-border shadow-xs space-y-4">
-                <h3 className="text-base font-bold text-text-main flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-primary" />
-                  <span>{dict.checkout.step1}</span>
-                </h3>
+          <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+            {/* ============================================================== */}
+            {/* LEFT COLUMN: SENDER INFORMATION & RECEIVER INFORMATION */}
+            {/* ============================================================== */}
+            <div className="lg:col-span-7 space-y-8 text-start">
+              {/* ---------------- 1. SENDER INFORMATION ---------------- */}
+              <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-2xs space-y-5">
+                <h2 className="text-base sm:text-lg font-black tracking-wide text-gray-900 uppercase border-b border-gray-100 pb-3">
+                  {locale === 'ar' ? 'معلومات المرسل' : 'SENDER INFORMATION'}
+                </h2>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setRecipientType('myself')}
-                    className={`py-3 px-4 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      recipientType === 'myself'
-                        ? 'border-primary bg-primary-light/40 text-primary'
-                        : 'border-border bg-surface text-text-muted hover:border-primary/40'
-                    }`}
-                  >
-                    {dict.checkout.forMyself}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRecipientType('gift')}
-                    className={`py-3 px-4 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      recipientType === 'gift'
-                        ? 'border-primary bg-primary-light/40 text-primary'
-                        : 'border-border bg-surface text-text-muted hover:border-primary/40'
-                    }`}
-                  >
-                    {dict.checkout.asGift}
-                  </button>
-                </div>
+                <div className="space-y-4">
+                  {/* First Name & Last Name */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                        {locale === 'ar' ? 'الاسم الأول' : 'First name'} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={senderFirstName}
+                        onChange={(e) => setSenderFirstName(e.target.value)}
+                        placeholder={locale === 'ar' ? 'الاسم الأول' : 'First name'}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.senderFirstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
+                      />
+                      {errors.senderFirstName && (
+                        <p className="text-[11px] text-red-500 mt-1">{errors.senderFirstName}</p>
+                      )}
+                    </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <Input
-                    label={dict.checkout.recipientName}
-                    required
-                    value={recipientName}
-                    onChange={(e) => setRecipientName(e.target.value)}
-                    error={errors.recipientName}
-                  />
-                  <Input
-                    label={dict.checkout.recipientPhone}
-                    required
-                    placeholder="05XXXXXXXX"
-                    value={recipientPhone}
-                    onChange={(e) => setRecipientPhone(e.target.value)}
-                    error={errors.recipientPhone}
-                  />
-                </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                        {locale === 'ar' ? 'اسم العائلة' : 'Last name'} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={senderLastName}
+                        onChange={(e) => setSenderLastName(e.target.value)}
+                        placeholder={locale === 'ar' ? 'اسم العائلة' : 'Last name'}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.senderLastName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
+                      />
+                      {errors.senderLastName && (
+                        <p className="text-[11px] text-red-500 mt-1">{errors.senderLastName}</p>
+                      )}
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Country / Region & Email address in 1 row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                        {locale === 'ar' ? 'الدولة / المنطقة' : 'Country / Region'} <span className="text-red-500">*</span>
+                      </label>
+                      <CountrySelect
+                        value={senderCountry}
+                        onChange={(val) => setSenderCountry(val)}
+                        locale={locale}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                        {locale === 'ar' ? 'البريد الإلكتروني' : 'Email address'} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={senderEmail}
+                        onChange={(e) => setSenderEmail(e.target.value)}
+                        placeholder="name@example.com"
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.senderEmail ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
+                      />
+                      {errors.senderEmail && (
+                        <p className="text-[11px] text-red-500 mt-1">{errors.senderEmail}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Phone number */}
                   <div>
-                    <label className="text-xs font-semibold text-text-secondary block mb-1.5">
-                      {dict.checkout.deliveryCity}
+                    <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                      {locale === 'ar' ? 'رقم الهاتف (الواتساب)' : 'Phone number'} <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex gap-2">
+                      <CountryCodePicker
+                        value={senderCountryCode}
+                        onChange={(item) => setSenderCountryCode(item.dialCode)}
+                        locale={locale}
+                      />
+                      <input
+                        type="tel"
+                        value={senderPhone}
+                        onChange={(e) => setSenderPhone(e.target.value)}
+                        placeholder="5XXXXXXXX"
+                        className={`flex-1 h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.senderPhone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
+                      />
+                    </div>
+                    {errors.senderPhone && (
+                      <p className="text-[11px] text-red-500 mt-1">{errors.senderPhone}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* ---------------- 2. RECEIVER INFORMATION ---------------- */}
+              <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-2xs space-y-5">
+                <h2 className="text-base sm:text-lg font-black tracking-wide text-gray-900 uppercase border-b border-gray-100 pb-3">
+                  {locale === 'ar' ? 'معلومات المستلم' : 'RECEIVER INFORMATION'}
+                </h2>
+
+                {/* Compact Warning Notice Banner matching user design */}
+                <div className="py-2.5 px-3.5 rounded-xl bg-[#FFF9E6] border border-[#FDE68A] text-[#4A4237] flex items-center gap-3 text-xs shadow-2xs">
+                  <AlertTriangle className="w-5 h-5 text-amber-500 fill-amber-400 shrink-0" />
+                  <div className="text-[11px] sm:text-xs leading-relaxed leading-tight">
+                    <strong className="font-bold text-[#1E1915]">
+                      {locale === 'ar' ? 'تنبيه: ' : 'WARNING: '}
+                    </strong>
+                    <span>
+                      {locale === 'ar'
+                        ? 'إذا كان موقع المستلم يقع ضمن نطاق مواقع حساسة أو مشاريع، فقد يتعذر التوصيل وسنتواصل معك لترتيب التوصيل.'
+                        : "If the recipient's location is within the range of sensitive sites, the delivery may not be possible and will contact you to arrange delivery"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Previously Used Address Select Dropdown */}
+                {user && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                      {locale === 'ar'
+                        ? 'يمكنك اختيار أحد العناوين المحفوظة مسبقاً:'
+                        : 'You can select one of the previously used addresses using the list below:'}
                     </label>
                     <select
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="w-full h-11 px-3 text-xs bg-surface border border-border rounded-lg focus:border-primary focus:outline-none font-medium"
+                      value={selectedSavedAddress}
+                      onChange={(e) => handleSelectSavedAddress(e.target.value)}
+                      className="w-full h-11 px-3 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#8fae2a] text-gray-700 font-medium"
                     >
-                      {siteConfig.locations.map((l) => (
-                        <option key={l.id} value={l.name[locale]}>
-                          {l.name[locale]}
+                      <option value="">
+                        {locale === 'ar' ? 'اختر من العناوين المحفوظة...' : 'Select from Addresses...'}
+                      </option>
+                      {savedAddresses.map((addr) => (
+                        <option key={addr.id} value={addr.id}>
+                          {addr.label}
                         </option>
                       ))}
                     </select>
-                    <span className="text-[10.5px] text-[#435849] font-medium mt-1 block">
-                      {locale === 'ar' ? '• التوصيل متاح داخل مدينة جدة فقط' : '• Delivery exclusively within Jeddah'}
-                    </span>
                   </div>
-                  <Input
-                    label={dict.checkout.deliveryDistrict}
-                    required
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                    error={errors.district}
-                  />
-                  <Input
-                    label={dict.checkout.deliveryStreet}
-                    required
-                    value={street}
-                    onChange={(e) => setStreet(e.target.value)}
-                    error={errors.street}
-                  />
-                </div>
-              </div>
-
-              {/* Step 2: Delivery Date & Time Window */}
-              <div className="p-6 bg-surface rounded-2xl border border-border shadow-xs space-y-4">
-                <h3 className="text-base font-bold text-text-main flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  <span>{dict.checkout.step2}</span>
-                </h3>
-
-                <div className="grid grid-cols-3 gap-3">
-                  {(
-                    [
-                      { id: 'today', label: dict.checkout.today },
-                      { id: 'tomorrow', label: dict.checkout.tomorrow },
-                      { id: 'custom', label: dict.checkout.chooseDate },
-                    ] as const
-                  ).map((d) => (
-                    <button
-                      key={d.id}
-                      type="button"
-                      onClick={() => setDeliveryDate(d.id)}
-                      className={`py-3 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                        deliveryDate === d.id
-                          ? 'border-primary bg-primary-light/40 text-primary'
-                          : 'border-border bg-surface text-text-muted hover:border-primary/40'
-                      }`}
-                    >
-                      {d.label}
-                    </button>
-                  ))}
-                </div>
-
-                {deliveryDate === 'custom' && (
-                  <input
-                    type="date"
-                    required
-                    value={customDate}
-                    onChange={(e) => setCustomDate(e.target.value)}
-                    className="w-full h-11 px-3 text-xs bg-surface border border-border rounded-lg focus:border-primary"
-                  />
                 )}
 
-                <div className="pt-2">
-                  <label className="text-xs font-semibold text-text-secondary block mb-2">
-                    {dict.checkout.timeSlot}
+                {/* Interactive Map Section */}
+                <div className="space-y-2 pt-1">
+                  <label className="text-xs font-semibold text-gray-700 block">
+                    {locale === 'ar' ? 'تحديد الموقع على الخريطة (جدة):' : 'Pin Address on Map (Jeddah):'}
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {(
-                      [
-                        { id: 'morning', label: dict.checkout.morningSlot },
-                        { id: 'afternoon', label: dict.checkout.afternoonSlot },
-                        { id: 'evening', label: dict.checkout.eveningSlot },
-                      ] as const
-                    ).map((slot) => (
-                      <button
-                        key={slot.id}
-                        type="button"
-                        onClick={() => setTimeSlot(slot.id)}
-                        className={`p-3 rounded-xl text-start text-xs border transition-all cursor-pointer ${
-                          timeSlot === slot.id
-                            ? 'border-primary bg-primary-light/30 text-primary font-bold shadow-xs'
-                            : 'border-border bg-surface text-text-secondary hover:border-primary/40'
-                        }`}
-                      >
-                        <Clock className="w-4 h-4 mb-1 text-primary" />
-                        <span>{slot.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 3: Complimentary Gift Card Message */}
-              <div className="p-6 bg-surface rounded-2xl border border-border shadow-xs space-y-4">
-                <h3 className="text-base font-bold text-text-main flex items-center gap-2">
-                  <Gift className="w-5 h-5 text-primary" />
-                  <span>{dict.checkout.step3}</span>
-                </h3>
-
-                <textarea
-                  rows={3}
-                  value={cardMessage}
-                  onChange={(e) => setCardMessage(e.target.value)}
-                  placeholder={dict.product.cardMessagePlaceholder}
-                  className="w-full p-3 text-xs bg-surface border border-border rounded-xl focus:outline-none focus:border-primary"
-                />
-
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <input
-                    type="text"
-                    value={cardSender}
-                    disabled={isAnonymous}
-                    onChange={(e) => setCardSender(e.target.value)}
-                    placeholder={dict.product.cardSenderPlaceholder}
-                    className="w-full sm:flex-1 p-2.5 text-xs bg-surface border border-border rounded-lg disabled:opacity-50"
+                  <AddressMapPicker
+                    locale={locale}
+                    initialAddress={shippingAddress}
+                    initialLink={shippingAddressLink}
+                    onLocationSelect={handleMapLocationSelect}
                   />
-                  <label className="flex items-center gap-2 text-xs text-text-secondary cursor-pointer shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={isAnonymous}
-                      onChange={(e) => setIsAnonymous(e.target.checked)}
-                      className="w-4 h-4 text-primary rounded"
-                    />
-                    <span>{dict.product.cardAnonymous}</span>
-                  </label>
+                </div>
+
+                {/* Shipping address & link inputs */}
+                <div className="space-y-4 pt-2">
+                  {/* Shipping address & link in 1 row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                        {locale === 'ar' ? 'عنوان الشحن' : 'Shipping address'} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={shippingAddress}
+                        onChange={(e) => setShippingAddress(e.target.value)}
+                        placeholder={locale === 'ar' ? 'اسم الحي، الشارع، أو رقم المبنى' : 'District, Street, Landmark'}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.shippingAddress ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
+                      />
+                      {errors.shippingAddress && (
+                        <p className="text-[11px] text-red-500 mt-1">{errors.shippingAddress}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5 flex items-center justify-between">
+                        <span className="truncate">{locale === 'ar' ? 'رابط موقع الشحن (خرائط جوجل)' : 'Shipping address link'}</span>
+                        {shippingAddressLink && (
+                          <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+                            {locale === 'ar' ? 'تم التحديد' : 'Pinned'}
+                          </span>
+                        )}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="url"
+                          value={shippingAddressLink}
+                          readOnly={Boolean(shippingAddressLink)}
+                          onChange={(e) => setShippingAddressLink(e.target.value)}
+                          placeholder="https://maps.google.com/..."
+                          className={`w-full h-11 px-3.5 pe-9 text-xs border rounded-lg focus:outline-none transition-all ${shippingAddressLink
+                            ? 'bg-gray-100/90 border-gray-200 text-gray-600 cursor-not-allowed select-all font-mono text-[11px]'
+                            : 'bg-white border-gray-200 focus:border-[#8fae2a]'
+                            }`}
+                        />
+                        {shippingAddressLink && (
+                          <a
+                            href={shippingAddressLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute end-3 top-3 text-[#546e3a] hover:text-[#8fae2a]"
+                            title={locale === 'ar' ? 'فتح الرابط في خرائط جوجل' : 'Open in Google Maps'}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Row 1: Recipient First Name & Recipient Last Name */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                        {locale === 'ar' ? 'اسم المستلم الأول' : 'Recipient first name'} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={recipientFirstName}
+                        onChange={(e) => setRecipientFirstName(e.target.value)}
+                        placeholder={locale === 'ar' ? 'اسم المستلم الأول' : 'Recipient first name'}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.recipientFirstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
+                      />
+                      {errors.recipientFirstName && (
+                        <p className="text-[11px] text-red-500 mt-1">{errors.recipientFirstName}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                        {locale === 'ar' ? 'اسم عائلة المستلم' : 'Recipient last name'} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={recipientLastName}
+                        onChange={(e) => setRecipientLastName(e.target.value)}
+                        placeholder={locale === 'ar' ? 'اسم العائلة' : 'Recipient last name'}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.recipientLastName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
+                      />
+                      {errors.recipientLastName && (
+                        <p className="text-[11px] text-red-500 mt-1">{errors.recipientLastName}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 2: Country code & Phone number, and City */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Phone number with Country code */}
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                        {locale === 'ar' ? 'رقم هاتف المستلم' : 'Phone number'} <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <CountryCodePicker
+                          value={recipientCountryCode}
+                          onChange={(item) => setRecipientCountryCode(item.dialCode)}
+                          locale={locale}
+                        />
+                        <input
+                          type="tel"
+                          value={recipientPhone}
+                          onChange={(e) => setRecipientPhone(e.target.value)}
+                          placeholder="5XXXXXXXX"
+                          className={`flex-1 min-w-0 h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.recipientPhone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                            }`}
+                        />
+                      </div>
+                      {errors.recipientPhone && (
+                        <p className="text-[11px] text-red-500 mt-1">{errors.recipientPhone}</p>
+                      )}
+                    </div>
+
+                    {/* City (Fixed & Readonly to Jeddah) */}
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                        {locale === 'ar' ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={city}
+                        readOnly
+                        className="w-full h-11 px-3.5 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-700 font-semibold cursor-not-allowed select-none focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Delivery Date & Time (calculated by backend operating timezone) */}
+                  <div className="p-4 sm:p-5 bg-gray-50/90 rounded-2xl border border-gray-200/90 space-y-5 shadow-2xs">
+                    {/* Improved Delivery Date Picker */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                          <Calendar className="w-4 h-4 text-[#546e3a]" />
+                          <span>{locale === 'ar' ? 'تاريخ التوصيل' : 'Delivery date'}</span>
+                          <span className="text-red-500">*</span>
+                        </label>
+                      </div>
+
+                      {/* Quick Date Chips (Today / Tomorrow / Day After) */}
+                      <div className="grid grid-cols-3 gap-2">
+                        {quickDates.map((chip) => {
+                          const isSelected = deliveryDate === chip.dateStr;
+                          return (
+                            <button
+                              key={chip.dateStr}
+                              type="button"
+                              onClick={() => setDeliveryDate(chip.dateStr)}
+                              className={`py-2 px-2 rounded-xl border text-center transition-all cursor-pointer ${isSelected
+                                ? 'border-[#8fae2a] bg-[#8fae2a]/15 text-gray-900 shadow-xs font-bold ring-2 ring-[#8fae2a]/30'
+                                : 'border-gray-200 bg-white hover:bg-gray-50/80 hover:border-gray-300 text-gray-700'
+                                }`}
+                            >
+                              <span className="block text-xs font-black">{chip.label}</span>
+                              <span className="block text-[10.5px] text-gray-500 font-medium mt-0.5">
+                                {chip.subLabel}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Custom Delivery Date Picker (Full-row clickable with modern popup) */}
+                      <DeliveryDatePicker
+                        value={deliveryDate}
+                        onChange={(newDate) => setDeliveryDate(newDate)}
+                        minDate={saudiToday}
+                        locale={locale}
+                        formatDisplayDate={formatDisplayDate}
+                      />
+
+                      <div className="text-[10.5px] text-gray-500 ps-1">
+                        {locale === 'ar'
+                          ? '• التوقيت معتمد بتوقيت المملكة العربية السعودية (مكة المكرمة GMT+3)'
+                          : '• Operating on Saudi Arabia Standard Time (GMT+3)'}
+                      </div>
+                    </div>
+
+                    {/* Blocked Date Alert */}
+                    {isDateBlocked && (
+                      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 space-y-1">
+                        <div className="flex items-center gap-2 font-bold text-xs text-amber-800">
+                          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span>
+                            {locale === 'ar'
+                              ? (blockedInfo?.title_ar || 'تنويه: المتجر مغلق في هذا اليوم')
+                              : (blockedInfo?.title_en || 'Notice: Store Closed on This Date')}
+                          </span>
+                        </div>
+                        <p className="text-xs text-amber-800 leading-relaxed ps-6">
+                          {locale === 'ar'
+                            ? (blockedInfo?.reason_ar || blockedInfo?.reason || 'نعتذر، التوصيل غير متاح في هذا اليوم. يرجى اختيار تاريخ آخر.')
+                            : (blockedInfo?.reason_en || blockedInfo?.reason || 'Deliveries unavailable on this selected date. Please pick another date.')}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Delivery Time Slot Section - only show when date is not full-day blocked */}
+                    {!isDateBlocked && (
+                      <div className="space-y-2.5 pt-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                            <Clock className="w-4 h-4 text-[#546e3a]" />
+                            <span>{locale === 'ar' ? 'وقت التوصيل' : 'Delivery time'}</span>
+                            <span className="text-red-500">*</span>
+                          </label>
+                          {isSlotsPending && (
+                            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#546e3a] animate-pulse">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#546e3a] animate-ping" />
+                              <span>{locale === 'ar' ? 'جاري تحديث الفترات...' : 'Updating slots...'}</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {/* SKELETON LOADING STATE WHILE FETCHING NEW DATE SLOTS */}
+                        {isSlotsPending ? (
+                          <div className="space-y-2.5 animate-pulse">
+                            {[1, 2].map((i) => (
+                              <div
+                                key={i}
+                                className="p-3.5 sm:p-4 rounded-xl border border-gray-200/90 bg-white/90 shadow-2xs flex items-center justify-between gap-3"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-xl bg-gray-200 shrink-0" />
+                                  <div className="w-40 h-4 bg-gray-200 rounded-md" />
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-5 h-5 rounded-full bg-gray-200 shrink-0" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="space-y-2.5">
+                            {(serverSlots && serverSlots.length > 0
+                              ? serverSlots.map((s) => {
+                                const key = String(s.code || s.start_time || s.id);
+                                const label = (
+                                  locale === 'ar'
+                                    ? (s.title_ar || s.name_ar || s.start_time)
+                                    : (s.title_en || s.name_en || s.start_time)
+                                ) || 'Scheduled Delivery';
+                                return {
+                                  code: key,
+                                  label: String(label),
+                                  isAvailable: Boolean(s.is_available),
+                                  cutoffReason: s.cutoff_reason,
+                                };
+                              })
+                              : [
+                                { code: 'morning', label: '11:00 am to 06:00 pm', isAvailable: true, cutoffReason: null },
+                                { code: 'evening', label: '06:00 pm to 10:00 pm', isAvailable: true, cutoffReason: null },
+                              ]
+                            ).map((slot) => {
+                              const isSelected = deliveryTimeSlot === slot.code;
+                              const isAvailable = slot.isAvailable;
+                              const slotLabelLower = (slot.label || '').toLowerCase();
+                              const isMorning = slot.code.toLowerCase().includes('morning') || slotLabelLower.includes('11:00');
+                              const isEvening = slot.code.toLowerCase().includes('evening') || slotLabelLower.includes('06:00') || slotLabelLower.includes('18:00');
+                              const SlotIcon = isMorning ? Sunrise : isEvening ? Sunset : Clock;
+
+                              return (
+                                <div
+                                  key={slot.code}
+                                  onClick={() => {
+                                    if (isAvailable) {
+                                      setDeliveryTimeSlot(slot.code);
+                                    }
+                                  }}
+                                  className={`p-3.5 sm:p-4 rounded-xl border text-xs transition-all duration-200 cursor-pointer select-none flex items-center justify-between gap-3 ${!isAvailable
+                                    ? 'opacity-40 cursor-not-allowed bg-gray-100/70 border-gray-200 text-gray-400'
+                                    : isSelected
+                                      ? 'bg-[#8fae2a]/10 border-[#8fae2a] shadow-xs ring-2 ring-[#8fae2a]/30 text-gray-900'
+                                      : 'bg-white hover:bg-gray-50/80 border-gray-200 hover:border-[#8fae2a]/50 text-gray-800'
+                                    }`}
+                                >
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div
+                                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${!isAvailable
+                                        ? 'bg-gray-200 text-gray-400'
+                                        : isSelected
+                                          ? 'bg-[#8fae2a] text-white shadow-xs'
+                                          : 'bg-gray-100 text-gray-600'
+                                        }`}
+                                    >
+                                      <SlotIcon className="w-4 h-4" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <span className={`block font-extrabold text-xs sm:text-sm tracking-tight truncate ${isSelected ? 'text-gray-900' : 'text-gray-800'}`}>
+                                        {slot.label}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2.5 shrink-0">
+                                    {!isAvailable && (
+                                      <span className="inline-flex items-center gap-1 font-semibold text-[11px] text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200/60">
+                                        <Lock className="w-3 h-3" />
+                                        <span>{slot.cutoffReason || (locale === 'ar' ? 'انتهت فترة الحجز' : 'Closed')}</span>
+                                      </span>
+                                    )}
+
+                                    <div
+                                      className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${!isAvailable
+                                        ? 'border-gray-300 bg-gray-200'
+                                        : isSelected
+                                          ? 'border-[#8fae2a] bg-[#8fae2a] text-white shadow-xs'
+                                          : 'border-gray-300 bg-white'
+                                        }`}
+                                    >
+                                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                 </div>
               </div>
 
-              {/* Step 4: Payment Method Selection */}
-              <div className="p-6 bg-surface rounded-2xl border border-border shadow-xs space-y-4">
-                <h3 className="text-base font-bold text-text-main flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-primary" />
-                  <span>{dict.checkout.step4}</span>
-                </h3>
+              {/* ---------------- 3. GIFT CARD & DEDICATION ---------------- */}
+              <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-2xs space-y-5">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <h2 className="text-base sm:text-lg font-black tracking-wide text-gray-900 uppercase flex items-center gap-2">
+                    <Gift className="w-4 h-4 text-[#8fae2a]" />
+                    <span>{locale === 'ar' ? 'كرت الإهداء والرسالة' : 'GIFT CARD & DEDICATION'}</span>
+                  </h2>
+                  <span className="text-[11px] font-semibold text-gray-400 bg-gray-50 border border-gray-200 px-2.5 py-0.5 rounded-full">
+                    {locale === 'ar' ? 'اختياري' : 'Optional'}
+                  </span>
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {(
-                    [
-                      { id: 'mada', label: dict.checkout.mada },
-                      { id: 'apple_pay', label: dict.checkout.applePay },
-                      { id: 'credit_card', label: dict.checkout.creditCard },
-                      { id: 'tabby', label: dict.checkout.tabby },
-                      { id: 'cod', label: dict.checkout.cod },
-                    ] as const
-                  ).map((pm) => (
-                    <button
-                      key={pm.id}
-                      type="button"
-                      onClick={() => setPaymentMethod(pm.id)}
-                      className={`p-3.5 rounded-xl border text-start text-xs font-semibold transition-all cursor-pointer flex items-center justify-between ${
-                        paymentMethod === pm.id
-                          ? 'border-primary bg-primary-light/40 text-primary shadow-xs'
-                          : 'border-border bg-surface text-text-main hover:border-primary/40'
-                      }`}
-                    >
-                      <span>{pm.label}</span>
-                      {paymentMethod === pm.id && <CheckCircle2 className="w-4 h-4 text-primary" />}
-                    </button>
-                  ))}
+                <div className="space-y-4">
+                  {/* Sender Name on the Gift Card */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                      {locale === 'ar' ? 'اسم المرسل على كرت الإهداء (اختياري)' : 'Sender name on the gift card (optional)'}
+                    </label>
+                    <input
+                      type="text"
+                      value={senderNameOnCard}
+                      onChange={(e) => setSenderNameOnCard(e.target.value)}
+                      placeholder={locale === 'ar' ? 'اتركه فارغاً للإرسال كمجهول' : 'Leave empty for anonymous'}
+                      className="w-full h-11 px-3.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#8fae2a]"
+                    />
+                  </div>
+
+                  {/* Gift Message */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                      {locale === 'ar' ? 'رسالة الهدية (اختياري)' : 'Gift message (optional)'}
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={cardMessage}
+                      onChange={(e) => setCardMessage(e.target.value)}
+                      placeholder={dict.product.cardMessagePlaceholder}
+                      className="w-full p-3 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-[#8fae2a]"
+                    />
+                  </div>
+
+                  {/* Song link */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5 mb-1.5">
+                      <Music className="w-3.5 h-3.5 text-[#546e3a]" />
+                      <span>
+                        {locale === 'ar'
+                          ? 'رابط أغنية للاستماع إليها وقت التوصيل (اختياري)'
+                          : 'Song link to listen it at all delivery (optional)'}
+                      </span>
+                    </label>
+                    <input
+                      type="url"
+                      value={songLink}
+                      onChange={(e) => setSongLink(e.target.value)}
+                      placeholder="https://youtube.com/... or https://spotify.com/..."
+                      className="w-full h-11 px-3.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#8fae2a]"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Order Summary Sticky Column */}
-            <div className="lg:col-span-4 lg:sticky lg:top-36 space-y-6">
-              <div className="p-6 bg-surface rounded-2xl border border-border shadow-xs text-start space-y-4">
-                <h3 className="text-base font-bold text-text-main pb-3 border-b border-border">
-                  {locale === 'ar' ? 'ملخص الفاتورة' : 'Invoice Summary'}
-                </h3>
+            {/* ============================================================== */}
+            {/* RIGHT COLUMN: YOUR ORDER SUMMARY & PAYMENT METHOD */}
+            {/* ============================================================== */}
+            <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 text-start space-y-5">
+                <h2 className="text-base sm:text-lg font-black tracking-wide text-gray-900 uppercase border-b border-gray-100 pb-3">
+                  {locale === 'ar' ? 'طلبك' : 'YOUR ORDER'}
+                </h2>
 
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between text-text-muted">
+                {/* Table Header: PRODUCT | SUBTOTAL */}
+                <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-wider text-gray-400 pb-2 border-b border-gray-100">
+                  <span>{locale === 'ar' ? 'المنتج' : 'PRODUCT'}</span>
+                  <span>{locale === 'ar' ? 'المجموع' : 'SUBTOTAL'}</span>
+                </div>
+
+                {/* Cart Items List */}
+                <div className="divide-y divide-gray-100 max-h-72 overflow-y-auto pe-1">
+                  {cartItems.map((item) => (
+                    <div key={item.cartItemId} className="py-3 flex items-center gap-3">
+                      {/* Image */}
+                      <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-gray-200 bg-gray-50">
+                        <Image
+                          src={formatStorageUrl(item.product.thumbnail)}
+                          alt={getLocalizedProductName(item.product.name, locale)}
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                        />
+                      </div>
+
+                      {/* Details & Qty */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-bold text-gray-800 truncate">
+                          {getLocalizedProductName(item.product.name, locale)}
+                        </h4>
+
+                        <div className="flex items-center gap-2 mt-1.5">
+                          {/* Qty changer */}
+                          <div className="inline-flex items-center border border-gray-200 rounded-md bg-white">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateQty(item.cartItemId, item.productId, item.quantity - 1, item.quantity)}
+                              className="px-1.5 py-0.5 text-gray-500 hover:text-black hover:bg-gray-100 text-xs"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="px-2 text-xs font-bold text-gray-800">{item.quantity}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateQty(item.cartItemId, item.productId, item.quantity + 1, item.quantity)}
+                              className="px-1.5 py-0.5 text-gray-500 hover:text-black hover:bg-gray-100 text-xs"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          {/* Delete X */}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(item.cartItemId, item.productId)}
+                            className="text-gray-400 hover:text-red-500 p-1"
+                            title="Remove"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Item Total (both SAR & USD) */}
+                      <div dir="ltr" className="text-xs font-bold text-gray-900 shrink-0 text-end">
+                        <div className="flex items-center gap-1 justify-end">
+                          <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
+                          <span>{item.itemTotal} SAR</span>
+                        </div>
+                        <div className="text-[10px] text-gray-500 font-medium">
+                          ${(item.itemTotal * sarToUsdRate).toFixed(2)} USD
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Subtotals & Taxes */}
+                <div className="space-y-2.5 pt-3 border-t border-gray-100 text-xs text-gray-600">
+                  <div className="flex justify-between items-center">
                     <span>{dict.cart.subtotal}</span>
-                    <span dir="ltr" className="inline-flex items-center gap-1 font-medium">
-                      <CurrencySymbol className="w-3 h-3" />
-                      <span>{subtotal}</span>
-                    </span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-emerald-600 font-bold">
-                      <span>{dict.cart.discount}</span>
-                      <span dir="ltr" className="inline-flex items-center gap-1">
-                        <span>-</span>
-                        <CurrencySymbol className="w-3 h-3" />
-                        <span>{discount}</span>
+                    <div dir="ltr" className="text-end">
+                      <span className="font-semibold text-gray-900 flex items-center justify-end gap-1">
+                        <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
+                        <span>{subtotal} SAR</span>
+                      </span>
+                      <span className="text-[10.5px] text-gray-500 block">
+                        ${subtotalUsd} USD
                       </span>
                     </div>
-                  )}
-                  <div className="flex justify-between text-text-muted">
-                    <span>{dict.cart.shipping}</span>
-                    <span className={shippingFee === 0 ? 'text-emerald-600 font-bold' : ''}>
-                      {shippingFee === 0 ? dict.cart.freeShipping : (
-                        <span dir="ltr" className="inline-flex items-center gap-1">
-                          <CurrencySymbol className="w-3 h-3" />
-                          <span>{shippingFee}</span>
+                  </div>
+
+                  {discount > 0 && (
+                    <div className="flex justify-between items-center text-emerald-600 font-bold">
+                      <span>{dict.cart.discount}</span>
+                      <div dir="ltr" className="text-end">
+                        <span className="flex items-center justify-end gap-1">
+                          <span>-</span>
+                          <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
+                          <span>{discount} SAR</span>
                         </span>
+                        <span className="text-[10.5px] text-emerald-500 font-normal block">
+                          -${discountUsd} USD
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center">
+                    <span>{locale === 'ar' ? 'الشحن' : 'Shipment'}</span>
+                    <span className="font-semibold text-emerald-600">
+                      {shippingFee === 0 ? (
+                        locale === 'ar' ? 'توصيل مجاني' : 'Free Delivery'
+                      ) : (
+                        <div dir="ltr" className="text-end">
+                          <span className="flex items-center justify-end gap-1 text-gray-900">
+                            <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
+                            <span>{shippingFee} SAR</span>
+                          </span>
+                          <span className="text-[10.5px] text-gray-500 font-normal block">
+                            ${shippingFeeUsd} USD
+                          </span>
+                        </div>
                       )}
                     </span>
                   </div>
-                  <div className="flex justify-between text-text-muted">
-                    <span>{dict.cart.vat}</span>
-                    <span dir="ltr" className="inline-flex items-center gap-1">
-                      <CurrencySymbol className="w-3 h-3" />
-                      <span>{vat}</span>
+
+                  <div className="flex justify-between items-center">
+                    <span>
+                      {locale === 'ar'
+                        ? `ضريبة القيمة المضافة (${vatPercentage}%)`
+                        : `Saudi Arabia VAT (${vatPercentage}%)`}
                     </span>
+                    <div dir="ltr" className="text-end">
+                      <span className="font-semibold text-gray-900 flex items-center justify-end gap-1">
+                        <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
+                        <span>{vat} SAR</span>
+                      </span>
+                      <span className="text-[10.5px] text-gray-500 block">
+                        ${vatUsd} USD
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-lg font-black text-text-main pt-3 border-t border-border">
-                    <span>{dict.cart.total}</span>
-                    <span dir="ltr" className="text-primary inline-flex items-center gap-1.5">
-                      <CurrencySymbol className="w-4 h-4" />
-                      <span>{total}</span>
-                    </span>
+
+                  {/* Total in SAR & USD (Both clearly displayed) */}
+                  <div className="pt-3 border-t border-gray-200 space-y-1.5">
+                    <div className="flex justify-between items-baseline text-base font-black text-gray-900">
+                      <span>{dict.cart.total} (SAR)</span>
+                      <span dir="ltr" className="text-[#8fae2a] flex items-center gap-1 text-lg">
+                        <CurrencySymbol className="w-4 h-4" forcedCurrency="SAR" />
+                        <span>{total} SAR</span>
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-baseline text-xs font-bold text-gray-700 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                      <span>{locale === 'ar' ? 'المجموع المقابل بالدولار الأمريكي:' : 'Equivalent in US Dollar:'}</span>
+                      <span dir="ltr" className="text-[#a2c03e] font-extrabold text-sm">
+                        ${totalUsd} USD
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  isLoading={isLoading}
-                  className="w-full font-bold text-sm shadow-md"
-                >
-                  <span>{dict.checkout.placeOrder}</span>
-                  <ArrowIcon className="w-4 h-4 ms-2" />
-                </Button>
+                {/* Promo Coupon Box */}
+                <div className="pt-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoInput}
+                      onChange={(e) => setPromoInput(e.target.value)}
+                      placeholder={locale === 'ar' ? 'رمز القسيمة' : 'Enter promo code'}
+                      className="flex-1 h-10 px-3 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#8fae2a]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      className="px-4 h-10 bg-[#8fae2a] text-white text-xs font-bold rounded-lg hover:bg-[#7d9b23] transition-colors uppercase tracking-wider shrink-0 cursor-pointer"
+                    >
+                      {locale === 'ar' ? 'تطبيق الكوبون' : 'APPLY COUPON'}
+                    </button>
+                  </div>
+                  {couponCode && (
+                    <div className="flex items-center justify-between text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg mt-2">
+                      <span>✓ {couponCode} {locale === 'ar' ? 'مطبق' : 'applied'}</span>
+                      <button
+                        type="button"
+                        onClick={() => dispatch(removeCoupon())}
+                        className="text-red-500 hover:underline font-bold"
+                      >
+                        {dict.cart.remove}
+                      </button>
+                    </div>
+                  )}
+                </div>
 
-                <p className="text-[11px] text-text-muted text-center leading-relaxed">
+                {/* Security and Payment Gateways Logo Banner */}
+                <div className="pt-3 border-t border-gray-100 text-center space-y-2">
+                  <p className="text-[11px] text-gray-400">
+                    {locale === 'ar' ? 'جميع المعاملات تتم بأمان وحماية مشفرة' : 'All transactions are processed in a secure environment.'}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-1 opacity-90">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-blue-900 text-white tracking-wider">VISA</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-red-600 text-white tracking-wider">MC</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-700 text-white tracking-wider">mada</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-purple-700 text-white tracking-wider">stc pay</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-[#3EEDB4] text-gray-900 tracking-wider">tabby</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-400 text-gray-900 tracking-wider">tamara</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-blue-600 text-white tracking-wider">PayPal</span>
+                  </div>
+                </div>
+
+                {/* Payment Options Radio Buttons */}
+                <div className="space-y-2 pt-2">
+                  {[
+                    {
+                      id: 'credit_card' as const,
+                      label: locale === 'ar' ? 'الدفع بالبطاقة الائتمانية / مدى' : 'Credit / Debit Card Payment',
+                      badges: 'mada / VISA / MasterCard',
+                    },
+                    {
+                      id: 'apple_pay' as const,
+                      label: locale === 'ar' ? 'أبل باي' : 'Apple Pay',
+                      badges: '',
+                    },
+                    {
+                      id: 'stc_pay' as const,
+                      label: locale === 'ar' ? 'اس تي سي باي' : 'STC Pay',
+                      badges: '',
+                    },
+                    {
+                      id: 'tabby' as const,
+                      label: locale === 'ar' ? 'الدفع لاحقاً عبر تابي (قسط على 4 دفعات)' : 'Pay later with Tabby',
+                      badges: 'tabby',
+                    },
+                    {
+                      id: 'tamara' as const,
+                      label: locale === 'ar' ? 'الدفع عبر تمارا' : 'Tamara',
+                      badges: 'tamara',
+                    },
+                    {
+                      id: 'cod' as const,
+                      label: locale === 'ar' ? 'الدفع عند الاستلام' : 'Cash on Delivery (COD)',
+                      badges: '',
+                    },
+                  ].map((pm) => (
+                    <label
+                      key={pm.id}
+                      className={`flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition-all ${paymentMethod === pm.id
+                        ? 'border-[#8fae2a] bg-[#8fae2a]/10 font-bold text-gray-900 shadow-2xs'
+                        : 'border-gray-200 bg-white hover:border-[#8fae2a]/40 text-gray-700'
+                        }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <input
+                          type="radio"
+                          name="payment_choice"
+                          checked={paymentMethod === pm.id}
+                          onChange={() => setPaymentMethod(pm.id)}
+                          className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
+                        />
+                        <span>{pm.label}</span>
+                      </div>
+                      {pm.badges && (
+                        <span className="text-[10px] text-gray-400 font-normal">
+                          {pm.badges}
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+
+                {/* Privacy Policy disclaimer */}
+                <p className="text-[11px] text-gray-400 leading-relaxed pt-2">
                   {locale === 'ar'
-                    ? 'بإتمام الطلب، أنت توافق على الشروط والأحكام وسياسة التوصيل المبرد لبوتيك غراس فلوريست.'
-                    : 'By placing order, you agree to Grass Florist terms of service and cold-chain policy.'}
+                    ? 'سيتم استخدام بياناتك الشخصية لمعالجة طلبك، ودعم تجربتك في هذا الموقع، ولأغراض أخرى موضحة في سياسة الخصوصية الخاصة بنا.'
+                    : 'Your personal data will be used to process your order, to support your experience throughout this website, and for other purposes described in our privacy policy.'}
                 </p>
+
+                {/* Terms and Conditions Checkbox */}
+                <div className="pt-1">
+                  <label className="flex items-start gap-2.5 text-xs text-gray-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 text-[#8fae2a] rounded border-gray-300 focus:ring-[#8fae2a]"
+                    />
+                    <span className="leading-snug">
+                      {locale === 'ar'
+                        ? 'لقد قرأت ووافقت على الشروط والأحكام الخاصة بالموقع '
+                        : 'I have read and agree to the website terms and conditions '}
+                      <span className="text-red-500">*</span>
+                    </span>
+                  </label>
+                  {errors.agreeTerms && (
+                    <p className="text-[11px] text-red-500 mt-1">{errors.agreeTerms}</p>
+                  )}
+                </div>
+
+                {/* Big Place Order Button matching WordPress style */}
+                <button
+                  type="submit"
+                  disabled={isLoading || isDateBlocked}
+                  className={`w-full py-3.5 px-6 rounded-lg text-sm font-black uppercase tracking-wider text-white shadow-md transition-all cursor-pointer ${isLoading || isDateBlocked
+                    ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                    : 'bg-[#8fae2a] hover:bg-[#7d9b23] active:scale-[0.99]'
+                    }`}
+                >
+                  {isLoading
+                    ? (locale === 'ar' ? 'جارٍ إتمام الطلب...' : 'PROCESSING ORDER...')
+                    : isDateBlocked
+                      ? (locale === 'ar' ? 'التوصيل غير متاح في هذا التاريخ' : 'DELIVERY UNAVAILABLE ON THIS DATE')
+                      : (locale === 'ar' ? 'إتمام الطلب' : 'PLACE ORDER')}
+                </button>
               </div>
             </div>
           </form>
         ) : (
-          <div className="py-20 text-center">
-            <h3 className="text-lg font-bold text-text-main mb-4">
+          <div className="py-20 text-center bg-white rounded-xl border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">
               {dict.cart.emptyTitle}
             </h3>
             <Link href={locale === 'ar' ? '/products' : '/en/products'}>
-              <Button variant="primary" size="md">
+              <Button variant="primary" size="md" className="bg-[#8fae2a] hover:bg-[#7d9b23] text-white">
                 <span>{dict.cart.continueShopping}</span>
               </Button>
             </Link>

@@ -2,14 +2,15 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { ProductDetailPageView } from '@/views/ProductDetailPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
-import { getStoreProductBySlug, getStoreProducts } from '@/lib/wordpress/store-api';
+import { getStoreProductBySlug, getStoreProducts, getStoreProductDetails } from '@/lib/wordpress/store-api';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
-export const revalidate = 3600;
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -36,10 +37,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ArabicProductDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
-  const product = await getStoreProductBySlug(decodedSlug, 'ar');
+  const { product, relatedProducts: apiRelated } = await getStoreProductDetails(decodedSlug, 'ar');
 
-  let relatedProducts = undefined;
-  if (product?.categorySlug) {
+  let relatedProducts = apiRelated && apiRelated.length > 0 ? apiRelated : undefined;
+  if (!relatedProducts && product?.categorySlug) {
     try {
       const res = await getStoreProducts({
         category: product.categorySlug,

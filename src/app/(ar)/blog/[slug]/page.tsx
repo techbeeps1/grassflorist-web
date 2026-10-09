@@ -1,22 +1,20 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BlogPostPageView } from '@/views/BlogPostPageView';
-import { blogPosts } from '@/data/blog';
 import { generatePageMetadata } from '@/lib/seo/metadata';
+import { getBlogPostBySlug, getBlogPosts } from '@/lib/wordpress/store-api';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  return blogPosts.map((post) => ({
-    slug: post.slug.ar,
-  }));
-}
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = blogPosts.find((p) => p.slug.ar === slug || p.slug.en === slug);
+  const decodedSlug = decodeURIComponent(slug);
+  const post = await getBlogPostBySlug(decodedSlug, 'ar');
 
   if (!post) {
     return generatePageMetadata({
@@ -28,8 +26,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return generatePageMetadata({
-    title: post.seoTitle.ar,
-    description: post.seoDescription.ar,
+    title: post.seoTitle.ar || post.title.ar,
+    description: post.seoDescription.ar || post.excerpt.ar,
     path: `/blog/${slug}`,
     locale: 'ar',
     image: post.coverImage,
@@ -38,11 +36,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ArabicBlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = blogPosts.find((p) => p.slug.ar === slug || p.slug.en === slug);
+  const decodedSlug = decodeURIComponent(slug);
+  const [post, allPosts] = await Promise.all([
+    getBlogPostBySlug(decodedSlug, 'ar'),
+    getBlogPosts('ar'),
+  ]);
 
   if (!post) {
     notFound();
   }
 
-  return <BlogPostPageView slug={slug} locale="ar" />;
+  const related = allPosts.filter((p) => p.id !== post.id).slice(0, 2);
+
+  return <BlogPostPageView slug={decodedSlug} locale="ar" post={post} relatedPosts={related} />;
 }

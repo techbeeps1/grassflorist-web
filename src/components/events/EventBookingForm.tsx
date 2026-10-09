@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useAppDispatch } from '@/store';
+import { addToast } from '@/store/slices/uiSlice';
 import { type Locale, siteConfig } from '@/config/site';
 import {
   Calendar,
@@ -58,6 +60,8 @@ const GUEST_RANGES = [
 
 export function EventBookingForm({ locale }: EventBookingFormProps) {
   const isRtl = locale === 'ar';
+  const dispatch = useAppDispatch();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -74,6 +78,15 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Auto-scroll smoothly up to the success card when submitted
+  useEffect(() => {
+    if (isSuccess && containerRef.current) {
+      const yOffset = -100; // Account for sticky navbar
+      const y = containerRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    }
+  }, [isSuccess]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -127,10 +140,26 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
       }
 
       setIsSuccess(true);
+      dispatch(
+        addToast({
+          type: 'success',
+          message: isRtl
+            ? 'تم استلام طلب حجز المناسبة بنجاح! سيتواصل معكم فريقنا قريباً.'
+            : 'Your event booking inquiry has been received! Our team will reach out soon.',
+        })
+      );
     } catch (err: unknown) {
       console.error('Error submitting event booking:', err);
       // Fallback: even if network fails, show friendly message or allow WhatsApp continuation
       setIsSuccess(true);
+      dispatch(
+        addToast({
+          type: 'success',
+          message: isRtl
+            ? 'تم استلام طلب حجز المناسبة بنجاح! سيتواصل معكم فريقنا قريباً.'
+            : 'Your event booking inquiry has been received! Our team will reach out soon.',
+        })
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -162,7 +191,7 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
   };
 
   return (
-    <div className="w-full bg-white rounded-3xl p-6 sm:p-10 lg:p-12 border border-[#EBE3D5] shadow-[0_15px_45px_rgba(40,30,20,0.06)] relative overflow-hidden">
+    <div ref={containerRef} className="w-full bg-white rounded-3xl p-6 sm:p-10 lg:p-12 border border-[#EBE3D5] shadow-[0_15px_45px_rgba(40,30,20,0.06)] relative overflow-hidden">
       {/* Decorative Background Blob */}
       <div className="absolute top-0 end-0 w-80 h-80 bg-[#8CA841]/5 rounded-full blur-3xl pointer-events-none" />
 

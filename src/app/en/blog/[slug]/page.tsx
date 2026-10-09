@@ -1,22 +1,20 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BlogPostPageView } from '@/views/BlogPostPageView';
-import { blogPosts } from '@/data/blog';
 import { generatePageMetadata } from '@/lib/seo/metadata';
+import { getBlogPostBySlug, getBlogPosts } from '@/lib/wordpress/store-api';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  return blogPosts.map((post) => ({
-    slug: post.slug.en,
-  }));
-}
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = blogPosts.find((p) => p.slug.ar === slug || p.slug.en === slug);
+  const decodedSlug = decodeURIComponent(slug);
+  const post = await getBlogPostBySlug(decodedSlug, 'en');
 
   if (!post) {
     return generatePageMetadata({
@@ -28,8 +26,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return generatePageMetadata({
-    title: post.seoTitle.en,
-    description: post.seoDescription.en,
+    title: post.seoTitle.en || post.title.en,
+    description: post.seoDescription.en || post.excerpt.en,
     path: `/blog/${slug}`,
     locale: 'en',
     image: post.coverImage,
@@ -38,11 +36,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EnglishBlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = blogPosts.find((p) => p.slug.ar === slug || p.slug.en === slug);
+  const decodedSlug = decodeURIComponent(slug);
+  const [post, allPosts] = await Promise.all([
+    getBlogPostBySlug(decodedSlug, 'en'),
+    getBlogPosts('en'),
+  ]);
 
   if (!post) {
     notFound();
   }
 
-  return <BlogPostPageView slug={slug} locale="en" />;
+  const related = allPosts.filter((p) => p.id !== post.id).slice(0, 2);
+
+  return <BlogPostPageView slug={decodedSlug} locale="en" post={post} relatedPosts={related} />;
 }

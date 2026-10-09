@@ -170,13 +170,21 @@ export function generateFaqSchema(faqsList: FAQItem[], locale: Locale) {
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: faqsList.map((faq) => ({
-      '@type': 'Question',
-      name: faq.question[locale],
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: faq.answer[locale],
-      },
-    })),
+    mainEntity: (faqsList || []).map((faq) => {
+      const q = typeof faq.question === 'object' && faq.question !== null
+        ? (faq.question[locale] || faq.question.en || faq.question.ar || '')
+        : String(faq.question || '');
+      const a = typeof faq.answer === 'object' && faq.answer !== null
+        ? (faq.answer[locale] || faq.answer.en || faq.answer.ar || '')
+        : String(faq.answer || '');
+      return {
+        '@type': 'Question',
+        name: q,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: a,
+        },
+      };
+    }),
   };
 }

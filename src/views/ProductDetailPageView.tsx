@@ -9,15 +9,15 @@ import { ProductGallery } from '@/components/product/ProductGallery';
 import { ProductReviews } from '@/components/product/ProductReviews';
 import { ProductCarousel } from '@/components/product/ProductCarousel';
 import { QuantitySelector } from '@/components/common/QuantitySelector';
-import { Button } from '@/components/ui/Button';
 import { Product } from '@/types/product';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useGetProductBySlugQuery } from '@/store/api/productsApi';
+import { useAddToCartMutation } from '@/store/api/cartApi';
 import { addItem } from '@/store/slices/cartSlice';
 import { toggleWishlist, selectIsInWishlist } from '@/store/slices/wishlistSlice';
-import { setCartDrawerOpen, addToast } from '@/store/slices/uiSlice';
+import { setCartDrawerOpen } from '@/store/slices/uiSlice';
 import { formatPrice, calculateDiscount } from '@/lib/utils';
-import { CurrencySymbol } from '@/components/common/CurrencySymbol';
+import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
 import { generateProductSchema, generateBreadcrumbSchema } from '@/lib/schema';
 import {
   translateArabicProductName,
@@ -28,6 +28,7 @@ import {
   Heart,
   ShoppingBag,
   Loader2,
+  Zap,
 } from 'lucide-react';
 
 interface ProductDetailPageViewProps {
@@ -73,6 +74,7 @@ export function ProductDetailPageView({
 
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
 
   // Compute live price
   const totalItemPrice = product.price * quantity;
@@ -96,19 +98,17 @@ export function ProductDetailPageView({
           : product.category.en)
       : (product.category?.ar || product.category?.en || '');
 
+  const rawShortDescription =
+    product.shortDescription?.[locale] ||
+    (locale === 'en' ? product.shortDescription?.en : product.shortDescription?.ar) ||
+    '';
+  const displayShortDescription = rawShortDescription.trim();
+
   const rawDescription =
     product.description?.[locale] ||
-    product.shortDescription?.[locale] ||
-    product.description?.ar ||
-    product.shortDescription?.ar ||
+    (locale === 'en' ? product.description?.en : product.description?.ar) ||
     '';
-
-  const displayDescription =
-    locale === 'en'
-      ? (!product.description?.en || /[\u0600-\u06FF]/.test(product.description.en)
-          ? translateArabicToEnglishDescription(rawDescription, displayName, displayCategory)
-          : product.description.en)
-      : (product.description?.ar || product.shortDescription?.ar || rawDescription);
+  const displayDescription = rawDescription.trim() || displayShortDescription;
 
   // Schema Generation
   const productSchema = generateProductSchema(
@@ -148,8 +148,14 @@ export function ProductDetailPageView({
     { label: displayName },
   ];
 
+  const [addServerCart] = useAddToCartMutation();
+
   const handleAddToCart = (directToCheckout = false) => {
-    setIsAdding(true);
+    if (directToCheckout) {
+      setIsBuyingNow(true);
+    } else {
+      setIsAdding(true);
+    }
     const cartItemId = product.id;
 
     dispatch(
@@ -162,23 +168,15 @@ export function ProductDetailPageView({
       })
     );
 
-    setTimeout(() => {
-      setIsAdding(false);
-      if (directToCheckout) {
-        router.push(locale === 'ar' ? '/checkout' : '/en/checkout');
-      } else {
-        dispatch(setCartDrawerOpen(true));
-        dispatch(
-          addToast({
-            type: 'success',
-            message:
-              locale === 'ar'
-                ? `تمت إضافة "${product.name.ar}" إلى حقيبة التسوق!`
-                : `Added "${displayName}" to shopping bag!`,
-          })
-        );
-      }
-    }, 250);
+    addServerCart({ productId: product.id, quantity }).unwrap().catch(() => {});
+
+    setIsAdding(false);
+    setIsBuyingNow(false);
+    if (directToCheckout) {
+      router.push(locale === 'ar' ? '/checkout' : '/en/checkout');
+    } else {
+      dispatch(setCartDrawerOpen(true));
+    }
   };
 
   return (
@@ -226,16 +224,13 @@ export function ProductDetailPageView({
               <div className="p-4 rounded-2xl bg-surface-subtle border border-border/80 flex items-center justify-between">
                 <div>
                   <div className="flex items-baseline gap-2">
-                    <span dir="ltr" className="text-2xl sm:text-3xl font-black text-primary inline-flex items-center gap-1.5">
-                      <CurrencySymbol className="w-5 h-5 sm:w-6 sm:h-6" />
-                      <span>{product.price}</span>
-                    </span>
-                    {product.originalPrice && (
-                      <span dir="ltr" className="text-sm text-text-muted line-through inline-flex items-center gap-0.5">
-                        <CurrencySymbol className="w-3 h-3 opacity-60" />
-                        <span>{product.originalPrice}</span>
-                      </span>
-                    )}
+                    <PriceDisplay
+                      amount={product.price}
+                      originalAmount={product.originalPrice}
+                      locale={locale}
+                      className="text-2xl sm:text-3xl font-black text-primary"
+                      symbolClassName="w-5 h-5 sm:w-6 sm:h-6"
+                    />
                   </div>
                   <span className="text-[11px] text-text-muted mt-0.5 block">
                     {locale === 'ar' ? 'شامل ضريبة القيمة المضافة (15%)' : 'Inclusive of 15% VAT'}
@@ -249,14 +244,11 @@ export function ProductDetailPageView({
                 )}
               </div>
 
-              {/* Product Description */}
-              {displayDescription && (
-                <div className="py-3 text-sm sm:text-base text-[#5C524B] leading-relaxed border-t border-border/60">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#25211E] block mb-1.5">
-                    {locale === 'ar' ? 'تفاصيل المنتج' : 'Product Description'}
-                  </span>
-                  <p className="whitespace-pre-line text-[#6E6258] leading-relaxed">
-                    {displayDescription}
+              {/* Short Description (Below Price) */}
+              {displayShortDescription && (
+                <div className="text-sm text-[#5C524B] leading-relaxed">
+                  <p className="whitespace-pre-line leading-relaxed">
+                    {displayShortDescription}
                   </p>
                 </div>
               )}
@@ -275,41 +267,53 @@ export function ProductDetailPageView({
                     />
                   </div>
 
-                  <span dir="ltr" className="text-lg font-black text-primary ms-auto inline-flex items-center gap-1">
-                    <CurrencySymbol className="w-4 h-4" />
-                    <span>{totalItemPrice}</span>
-                  </span>
+                  <PriceDisplay
+                    amount={totalItemPrice}
+                    locale={locale}
+                    className="text-lg font-black text-primary ms-auto"
+                    symbolClassName="w-4 h-4"
+                  />
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    isLoading={isAdding}
+                  {/* Add to Bag Button */}
+                  <button
+                    type="button"
+                    disabled={isAdding || isBuyingNow}
                     onClick={() => handleAddToCart(false)}
-                    className="flex-1 font-bold text-sm shadow-md"
+                    className="flex-1 min-h-[48px] sm:min-h-[52px] py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base bg-white hover:bg-[#FAF7F2] text-[#2C382F] border border-[#DDD3C4] hover:border-[#435849] shadow-xs hover:shadow-sm active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 select-none"
                   >
-                    <ShoppingBag className="w-4 h-4 me-2" />
+                    {isAdding ? (
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-[#435849]" />
+                    ) : (
+                      <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-[#435849]" />
+                    )}
                     <span>{dict.product.addToCart}</span>
-                  </Button>
+                  </button>
 
-                  <Button
-                    variant="secondary"
-                    size="lg"
+                  {/* Buy Now Button */}
+                  <button
+                    type="button"
+                    disabled={isAdding || isBuyingNow}
                     onClick={() => handleAddToCart(true)}
-                    className="flex-1 font-bold text-sm shadow-sm"
+                    className="flex-1 min-h-[48px] sm:min-h-[52px] py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base bg-[#435849] hover:bg-[#34463A] text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 select-none"
                   >
+                    {isBuyingNow ? (
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-white" />
+                    ) : (
+                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 fill-current text-white" />
+                    )}
                     <span>{dict.product.buyNow}</span>
-                  </Button>
+                  </button>
 
                   {/* Wishlist Button */}
                   <button
                     type="button"
                     onClick={() => dispatch(toggleWishlist(product))}
-                    className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    className={`min-h-[48px] sm:min-h-[52px] min-w-[48px] sm:min-w-[52px] p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center justify-center shrink-0 ${
                       isInWishlist
                         ? 'border-rose-300 bg-rose-50 text-rose-600'
-                        : 'border-border bg-surface text-text-muted hover:text-rose-600 hover:border-rose-300'
+                        : 'border-[#DDD3C4] bg-white text-[#6B5E55] hover:text-rose-600 hover:border-rose-300 shadow-xs'
                     }`}
                     aria-label="Toggle wishlist"
                   >
@@ -319,6 +323,20 @@ export function ProductDetailPageView({
               </div>
             </div>
           </div>
+
+          {/* Product Description Section (Above Reviews) */}
+          {displayDescription && (
+            <div className="mt-12 pt-8 border-t border-border">
+              <div className="w-full space-y-3">
+                <h2 className="text-lg sm:text-xl font-bold text-text-main flex items-center gap-2">
+                  <span>{locale === 'ar' ? 'تفاصيل المنتج' : 'Product Description'}</span>
+                </h2>
+                <div className="text-sm sm:text-base text-[#5C524B] leading-relaxed whitespace-pre-line">
+                  {displayDescription}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Customer Reviews Section */}
           <ProductReviews product={product} locale={locale} />

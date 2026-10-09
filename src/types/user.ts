@@ -3,6 +3,7 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
+  country?: string;
   avatar?: string;
   city?: string;
   district?: string;
@@ -34,6 +35,8 @@ export interface LoginCredentials {
 
 export interface RegisterData {
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   password: string;
   phone?: string;
@@ -43,6 +46,7 @@ export interface UpdateProfileData {
   name?: string;
   email?: string;
   phone?: string;
+  country?: string;
   city?: string;
   district?: string;
   street?: string;

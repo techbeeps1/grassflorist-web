@@ -8,7 +8,9 @@ import { getDictionary } from '@/i18n/get-dictionary';
 import { useLoginMutation } from '@/store/api/authApi';
 import { setCredentials } from '@/store/slices/authSlice';
 import { addToast } from '@/store/slices/uiSlice';
-import { useAppDispatch } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { useMergeCartMutation, getCartSessionId, convertServerCartItemToClient } from '@/store/api/cartApi';
+import { setCartFromServer } from '@/store/slices/cartSlice';
 import { Button } from '@/components/ui/Button';
 import {
   Mail,
@@ -19,10 +21,31 @@ import {
   ArrowLeft,
   ShieldCheck,
   Leaf,
+  AlertCircle,
 } from 'lucide-react';
 
 interface LoginPageViewProps {
   locale: Locale;
+}
+
+function getLocalizedRedirectUrl(raw: string | null, targetLocale: Locale): string {
+  if (!raw) return targetLocale === 'ar' ? '/account' : '/en/account';
+  if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('//')) {
+    return targetLocale === 'ar' ? '/account' : '/en/account';
+  }
+  let path = raw.startsWith('/') ? raw : `/${raw}`;
+  if (targetLocale === 'en') {
+    if (!path.startsWith('/en')) {
+      path = path === '/' ? '/en' : `/en${path}`;
+    }
+  } else {
+    if (path === '/en') {
+      path = '/';
+    } else if (path.startsWith('/en/')) {
+      path = path.replace(/^\/en/, '');
+    }
+  }
+  return path;
 }
 
 function LoginPageContent({ locale }: LoginPageViewProps) {
@@ -30,7 +53,8 @@ function LoginPageContent({ locale }: LoginPageViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
-  const redirectUrl = searchParams.get('redirect') || (locale === 'ar' ? '/account' : '/en/account');
+  const rawRedirect = searchParams.get('redirect');
+  const redirectUrl = getLocalizedRedirectUrl(rawRedirect, locale);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,6 +63,8 @@ function LoginPageContent({ locale }: LoginPageViewProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [loginMutation, { isLoading }] = useLoginMutation();
+  const [mergeCart] = useMergeCartMutation();
+  const localCartItems = useAppSelector((state) => state.cart.items);
 
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
@@ -55,6 +81,8 @@ function LoginPageContent({ locale }: LoginPageViewProps) {
     try {
       const response = await loginMutation({ email, password, rememberMe }).unwrap();
       dispatch(setCredentials({ user: response.user, token: response.token, rememberMe }));
+
+      // 1. Instant feedback & redirect (0ms delay)
       dispatch(
         addToast({
           type: 'success',
@@ -62,12 +90,47 @@ function LoginPageContent({ locale }: LoginPageViewProps) {
         })
       );
       router.push(redirectUrl);
-    } catch {
-      setErrorMsg(
-        locale === 'ar'
-          ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
-          : 'Invalid email or password'
-      );
+
+      // 2. Background Smart Cart Merge (Non-blocking)
+      const payloadItems = localCartItems.map((it) => ({
+        productId: it.productId,
+        quantity: it.quantity,
+      }));
+      mergeCart({
+        guest_session_id: getCartSessionId(),
+        local_items: payloadItems,
+      })
+        .unwrap()
+        .then((mergeRes) => {
+          if (mergeRes?.items) {
+            const clientItems = mergeRes.items.map(convertServerCartItemToClient);
+            dispatch(setCartFromServer(clientItems));
+          }
+        })
+        .catch((mergeErr) => {
+          console.warn('[Cart Background Merge Notice]', mergeErr);
+        });
+    } catch (err: any) {
+      console.warn('[Login Error]', err);
+      const rawMsg = err?.data?.error || err?.data?.message || err?.error;
+      if (rawMsg && typeof rawMsg === 'string') {
+        const lower = rawMsg.toLowerCase();
+        if (lower.includes('credential') || lower.includes('password') || lower.includes('email') || lower.includes('invalid')) {
+          setErrorMsg(
+            locale === 'ar'
+              ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+              : 'Invalid email or password'
+          );
+        } else {
+          setErrorMsg(rawMsg);
+        }
+      } else {
+        setErrorMsg(
+          locale === 'ar'
+            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+            : 'Invalid email or password'
+        );
+      }
     }
   };
 
@@ -113,7 +176,8 @@ function LoginPageContent({ locale }: LoginPageViewProps) {
 
         {/* Error Banner */}
         {errorMsg && (
-          <div className="p-3.5 mb-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+          <div className="p-3.5 mb-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm font-semibold flex items-center gap-2.5 shadow-xs animate-in fade-in">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
@@ -130,7 +194,10 @@ function LoginPageContent({ locale }: LoginPageViewProps) {
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errorMsg) setErrorMsg(null);
+                }}
                 placeholder={dict.auth.emailPlaceholder}
                 className="w-full h-12 px-4 ps-11 text-xs sm:text-sm bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border border-[#E2D8CC] rounded-2xl text-[#1E1915] placeholder:text-[#A6998E] focus:outline-none focus:border-[#2D3F33] focus:ring-2 focus:ring-[#2D3F33]/10 focus:bg-white transition-all"
               />
@@ -156,7 +223,10 @@ function LoginPageContent({ locale }: LoginPageViewProps) {
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errorMsg) setErrorMsg(null);
+                }}
                 placeholder={dict.auth.passwordPlaceholder}
                 className="w-full h-12 px-4 ps-11 pe-11 text-xs sm:text-sm bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border border-[#E2D8CC] rounded-2xl text-[#1E1915] placeholder:text-[#A6998E] focus:outline-none focus:border-[#2D3F33] focus:ring-2 focus:ring-[#2D3F33]/10 focus:bg-white transition-all"
               />

@@ -66,7 +66,7 @@ export function AboutPageView({ locale }: AboutPageViewProps) {
 
           <div className="lg:col-span-6 relative aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-border">
             <Image
-              src="https://images.unsplash.com/photo-1559563458-527698bf5295?auto=format&fit=crop&w=1200&q=80"
+              src="/editorial-flowers-sharp.webp"
               alt={dict.about.title}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"

@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { FaqPageView } from '@/views/FaqPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
+import { getFaqs } from '@/lib/wordpress/store-api';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Frequently Asked Questions | Delivery, Floral Care & Guarantee',
@@ -9,6 +10,10 @@ export const metadata: Metadata = generatePageMetadata({
   locale: 'en',
 });
 
-export default function EnglishFaqPage() {
-  return <FaqPageView locale="en" />;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export default async function EnglishFaqPage() {
+  const faqs = await getFaqs('en');
+  return <FaqPageView locale="en" faqs={faqs} />;
 }

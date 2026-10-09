@@ -10,213 +10,261 @@ import {
 } from '@/types/user';
 import { Order } from '@/types/order';
 
-// Sample mock orders for demonstration if backend not connected
-const MOCK_USER_ORDERS: Order[] = [
-  {
-    orderNumber: 'GF-98124',
-    items: [
-      {
-        cartItemId: 'item-1',
-        productId: '92121',
-        product: {
-          id: '92121',
-          name: { ar: 'باقة بيبي روز الأرجوانية', en: 'Purple Baby Rose Bouquet' },
-          slug: { ar: 'g896', en: 'g896' },
-          description: { ar: 'تنسيق أنيق', en: 'Elegant arrangement' },
-          shortDescription: { ar: 'تنسيق أنيق', en: 'Elegant arrangement' },
-          price: 350,
-          currency: 'SAR',
-          images: ['/editorial-woman-bouquet.webp'],
-          thumbnail: '/editorial-woman-bouquet.webp',
-          category: { ar: 'باقات يد', en: 'Hand Bouquet' },
-          categorySlug: 'hand-bouquet',
-          rating: 4.9,
-          reviewCount: 12,
-          stock: 10,
-          sku: 'GF-92121',
-          tags: ['roses'],
-          availability: 'in_stock',
-          seoTitle: { ar: 'باقة بيبي روز الأرجوانية', en: 'Purple Baby Rose Bouquet' },
-          seoDescription: { ar: 'تنسيق أنيق', en: 'Elegant arrangement' },
-        },
-        quantity: 1,
-        itemTotal: 350,
-      },
-    ],
-    recipient: {
-      type: 'myself',
-      name: 'سارة المنصور',
-      phone: '+966 50 123 4567',
-      city: 'جدة',
-      district: 'حي الروضة',
-      street: 'شارع الأمير سلطان',
-    },
-    delivery: {
-      date: '2026-09-16',
-      timeSlot: 'evening',
-    },
-    paymentMethod: 'mada',
-    subtotal: 350,
-    shippingFee: 0,
-    vat: 52.5,
-    discount: 0,
-    total: 350,
-    status: 'delivered',
-    createdAt: '2026-09-12T14:30:00Z',
-  },
-  {
-    orderNumber: 'GF-97502',
-    items: [
-      {
-        cartItemId: 'item-2',
-        productId: '92110',
-        product: {
-          id: '92110',
-          name: { ar: 'فازة التوليب الملكية', en: 'Royal Tulip Ceramic Vase' },
-          slug: { ar: 'tulip-vase', en: 'tulip-vase' },
-          description: { ar: 'فازة زهور فاخرة', en: 'Luxury floral vase' },
-          shortDescription: { ar: 'فازة زهور فاخرة', en: 'Luxury floral vase' },
-          price: 420,
-          currency: 'SAR',
-          images: ['/editorial-flowers-sharp.webp'],
-          thumbnail: '/editorial-flowers-sharp.webp',
-          category: { ar: 'زهور فاخرة', en: 'Luxury Flowers' },
-          categorySlug: 'all-flowers',
-          rating: 5.0,
-          reviewCount: 8,
-          stock: 5,
-          sku: 'GF-92110',
-          tags: ['tulips'],
-          availability: 'in_stock',
-          seoTitle: { ar: 'فازة التوليب الملكية', en: 'Royal Tulip Ceramic Vase' },
-          seoDescription: { ar: 'فازة زهور فاخرة', en: 'Luxury floral vase' },
-        },
-        quantity: 1,
-        itemTotal: 420,
-      },
-    ],
-    recipient: {
-      type: 'gift',
-      name: 'نورة العتيبي',
-      phone: '+966 55 987 6543',
-      city: 'جدة',
-      district: 'حي الشاطئ',
-      street: 'طريق الكورنيش',
-    },
-    delivery: {
-      date: '2026-09-18',
-      timeSlot: 'afternoon',
-    },
-    paymentMethod: 'apple_pay',
-    subtotal: 420,
-    shippingFee: 0,
-    vat: 63,
-    discount: 0,
-    total: 420,
-    status: 'preparing',
-    createdAt: '2026-09-15T11:00:00Z',
-  },
-];
+interface LaravelAuthResponse {
+  access_token: string;
+  customer: {
+    id: number | string;
+    name: string;
+  };
+}
+
+interface LaravelCheckAuthResponse {
+  status: string;
+  message?: string;
+  data?: {
+    id: number | string;
+    name: string;
+  };
+}
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<AuthResponse, LoginCredentials>({
-      queryFn: async (credentials) => {
-        // Simulate network latency
-        await new Promise((res) => setTimeout(res, 600));
-
-        if (!credentials.email || !credentials.password) {
-          return { error: { status: 400, data: 'Email and password are required' } };
-        }
-
-        // Mock success response (API-ready for backend integration)
-        const mockUser: User = {
-          id: 'usr_' + Math.random().toString(36).substring(2, 9),
-          name: credentials.email.split('@')[0].replace(/[._]/g, ' '),
+      query: (credentials) => ({
+        url: '/v1/login',
+        method: 'POST',
+        body: {
           email: credentials.email,
-          phone: '+966 50 123 4567',
-          city: 'جدة',
-          district: 'حي الروضة',
-          street: 'شارع الأمير سلطان، مبنى 14',
+          password: credentials.password,
+        },
+      }),
+      transformResponse: (res: LaravelAuthResponse, _meta, arg) => {
+        const user: User = {
+          id: String(res.customer.id),
+          name: res.customer.name,
+          email: arg.email,
           createdAt: new Date().toISOString(),
         };
-
-        const mockToken = 'jwt_token_' + Math.random().toString(36).substring(2);
-
-        return { data: { user: mockUser, token: mockToken } };
+        return {
+          user,
+          token: res.access_token,
+        };
       },
-      invalidatesTags: ['Order', 'Cart'],
+      invalidatesTags: ['Auth', 'Order', 'Cart'],
     }),
 
     register: builder.mutation<AuthResponse, RegisterData>({
-      queryFn: async (data) => {
-        await new Promise((res) => setTimeout(res, 700));
-
-        if (!data.name || !data.email || !data.password) {
-          return { error: { status: 400, data: 'All fields are required' } };
-        }
-
-        const mockUser: User = {
-          id: 'usr_' + Math.random().toString(36).substring(2, 9),
-          name: data.name,
-          email: data.email,
-          phone: data.phone || '+966 50 000 0000',
-          city: 'جدة',
-          district: 'حي النعيم',
+      query: (data) => {
+        const nameParts = data.name ? data.name.trim().split(' ') : [];
+        const first_name = data.firstName?.trim() || nameParts[0] || data.name || 'User';
+        const last_name = data.lastName?.trim() || nameParts.slice(1).join(' ') || '.';
+        return {
+          url: '/v1/register',
+          method: 'POST',
+          body: {
+            first_name,
+            last_name,
+            email: data.email,
+            phone: data.phone || '9876543210',
+            password: data.password,
+          },
+        };
+      },
+      transformResponse: (res: LaravelAuthResponse, _meta, arg) => {
+        const user: User = {
+          id: String(res.customer.id),
+          name: res.customer.name,
+          email: arg.email,
+          phone: arg.phone,
           createdAt: new Date().toISOString(),
         };
-
-        const mockToken = 'jwt_token_' + Math.random().toString(36).substring(2);
-
-        return { data: { user: mockUser, token: mockToken } };
+        return {
+          user,
+          token: res.access_token,
+        };
       },
+      invalidatesTags: ['Auth', 'Cart'],
+    }),
+
+    checkAuth: builder.query<User | null, void>({
+      query: () => '/my-account/checkauth',
+      transformResponse: (res: LaravelCheckAuthResponse) => {
+        if (res.status === 'success' && res.data) {
+          return {
+            id: String(res.data.id),
+            name: res.data.name,
+            email: '',
+            createdAt: new Date().toISOString(),
+          };
+        }
+        return null;
+      },
+      providesTags: ['Auth'],
+    }),
+
+    getUserProfile: builder.query<User, void>({
+      query: () => '/my-account/user',
+      transformResponse: (res: any) => {
+        return {
+          id: String(res.id),
+          name: `${res.first_name || ''} ${res.last_name || ''}`.trim() || res.name || 'User',
+          email: res.email || '',
+          phone: res.phone || undefined,
+          country: res.country || undefined,
+          city: res.city || undefined,
+          district: res.district || undefined,
+          street: res.address || undefined,
+          createdAt: res.created_at || new Date().toISOString(),
+        };
+      },
+      providesTags: ['Auth'],
+    }),
+
+    logoutUser: builder.mutation<{ message: string }, void>({
+      query: () => ({
+        url: '/my-account/logout',
+        method: 'POST',
+      }),
+      invalidatesTags: ['Auth', 'Order', 'Cart', 'Wishlist'],
     }),
 
     forgotPassword: builder.mutation<{ success: boolean; message: string }, ForgotPasswordData>({
-      queryFn: async ({ email }) => {
-        await new Promise((res) => setTimeout(res, 500));
-        return {
-          data: {
-            success: true,
-            message: `Password reset instructions have been sent to ${email}`,
-          },
-        };
-      },
+      query: ({ email }) => ({
+        url: '/customer/forgot-password',
+        method: 'POST',
+        body: { email },
+      }),
+      transformResponse: (res: any) => ({
+        success: true,
+        message: res?.message || 'Password reset link sent to your email.',
+      }),
     }),
 
-    resetPassword: builder.mutation<{ success: boolean; message: string }, ResetPasswordData>({
-      queryFn: async () => {
-        await new Promise((res) => setTimeout(res, 600));
-        return {
-          data: {
-            success: true,
-            message: 'Your password has been reset successfully.',
-          },
-        };
-      },
+    resetPassword: builder.mutation<
+      { success: boolean; message: string },
+      ResetPasswordData & { email?: string }
+    >({
+      query: (data) => ({
+        url: '/customer/reset-password',
+        method: 'POST',
+        body: {
+          token: data.token,
+          email: data.email,
+          password: data.newPassword,
+          password_confirmation: data.newPassword,
+        },
+      }),
+      transformResponse: (res: any) => ({
+        success: true,
+        message: res?.message || 'Password reset successfully.',
+      }),
     }),
 
     updateProfile: builder.mutation<User, UpdateProfileData & { userId: string }>({
-      queryFn: async (data) => {
-        await new Promise((res) => setTimeout(res, 500));
-        const updatedUser: User = {
-          id: data.userId,
-          name: data.name || 'User',
-          email: data.email || 'user@example.com',
-          phone: data.phone,
-          city: data.city || 'جدة',
-          district: data.district,
-          street: data.street,
-          createdAt: new Date().toISOString(),
+      query: (data) => {
+        const nameParts = (data.name || '').trim().split(' ');
+        const first_name = nameParts[0] || 'User';
+        const last_name = nameParts.slice(1).join(' ') || '.';
+        return {
+          url: '/v1/updateuser',
+          method: 'POST',
+          body: {
+            user_id: data.userId,
+            email: data.email,
+            first_name,
+            last_name,
+            phone: data.phone,
+            country: data.country,
+            city: data.city,
+            district: data.district,
+            address: data.street,
+          },
         };
-        return { data: updatedUser };
       },
+      transformResponse: (res: any) => {
+        const cust = res.customer || res;
+        return {
+          id: String(cust.id),
+          name: `${cust.first_name || ''} ${cust.last_name || ''}`.trim() || 'User',
+          email: cust.email || '',
+          phone: cust.phone,
+          country: cust.country,
+          city: cust.city,
+          district: cust.district,
+          street: cust.address,
+          createdAt: cust.created_at || new Date().toISOString(),
+        };
+      },
+      invalidatesTags: ['Auth'],
     }),
 
     getUserOrders: builder.query<Order[], string | void>({
-      queryFn: async () => {
-        await new Promise((res) => setTimeout(res, 400));
-        return { data: MOCK_USER_ORDERS };
+      query: (userId) => {
+        const id = userId || '0';
+        return `/my-account/user_order/${id}`;
+      },
+      transformResponse: (res: any) => {
+        if (!Array.isArray(res)) return [];
+        return res.map((entry: any) => {
+          const ord = entry.order || entry;
+          const items = entry.items || [];
+          return {
+            orderNumber: ord.order_number || `ORD-${ord.id}`,
+            createdAt: ord.created_at || new Date().toISOString(),
+            status: (['confirmed', 'preparing', 'on_delivery', 'delivered'].includes(ord.status)
+              ? ord.status
+              : 'confirmed') as Order['status'],
+            subtotal: Number(ord.subtotal || ord.total_amount || 0),
+            vat: Number(ord.tax_amount || 0),
+            shippingFee: Number(ord.shipping_amount || 0),
+            discount: Number(ord.discount_amount || 0),
+            total: Number(ord.total_amount || 0),
+            paymentMethod: (['mada', 'apple_pay', 'credit_card', 'cod', 'tabby'].includes(ord.payment_method)
+              ? ord.payment_method
+              : 'mada') as Order['paymentMethod'],
+            delivery: {
+              date: ord.delivery_date || ord.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+              timeSlot: (['morning', 'afternoon', 'evening'].includes(ord.delivery_slot)
+                ? ord.delivery_slot
+                : 'afternoon') as Order['delivery']['timeSlot'],
+            },
+            recipient: {
+              type: 'myself' as const,
+              name: ord.customer_name || `${ord.first_name || ''} ${ord.last_name || ''}`.trim(),
+              phone: ord.phone || '',
+              city: ord.city || '',
+              district: ord.district || '',
+              street: ord.address || '',
+            },
+            items: items.map((it: any) => ({
+              cartItemId: String(it.id),
+              productId: String(it.product_id),
+              product: {
+                id: String(it.product_id),
+                name: { ar: it.product_name || '', en: it.product_name || '' },
+                slug: { ar: it.product_slug || String(it.product_id), en: it.product_slug || String(it.product_id) },
+                price: Number(it.price || 0),
+                currency: 'SAR',
+                images: it.product_image ? [it.product_image] : [],
+                thumbnail: it.product_image || '',
+                category: { ar: '', en: '' },
+                categorySlug: '',
+                rating: 5,
+                reviewCount: 1,
+                stock: 10,
+                sku: '',
+                tags: [],
+                availability: 'in_stock' as const,
+                description: { ar: '', en: '' },
+                shortDescription: { ar: '', en: '' },
+                seoTitle: { ar: '', en: '' },
+                seoDescription: { ar: '', en: '' },
+              },
+              quantity: Number(it.quantity || 1),
+              itemTotal: Number(it.subtotal || it.price * it.quantity || 0),
+            })),
+          };
+        });
       },
       providesTags: ['Order'],
     }),
@@ -226,6 +274,9 @@ export const authApi = baseApi.injectEndpoints({
 export const {
   useLoginMutation,
   useRegisterMutation,
+  useCheckAuthQuery,
+  useGetUserProfileQuery,
+  useLogoutUserMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useUpdateProfileMutation,

@@ -4,24 +4,36 @@ import { type Locale } from '@/config/site';
 import { ProductCard } from './ProductCard';
 import { ProductCardSkeleton } from '@/components/ui/Skeleton';
 import { PackageOpen } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ProductGridProps {
   products: Product[];
   locale: Locale;
+  columns?: 2 | 3 | 4;
   isLoading?: boolean;
   emptyMessage?: string;
+  className?: string;
 }
 
 export function ProductGrid({
   products,
   locale,
+  columns = 3,
   isLoading = false,
   emptyMessage,
+  className,
 }: ProductGridProps) {
+  const gridColsClass =
+    columns === 3
+      ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-3'
+      : columns === 4
+      ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+      : 'grid-cols-1 sm:grid-cols-2';
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-        {[...Array(8)].map((_, i) => (
+      <div className={cn('grid gap-3.5 sm:gap-6', gridColsClass, className)}>
+        {[...Array(6)].map((_, i) => (
           <ProductCardSkeleton key={i} />
         ))}
       </div>
@@ -48,13 +60,13 @@ export function ProductGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+    <div className={cn('grid gap-3.5 sm:gap-6', gridColsClass, className)}>
       {products.map((product, idx) => (
         <ProductCard
           key={product.id}
           product={product}
           locale={locale}
-          priority={idx < 4}
+          priority={idx < 3}
         />
       ))}
     </div>

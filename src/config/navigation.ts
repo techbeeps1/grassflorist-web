@@ -212,8 +212,8 @@ export const mainNavItems: NavItem[] = [
     subcategories: [
       { id: 'about-us', name: { en: 'About Us', ar: 'من نحن' }, href: { en: '/en/about', ar: '/عن-غراس' } },
       { id: 'event-booking', name: { en: 'Event Booking', ar: 'حجز وتنظيم مناسبة' }, href: { en: '/en/event-booking', ar: '/حجز-مناسبة' } },
-      { id: 'delivery-privacy', name: { en: 'Delivery & Privacy Policy', ar: 'سياسة التوصيل والخصوصية' }, href: { en: '/en/policies/privacy', ar: '/الخصوصية' } },
-      { id: 'refund-returns', name: { en: 'Refund and Returns Policy', ar: 'سياسة الاسترجاع والاستبدال' }, href: { en: '/en/policies/returns', ar: '/سياسة-الاسترجاع-والاسترداد' } },
+      { id: 'delivery-privacy', name: { en: 'Delivery & Privacy Policy', ar: 'سياسة التوصيل والخصوصية' }, href: { en: '/en/privacy-policy', ar: '/privacy-policy' } },
+      { id: 'refund-returns', name: { en: 'Refund and Returns Policy', ar: 'سياسة الاسترجاع والاستبدال' }, href: { en: '/en/return-policy', ar: '/return-policy' } },
       { id: 'contact-us', name: { en: 'Contact Us', ar: 'اتصل بنا' }, href: { en: '/en/contact', ar: '/اتصل-بنا' } },
       { id: 'blog', name: { en: 'Blog', ar: 'المدونة' }, href: { en: '/en/blog', ar: '/المدونة' } },
     ],

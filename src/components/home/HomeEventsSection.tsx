@@ -15,14 +15,47 @@ import {
   Sprout,
   Package,
   Wallet,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface HomeEventsSectionProps {
-  locale: Locale;
+export interface BenefitItem {
+  id?: string;
+  icon?: string;
+  title: string;
+  description: string;
 }
 
-const EVENT_SLIDES = [
+export interface EventSlideItem {
+  image?: string;
+  title?: string;
+  service_tag?: string;
+  serviceTag?: string;
+  url?: string;
+}
+
+export interface EventsSectionData {
+  badge?: string;
+  title_main?: string;
+  titleMain?: string;
+  title_highlight?: string;
+  titleHighlight?: string;
+  description?: string;
+  button_text?: string;
+  buttonText?: string;
+  button_url?: string;
+  buttonUrl?: string;
+  tags?: Array<{ icon?: string; label: string }>;
+  slides?: EventSlideItem[];
+}
+
+interface HomeEventsSectionProps {
+  locale: Locale;
+  benefits?: BenefitItem[];
+  events?: EventsSectionData;
+}
+
+const DEFAULT_EVENT_SLIDES = [
   {
     src: '/images/events/wedding-runway.jpg',
     alt: 'Grass Florist Wedding Venue Candle Walkway',
@@ -55,22 +88,68 @@ const EVENT_SLIDES = [
   },
 ];
 
-export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
+function getBenefitIcon(iconName?: string) {
+  switch (iconName) {
+    case 'package':
+      return Package;
+    case 'wallet':
+      return Wallet;
+    case 'flower':
+      return Flower2;
+    case 'star':
+      return Star;
+    case 'shield':
+      return Shield;
+    case 'sprout':
+    default:
+      return Sprout;
+  }
+}
+
+function getFeatureIcon(iconName?: string, fallbackIdx = 0) {
+  if (iconName === 'calendar') return CalendarDays;
+  if (iconName === 'star') return Star;
+  if (iconName === 'flower') return Flower2;
+  if (fallbackIdx === 1) return CalendarDays;
+  if (fallbackIdx === 2) return Star;
+  return Flower2;
+}
+
+export function HomeEventsSection({ locale, benefits, events }: HomeEventsSectionProps) {
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
-  const total = EVENT_SLIDES.length;
+
+  const defaultBookingUrl = isRtl ? '/حجز-مناسبة' : '/en/event-booking';
+  const eventBookingUrl = events?.button_url || events?.buttonUrl || defaultBookingUrl;
+
+  // 1. Resolve Slides
+  const dynamicSlides = Array.isArray(events?.slides) && events.slides.length > 0
+    ? events.slides.map((s, idx) => ({
+        src: s.image || DEFAULT_EVENT_SLIDES[idx % DEFAULT_EVENT_SLIDES.length].src,
+        alt: s.title || 'Grass Florist Event Service',
+        title: s.title || '',
+        serviceTag: s.service_tag || s.serviceTag || (isRtl ? 'باقة المناسبات' : 'EVENT SERVICE'),
+        url: s.url || eventBookingUrl,
+      }))
+    : DEFAULT_EVENT_SLIDES.map((s) => ({
+        src: s.src,
+        alt: s.alt,
+        title: s.title[locale],
+        serviceTag: isRtl ? 'باقة المناسبات' : 'EVENT SERVICE',
+        url: eventBookingUrl,
+      }));
+
+  const total = dynamicSlides.length;
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [maxIndex, setMaxIndex] = useState(total - 2); // Default for desktop (2 cards visible)
+  const [maxIndex, setMaxIndex] = useState(Math.max(0, total - 2)); // Default for desktop (2 cards visible)
   const [isPaused, setIsPaused] = useState(false);
-
-  const eventBookingUrl = locale === 'ar' ? '/حجز-مناسبة' : '/en/event-booking';
 
   // Responsive max index calculation (1 card on mobile < 640px, 2 cards on sm+)
   useEffect(() => {
     const updateMax = () => {
       const isMobile = window.innerWidth < 640;
-      setMaxIndex(isMobile ? total - 1 : total - 2);
+      setMaxIndex(Math.max(0, isMobile ? total - 1 : total - 2));
     };
     updateMax();
     window.addEventListener('resize', updateMax);
@@ -109,7 +188,8 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
     return () => clearInterval(timer);
   }, [isPaused, handleNext]);
 
-  const benefits = [
+  // 2. Resolve Benefits
+  const defaultBenefits = [
     {
       id: 'assortment',
       icon: Sprout,
@@ -136,20 +216,38 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
     },
   ];
 
-  const features = [
-    {
-      icon: Flower2,
-      label: { en: 'Weddings', ar: 'حفلات الزفاف' },
-    },
-    {
-      icon: CalendarDays,
-      label: { en: 'Corporate Events', ar: 'فعاليات الشركات' },
-    },
-    {
-      icon: Star,
-      label: { en: 'Special Occasions', ar: 'مناسبات خاصة' },
-    },
+  const displayBenefits = Array.isArray(benefits) && benefits.length > 0
+    ? benefits.map((item, idx) => ({
+        id: item.id || `benefit-${idx}`,
+        icon: getBenefitIcon(item.icon),
+        title: item.title,
+        desc: item.description,
+      }))
+    : defaultBenefits;
+
+  // 3. Resolve Event Texts
+  const displayBadge = events?.badge || (isRtl ? 'المناسبات' : 'EVENTS');
+  const displayTitleMain = events?.title_main || events?.titleMain || (isRtl ? 'أضف لمسة من السحر\nلمناسباتك مع' : 'Blossom your\nevents with our');
+  const displayTitleHighlight = events?.title_highlight || events?.titleHighlight || (isRtl ? 'لمستنا الاحترافية!' : 'expert touch!');
+  const displayDesc = events?.description || (isRtl
+    ? 'اكتشف التناغم المثالي بين أناقة الزهور وخبرة تنظيم المناسبات مع بوتيك غراس. دعنا ننبض الحياة في مناسباتكم بعناية فائقة بأدق التفاصيل وتنسيقات زهور مذهلة. من حفلات الزفاف إلى الفعاليات الرسمية، سيبتكر فريقنا من المحترفين أجواءً ساحرة تفوق توقعاتكم.'
+    : 'Discover the perfect harmony of floral elegance and event planning expertise with our flower shop. Let us bring your events to life with our meticulous attention to detail and stunning floral arrangements. From weddings to corporate gatherings, our team of professionals will create a captivating ambiance that exceeds your expectations.');
+  const displayButtonText = events?.button_text || events?.buttonText || (isRtl ? 'احجز الآن' : 'BOOK NOW');
+
+  const defaultFeatures = [
+    { icon: Flower2, label: isRtl ? 'حفلات الزفاف' : 'Weddings' },
+    { icon: CalendarDays, label: isRtl ? 'فعاليات الشركات' : 'Corporate Events' },
+    { icon: Star, label: isRtl ? 'مناسبات خاصة' : 'Special Occasions' },
   ];
+
+  const displayFeatures = Array.isArray(events?.tags) && events.tags.length > 0
+    ? events.tags.map((t, idx) => ({
+        icon: getFeatureIcon(t.icon, idx),
+        label: t.label,
+      }))
+    : defaultFeatures;
+
+  const titleLines = displayTitleMain.split('\n');
 
   return (
     <section
@@ -160,7 +258,7 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
         {/* 1. TOP SECTION: 3 Pillar Benefit Boxes */}
         <div className="pt-4 sm:pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-6 lg:gap-8">
-            {benefits.map((item) => {
+            {displayBenefits.map((item) => {
               const IconComponent = item.icon;
               return (
                 <div
@@ -192,75 +290,47 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
 
         {/* 2. BOTTOM SECTION: Events Showcase (Left Static Text + Right 2-Card Carousel) */}
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12 w-full">
-          {/* Left Content (STATIC - Never translated, never resized) */}
+          {/* Left Content */}
           <div className="w-full lg:w-[42%] shrink-0 text-start flex flex-col justify-center">
             {/* Header Badge with Horizontal Line & Dot */}
             <div className="flex items-center gap-2 mb-4">
               <span className="w-8 h-[1.5px] bg-[#6B8E23]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#6B8E23]" />
               <span className="text-xs font-bold text-[#6B8E23] uppercase tracking-widest">
-                {isRtl ? 'المناسبات' : 'EVENTS'}
+                {displayBadge}
               </span>
             </div>
 
             {/* Headline matching design */}
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-[42px] xl:text-[46px] font-extrabold text-[#1E2D24] leading-[1.18] tracking-tight mb-5">
-              {isRtl ? (
-                <>
-                  أضف لمسة من السحر
+              {titleLines.map((line, idx) => (
+                <React.Fragment key={idx}>
+                  {line}
                   <br />
-                  لمناسباتك مع
-                  <br />
-                  <span className="relative inline-block italic font-normal text-[#6B8E23]">
-                    لمستنا الاحترافية!
-                    {/* Decorative curved SVG stroke */}
-                    <svg
-                      className="absolute -bottom-2 start-0 w-full h-3 text-[#6B8E23]/60"
-                      viewBox="0 0 200 12"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M2 9C50 3 150 2 198 9"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </span>
-                </>
-              ) : (
-                <>
-                  Blossom your
-                  <br />
-                  events with our
-                  <br />
-                  <span className="relative inline-block italic font-normal text-[#6B8E23]">
-                    expert touch!
-                    {/* Decorative curved SVG stroke */}
-                    <svg
-                      className="absolute -bottom-2 start-0 w-full h-3 text-[#6B8E23]/60"
-                      viewBox="0 0 200 12"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M2 9C50 3 150 2 198 9"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </span>
-                </>
-              )}
+                </React.Fragment>
+              ))}
+              <span className="relative inline-block italic font-normal text-[#6B8E23]">
+                {displayTitleHighlight}
+                {/* Decorative curved SVG stroke */}
+                <svg
+                  className="absolute -bottom-2 start-0 w-full h-3 text-[#6B8E23]/60"
+                  viewBox="0 0 200 12"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2 9C50 3 150 2 198 9"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
             </h2>
 
             {/* Paragraph Text */}
             <p className="text-sm sm:text-base text-[#68625B] leading-relaxed mb-8 max-w-md pt-1">
-              {isRtl
-                ? 'اكتشف التناغم المثالي بين أناقة الزهور وخبرة تنظيم المناسبات مع بوتيك غراس. دعنا ننبض الحياة في مناسباتكم بعناية فائقة بأدق التفاصيل وتنسيقات زهور مذهلة. من حفلات الزفاف إلى الفعاليات الرسمية، سيبتكر فريقنا من المحترفين أجواءً ساحرة تفوق توقعاتكم.'
-                : 'Discover the perfect harmony of floral elegance and event planning expertise with our flower shop. Let us bring your events to life with our meticulous attention to detail and stunning floral arrangements. From weddings to corporate gatherings, our team of professionals will create a captivating ambiance that exceeds your expectations.'}
+              {displayDesc}
             </p>
 
             {/* Bottom Row: CTA Button + 3 Pillar Features */}
@@ -270,13 +340,13 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
                 href={eventBookingUrl}
                 className="inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-full bg-[#3F5438] hover:bg-[#32432C] text-white font-bold text-sm uppercase tracking-wider shadow-md transition-all duration-300 hover:scale-105 active:scale-95 group cursor-pointer"
               >
-                <span>{isRtl ? 'احجز الآن' : 'BOOK NOW'}</span>
+                <span>{displayButtonText}</span>
                 <ArrowIcon className="w-4 h-4 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
               </Link>
 
               {/* 3 Pillar Features with Dividers */}
               <div className="flex items-center gap-4 sm:gap-5">
-                {features.map((item, idx) => {
+                {displayFeatures.map((item, idx) => {
                   const Icon = item.icon;
                   return (
                     <React.Fragment key={idx}>
@@ -286,7 +356,7 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
                           <Icon className="w-4 h-4" />
                         </div>
                         <span className="text-[11px] font-medium text-[#524C45] whitespace-nowrap">
-                          {item.label[locale]}
+                          {item.label}
                         </span>
                       </div>
                     </React.Fragment>
@@ -296,15 +366,15 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
             </div>
           </div>
 
-          {/* Right Carousel Container (STATIC - Fixed Size, Never Moves) */}
+          {/* Right Carousel Container */}
           <div
             className="w-full lg:w-[58%] min-w-0 relative"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
           >
-            {/* Carousel Viewport (Strict overflow:hidden with fixed rounded container) */}
+            {/* Carousel Viewport */}
             <div className="relative w-full overflow-hidden rounded-3xl">
-              {/* Carousel Track (Translates smoothly based on currentIndex) */}
+              {/* Carousel Track */}
               <div
                 className="flex [--slide-w:100%] sm:[--slide-w:50%] transition-transform duration-500 ease-out"
                 style={{
@@ -313,13 +383,13 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
                     : `translateX(calc(-1 * var(--slide-w) * ${currentIndex}))`,
                 }}
               >
-                {EVENT_SLIDES.map((slide, idx) => (
+                {dynamicSlides.map((slide, idx) => (
                   <div
                     key={idx}
                     className="w-full sm:w-1/2 shrink-0 p-2 sm:p-2.5"
                   >
                     <Link
-                      href={eventBookingUrl}
+                      href={slide.url}
                       className="group relative block w-full h-[380px] sm:h-[420px] md:h-[450px] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#FAF7F2] border border-[#E8DFC0] shadow-md hover:shadow-xl transition-shadow duration-300"
                       draggable={false}
                     >
@@ -327,6 +397,7 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
                         src={slide.src}
                         alt={slide.alt}
                         fill
+                        unoptimized
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
                         className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                         draggable={false}
@@ -337,10 +408,10 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
                       {/* Event Details Card Overlay */}
                       <div className="absolute bottom-0 inset-x-0 p-5 sm:p-6 text-white flex flex-col justify-end">
                         <span className="text-[11px] font-bold text-[#C5DC87] uppercase tracking-wider mb-1 drop-shadow-xs">
-                          {isRtl ? 'باقة المناسبات' : 'EVENT SERVICE'}
+                          {slide.serviceTag}
                         </span>
                         <h3 className="font-serif text-lg sm:text-xl font-bold text-white leading-snug drop-shadow-sm">
-                          {slide.title[locale]}
+                          {slide.title}
                         </h3>
                       </div>
                     </Link>
@@ -369,35 +440,28 @@ export function HomeEventsSection({ locale }: HomeEventsSectionProps) {
               </button>
             </div>
 
-            {/* Pagination Indicators */}
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <span className="w-8 sm:w-12 h-[2px] bg-[#DDD4C6]" />
-              <div className="flex items-center gap-1.5">
+            {/* Pagination Dots indicator */}
+            {total > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-5">
                 {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
                   <button
                     key={idx}
                     type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setCurrentIndex(idx);
-                    }}
-                    aria-label={`Go to slide ${idx + 1}`}
+                    onClick={() => setCurrentIndex(idx)}
+                    aria-label={`Go to event slide ${idx + 1}`}
                     className={cn(
-                      'rounded-full transition-all duration-300 cursor-pointer p-0 border-0',
-                      idx === currentIndex
-                        ? 'w-6 h-2 bg-[#3F5438]'
-                        : 'w-2 h-2 bg-[#D2C8BA] hover:bg-[#3F5438]/50'
+                      'h-2 rounded-full transition-all duration-300 cursor-pointer',
+                      currentIndex === idx
+                        ? 'w-6 bg-[#3F5438]'
+                        : 'w-2 bg-[#D9CFBE] hover:bg-[#B5A894]'
                     )}
                   />
                 ))}
               </div>
-              <span className="w-8 sm:w-12 h-[2px] bg-[#DDD4C6]" />
-            </div>
+            )}
           </div>
         </div>
       </div>
     </section>
   );
 }
-

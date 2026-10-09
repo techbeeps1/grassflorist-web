@@ -14,6 +14,7 @@ import { CartDrawer } from '@/components/cart/CartDrawer';
 import { Menu } from 'lucide-react';
 import { useAppDispatch } from '@/store';
 import { setMobileMenuOpen } from '@/store/slices/uiSlice';
+import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
 
 interface HeaderProps {
   locale: Locale;
@@ -21,7 +22,11 @@ interface HeaderProps {
 
 export function Header({ locale }: HeaderProps) {
   const dispatch = useAppDispatch();
+  const { data: settings } = useGetGlobalSettingsQuery();
   const homeUrl = locale === 'ar' ? '/' : '/en';
+
+  const logoSrc = settings?.branding?.site_logo || '/grass-logo.jpg';
+  const logoAlt = settings?.branding?.site_name?.[locale] || 'Grass غراس';
 
   return (
     <>
@@ -46,13 +51,14 @@ export function Header({ locale }: HeaderProps) {
               <Link
                 href={homeUrl}
                 className="flex items-center select-none shrink-0"
-                aria-label="Grass Flowers"
+                aria-label={logoAlt}
               >
                 <Image
-                  src="/grass-logo.jpg"
-                  alt="Grass غراس"
+                  src={logoSrc}
+                  alt={logoAlt}
                   width={130}
                   height={65}
+                  unoptimized={logoSrc.startsWith('http')}
                   className="w-[46px] sm:w-[52px] md:w-[58px] h-auto object-contain"
                   priority
                 />

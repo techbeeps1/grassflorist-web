@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { type Locale, siteConfig } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
@@ -10,6 +10,7 @@ import { CategoryFilters } from '@/components/category/CategoryFilters';
 import { SortDropdown } from '@/components/category/SortDropdown';
 import { MobileFilterDrawer } from '@/components/category/MobileFilterDrawer';
 import { ProductGrid } from '@/components/product/ProductGrid';
+import { LoadMorePagination } from '@/components/product/LoadMorePagination';
 import { Button } from '@/components/ui/Button';
 import { ProductFilterState } from '@/types/product';
 import { generateBreadcrumbSchema } from '@/lib/schema';
@@ -39,6 +40,13 @@ function ProductsPageContent({ locale, initialProducts, allCategories }: Product
   });
 
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
+  const BATCH_SIZE = 24;
+  const [visibleCount, setVisibleCount] = useState<number>(BATCH_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(BATCH_SIZE);
+  }, [filters]);
 
   const baseProducts = initialProducts || [];
 
@@ -93,6 +101,10 @@ function ProductsPageContent({ locale, initialProducts, allCategories }: Product
 
     return result;
   }, [filters]);
+
+  const displayedProducts = useMemo(() => {
+    return filteredProducts.slice(0, visibleCount);
+  }, [filteredProducts, visibleCount]);
 
   const breadcrumbItems = [
     { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },
@@ -194,7 +206,7 @@ function ProductsPageContent({ locale, initialProducts, allCategories }: Product
           {/* Layout Grid (Filters Sidebar + Products Grid) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Desktop Filters Sidebar */}
-            <div className="hidden lg:block lg:col-span-3 p-5 bg-surface rounded-2xl border border-border/80 shadow-xs sticky top-36">
+            <div className="hidden lg:block lg:col-span-3 p-4 sm:p-5 bg-surface rounded-2xl border border-border/80 shadow-xs sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto custom-scrollbar">
               <CategoryFilters
                 locale={locale}
                 filters={filters}
@@ -206,7 +218,13 @@ function ProductsPageContent({ locale, initialProducts, allCategories }: Product
 
             {/* Products Grid */}
             <div className="lg:col-span-9">
-              <ProductGrid products={filteredProducts} locale={locale} />
+              <ProductGrid products={displayedProducts} locale={locale} />
+              <LoadMorePagination
+                total={filteredProducts.length}
+                currentCount={visibleCount}
+                onLoadMore={() => setVisibleCount((prev) => prev + BATCH_SIZE)}
+                locale={locale}
+              />
             </div>
           </div>
         </div>

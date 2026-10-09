@@ -76,12 +76,15 @@ export const bannerSlides: BannerSlide[] = [
 
 interface HeroBannerSliderProps {
   locale: Locale;
+  slides?: any[];
 }
 
 const SLIDE_DURATION = 5500; // 5.5 seconds per slide
 
-export function HeroBannerSlider({ locale }: HeroBannerSliderProps) {
+export function HeroBannerSlider({ locale, slides }: HeroBannerSliderProps) {
   const isRtl = locale === 'ar';
+
+  const displaySlides = (slides && slides.length > 0) ? slides : bannerSlides;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -91,12 +94,12 @@ export function HeroBannerSlider({ locale }: HeroBannerSliderProps) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % bannerSlides.length);
-  }, []);
+    setCurrentIndex((prev) => (prev + 1) % displaySlides.length);
+  }, [displaySlides.length]);
 
   const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
-  }, []);
+    setCurrentIndex((prev) => (prev - 1 + displaySlides.length) % displaySlides.length);
+  }, [displaySlides.length]);
 
   // Auto-play timer
   useEffect(() => {
@@ -165,11 +168,15 @@ export function HeroBannerSlider({ locale }: HeroBannerSliderProps) {
       >
         {/* Slides Track */}
         <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] select-none">
-          {bannerSlides.map((slide, index) => {
+          {displaySlides.map((slide, index) => {
             const isActive = index === currentIndex;
+            const slideTitle = typeof slide.title === 'object' && slide.title !== null
+              ? (slide.title[locale] || slide.title.en || slide.title.ar || '')
+              : (slide.title || 'Grass Florist');
+
             return (
               <div
-                key={slide.id}
+                key={slide.id || `slide-${index}`}
                 aria-hidden={!isActive}
                 className={`absolute inset-0 w-full h-full transition-all duration-700 ease-out ${isActive
                     ? 'opacity-100 z-10 scale-100'
@@ -177,13 +184,13 @@ export function HeroBannerSlider({ locale }: HeroBannerSliderProps) {
                   }`}
               >
                 <Link
-                  href={getLocalizedLink(slide.link)}
+                  href={getLocalizedLink(slide.link || '/products')}
                   className="block relative w-full h-full cursor-pointer"
                   tabIndex={isActive ? 0 : -1}
                 >
                   <Image
                     src={slide.image}
-                    alt={slide.title[locale]}
+                    alt={slideTitle}
                     fill
                     unoptimized
                     priority={index === 0}
@@ -231,9 +238,9 @@ export function HeroBannerSlider({ locale }: HeroBannerSliderProps) {
 
         {/* Subtle Minimal Dots Indicator */}
         <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-          {bannerSlides.map((slide, index) => (
+          {displaySlides.map((slide, index) => (
             <button
-              key={slide.id}
+              key={slide.id || `dot-${index}`}
               type="button"
               onClick={() => setCurrentIndex(index)}
               aria-label={`${locale === 'ar' ? 'الذهاب إلى الشريحة' : 'Go to slide'} ${index + 1}`}

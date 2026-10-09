@@ -150,7 +150,7 @@ export function AccountDropdown({ locale }: AccountDropdownProps) {
           {/* Links */}
           <div className="space-y-0.5 text-xs font-bold text-[#4A4036]">
             <Link
-              href={accountUrl}
+              href={`${accountUrl}?tab=profile`}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-[#FAF8F5] hover:text-[#435849] transition-colors"
             >
@@ -159,7 +159,7 @@ export function AccountDropdown({ locale }: AccountDropdownProps) {
             </Link>
 
             <Link
-              href={accountUrl}
+              href={`${accountUrl}?tab=orders`}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-[#FAF8F5] hover:text-[#435849] transition-colors"
             >

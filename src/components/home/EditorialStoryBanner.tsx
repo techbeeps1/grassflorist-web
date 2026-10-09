@@ -8,12 +8,35 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface EditorialStoryBannerProps {
   locale: Locale;
+  title?: string;
+  buttonText?: string;
+  buttonUrl?: string;
+  image?: string;
 }
 
-export function EditorialStoryBanner({ locale }: EditorialStoryBannerProps) {
+export function EditorialStoryBanner({
+  locale,
+  title,
+  buttonText,
+  buttonUrl,
+  image,
+}: EditorialStoryBannerProps) {
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
-  const catalogUrl = locale === 'ar' ? '/category/جميع-الزهور' : '/en/category/all-flowers';
+
+  const defaultCatalogUrl = locale === 'ar' ? '/category/جميع-الزهور' : '/en/category/all-flowers';
+  const targetUrl = buttonUrl || defaultCatalogUrl;
+
+  const defaultTitle =
+    locale === 'ar' ? 'توصيل في نفس اليوم\nزهور وهدايا فاخرة' : 'Same Day Delivery\nFlowers & Gifts';
+  const displayTitle = title || defaultTitle;
+
+  const defaultButtonText = locale === 'ar' ? 'تسوق زهور اليوم نفسه' : 'Shop Same Day Flowers';
+  const displayButtonText = buttonText || defaultButtonText;
+
+  const displayImage = image || '/editorial-woman-bouquet.webp';
+
+  const titleLines = displayTitle.split('\n');
 
   return (
     <section
@@ -39,30 +62,21 @@ export function EditorialStoryBanner({ locale }: EditorialStoryBannerProps) {
           {/* Centered Editorial Messaging */}
           <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center">
             {/* Main Editorial Headline - matching all other section headings */}
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-[#201B18] leading-tight mb-6 sm:mb-8">
-              {locale === 'ar' ? (
-                <>
-                  توصيل في نفس اليوم
-                  <br />
-                  زهور وهدايا فاخرة
-                </>
-              ) : (
-                <>
-                  Same Day Delivery
-                  <br />
-                  Flowers & Gifts
-                </>
-              )}
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-[#201B18] leading-tight mb-6 sm:mb-8 whitespace-pre-line">
+              {titleLines.map((line, index) => (
+                <React.Fragment key={index}>
+                  {line}
+                  {index < titleLines.length - 1 && <br />}
+                </React.Fragment>
+              ))}
             </h2>
 
             {/* Pill CTA Button */}
             <Link
-              href={catalogUrl}
+              href={targetUrl}
               className="group inline-flex items-center justify-center gap-2.5 px-6 py-2.5 sm:px-7 sm:py-3 rounded-full bg-[#FAF5EE] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white border border-[#DDD3C6] hover:border-[#2D3F33] shadow-xs hover:shadow-md text-sm sm:text-base font-bold whitespace-nowrap transition-all duration-300 hover:scale-[1.02] active:scale-95"
             >
-              <span>
-                {locale === 'ar' ? 'تسوق زهور اليوم نفسه' : 'Shop Same Day Flowers'}
-              </span>
+              <span>{displayButtonText}</span>
               <span className="w-5.5 h-5.5 rounded-full bg-[#2D3F33] group-hover:bg-white text-white group-hover:text-[#2D3F33] flex items-center justify-center transition-colors shrink-0">
                 <ArrowIcon className="w-3 h-3 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
               </span>
@@ -73,9 +87,10 @@ export function EditorialStoryBanner({ locale }: EditorialStoryBannerProps) {
         {/* Editorial Visual Showcase (Right in LTR, Left in RTL) */}
         <div className="relative w-full h-full min-h-[340px] sm:min-h-[440px] lg:min-h-full overflow-hidden group">
           <Image
-            src="/editorial-woman-bouquet.webp"
+            src={displayImage}
             alt="Artisanal Handcrafted Flowers"
             fill
+            unoptimized
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
           />

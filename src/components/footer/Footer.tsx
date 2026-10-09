@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { type Locale, siteConfig } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { categories } from '@/data/categories';
-import { getCategorySlugForLocale } from '@/lib/wordpress/store-api';
+import { getCategorySlugForLocale, type DynamicFooterData } from '@/lib/wordpress/store-api';
 import { LanguageSwitcher } from '@/components/header/LanguageSwitcher';
 import {
   Mail,
@@ -17,6 +17,7 @@ import {
   Sparkles,
   ArrowUp,
 } from 'lucide-react';
+import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
 
 interface FooterProps {
   locale: Locale;
@@ -28,6 +29,89 @@ export function Footer({ locale }: FooterProps) {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [footerData, setFooterData] = useState<DynamicFooterData | null>(null);
+  const { data: globalSettings } = useGetGlobalSettingsQuery();
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/navigation')
+      .then((r) => r.json())
+      .then((data) => {
+        if (isMounted && data?.success && data.footer) {
+          const raw = data.footer;
+          const settings = data.footer_settings || raw.settings || {};
+          const normalized: DynamicFooterData = {
+            column_1: raw.column_1 ? {
+              title: {
+                en: raw.column_1.title?.en || raw.column_1.title_en || 'CATEGORIES',
+                ar: raw.column_1.title?.ar || raw.column_1.title_ar || 'التصنيفات',
+              },
+              categories: (raw.column_1.categories || []).map((c: any) => ({
+                id: String(c.id || Math.random()),
+                name: {
+                  en: c.name?.en || c.name_en || '',
+                  ar: c.name?.ar || c.name_ar || '',
+                },
+                href: {
+                  en: c.href?.en || c.url_en || '#',
+                  ar: c.href?.ar || c.url_ar || '#',
+                },
+              })),
+            } : undefined,
+            column_2: raw.column_2 ? {
+              title: {
+                en: raw.column_2.title?.en || raw.column_2.title_en || 'QUICK LINKS',
+                ar: raw.column_2.title?.ar || raw.column_2.title_ar || 'روابط سريعة',
+              },
+              links: (raw.column_2.links || []).map((l: any) => ({
+                id: String(l.id || Math.random()),
+                name: {
+                  en: l.name?.en || l.name_en || '',
+                  ar: l.name?.ar || l.name_ar || '',
+                },
+                href: {
+                  en: l.href?.en || l.url_en || '#',
+                  ar: l.href?.ar || l.url_ar || '#',
+                },
+              })),
+            } : undefined,
+            column_3: raw.column_3 ? {
+              title: {
+                en: raw.column_3.title?.en || raw.column_3.title_en || 'POLICIES',
+                ar: raw.column_3.title?.ar || raw.column_3.title_ar || 'السياسات',
+              },
+              links: (raw.column_3.links || []).map((l: any) => ({
+                id: String(l.id || Math.random()),
+                name: {
+                  en: l.name?.en || l.name_en || '',
+                  ar: l.name?.ar || l.name_ar || '',
+                },
+                href: {
+                  en: l.href?.en || l.url_en || '#',
+                  ar: l.href?.ar || l.url_ar || '#',
+                },
+              })),
+            } : undefined,
+            settings: {
+              delivery_city: {
+                en: settings.delivery_city?.en || settings.delivery_city_en || 'Jeddah',
+                ar: settings.delivery_city?.ar || settings.delivery_city_ar || 'جدة',
+              },
+              delivery_badge: {
+                en: settings.delivery_badge?.en || settings.delivery_badge_en || 'Delivery to',
+                ar: settings.delivery_badge?.ar || settings.delivery_badge_ar || 'التوصيل إلى',
+              },
+            },
+          };
+          setFooterData(normalized);
+        }
+      })
+      .catch((e) => console.warn('[Footer] Failed to fetch footer:', e));
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -129,7 +213,7 @@ export function Footer({ locale }: FooterProps) {
       </section>
 
       {/* 2. MAIN LUXURY DARK FOOTER (Floward-Style Structure & Hierarchy) */}
-      <footer className="bg-[#151F18] text-[#D1C9BE] pt-16 sm:pt-20 pb-10 sm:pb-12 border-t border-[#233227]">
+      <footer className="bg-[#493D25] text-[#D1C9BE] pt-16 sm:pt-20 pb-10 sm:pb-12 border-t border-[#233227]">
         <div className="site-container">
           {/* Main Content Grid: Left Brand Block + Right Link Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 pb-14 border-b border-white/10">
@@ -139,10 +223,11 @@ export function Footer({ locale }: FooterProps) {
               <Link href={getUrl('/')} className="inline-flex items-center group">
                 <div className="p-2.5 bg-white rounded-2xl shadow-md border border-white/20 transition-transform group-hover:scale-105 shrink-0">
                   <Image
-                    src="/grass-logo.jpg"
-                    alt="Grass غراس"
+                    src={globalSettings?.branding?.site_logo_dark || globalSettings?.branding?.site_logo || '/grass-logo.jpg'}
+                    alt={globalSettings?.branding?.site_name?.[locale] || 'Grass غراس'}
                     width={90}
                     height={54}
+                    unoptimized={(globalSettings?.branding?.site_logo_dark || globalSettings?.branding?.site_logo || '').startsWith('http')}
                     className="w-[75px] sm:w-[85px] h-auto object-contain rounded-lg"
                   />
                 </div>
@@ -150,7 +235,7 @@ export function Footer({ locale }: FooterProps) {
 
               {/* Brand Description */}
               <p className="text-sm text-white leading-relaxed max-w-sm">
-                {dict.footer.aboutBrand}
+                {globalSettings?.footer?.about?.[locale] || dict.footer.aboutBrand}
               </p>
 
               {/* Contact Information */}
@@ -158,28 +243,29 @@ export function Footer({ locale }: FooterProps) {
                 <div className="flex items-start gap-2.5">
                   <MapPin className="w-4 h-4 text-[#99C552] shrink-0 mt-0.5" />
                   <span>
-                    {locale === 'ar'
-                      ? '4366 شارع الكيال، حي الروضة، جدة 23434، المملكة العربية السعودية'
-                      : '4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia'}
+                    {globalSettings?.contact?.address?.[locale] ||
+                      (locale === 'ar'
+                        ? '4366 شارع الكيال، حي الروضة، جدة 23434، المملكة العربية السعودية'
+                        : '4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Phone className="w-4 h-4 text-[#99C552] shrink-0" />
                   <a
-                    href={`tel:${siteConfig.contact.phone.replace(/\s+/g, '')}`}
+                    href={`tel:${(globalSettings?.contact?.phone || siteConfig.contact.phone).replace(/\s+/g, '')}`}
                     className="hover:text-[#99C552] transition-colors font-medium text-white"
                     dir="ltr"
                   >
-                    {siteConfig.contact.phone}
+                    {globalSettings?.contact?.phone || siteConfig.contact.phone}
                   </a>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Mail className="w-4 h-4 text-[#99C552] shrink-0" />
                   <a
-                    href={`mailto:${siteConfig.contact.email}`}
+                    href={`mailto:${globalSettings?.contact?.email || siteConfig.contact.email}`}
                     className="hover:text-[#99C552] transition-colors font-medium text-white"
                   >
-                    {siteConfig.contact.email}
+                    {globalSettings?.contact?.email || siteConfig.contact.email}
                   </a>
                 </div>
               </div>
@@ -192,7 +278,7 @@ export function Footer({ locale }: FooterProps) {
                 <div className="flex items-center gap-2.5 flex-wrap">
                   {/* Facebook */}
                   <a
-                    href={siteConfig.socials.facebook}
+                    href={globalSettings?.social?.facebook || siteConfig.socials.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Facebook"
@@ -204,7 +290,7 @@ export function Footer({ locale }: FooterProps) {
                   </a>
                   {/* X (Twitter) */}
                   <a
-                    href={siteConfig.socials.twitter}
+                    href={globalSettings?.social?.twitter || siteConfig.socials.twitter}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="X (Twitter)"
@@ -216,7 +302,7 @@ export function Footer({ locale }: FooterProps) {
                   </a>
                   {/* Instagram */}
                   <a
-                    href={siteConfig.socials.instagram}
+                    href={globalSettings?.social?.instagram || siteConfig.socials.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Instagram"
@@ -228,7 +314,7 @@ export function Footer({ locale }: FooterProps) {
                   </a>
                   {/* WhatsApp */}
                   <a
-                    href={siteConfig.socials.whatsapp}
+                    href={globalSettings?.social?.whatsapp || (globalSettings?.contact?.whatsapp ? ('https://wa.me/' + globalSettings.contact.whatsapp.replace(/[^0-9]/g, '')) : siteConfig.socials.whatsapp)}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="WhatsApp"
@@ -240,7 +326,7 @@ export function Footer({ locale }: FooterProps) {
                   </a>
                   {/* Snapchat */}
                   <a
-                    href={siteConfig.socials.snapchat}
+                    href={globalSettings?.social?.snapchat || siteConfig.socials.snapchat}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Snapchat"
@@ -250,6 +336,20 @@ export function Footer({ locale }: FooterProps) {
                       <path d="M12.002 0c-4.464 0-7.391 3.195-7.391 6.84 0 .977.26 1.954.521 2.585.088.21.037.452-.128.613-.509.497-1.458.74-2.825 1.139-.368.107-.638.423-.679.803-.042.381.144.75.474.945.892.527 1.838.937 2.062 1.579.117.337-.021.737-.367 1.097-.732.76-1.57 1.341-2.488 1.728-.364.153-.598.513-.585.908.012.395.27.736.643.854 1.637.521 3.123 1.258 4.298 2.133.456.341.977.625 1.554.846.335.128.536.48.49.837-.089.689-.251 1.464-.53 2.046-.226.47-.075 1.036.353 1.339.429.304 1.009.28 1.408-.057 1.042-.88 2.193-1.123 3.39-1.123 1.196 0 2.348.243 3.39 1.123.399.337.979.361 1.408.057.428-.303.579-.869.353-1.339-.279-.582-.441-1.357-.53-2.046-.046-.357.155-.709.49-.837.577-.221 1.098-.505 1.554-.846 1.175-.875 2.661-1.612 4.298-2.133.373-.118.631-.459.643-.854.013-.395-.221-.755-.585-.908-.918-.387-1.756-.968-2.488-1.728-.346-.36-.484-.76-.367-1.097.224-.642 1.17-1.052 2.062-1.579.33-.195.516-.564.474-.945-.041-.38-.311-.696-.679-.803-1.367-.399-2.316-.642-2.825-1.139-.165-.161-.216-.403-.128-.613.261-.631.521-1.608.521-2.585C19.393 3.195 16.466 0 12.002 0z" />
                     </svg>
                   </a>
+                  {/* TikTok */}
+                  {globalSettings?.social?.tiktok && (
+                    <a
+                      href={globalSettings.social.tiktok}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="TikTok"
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-[#99C552] text-white hover:text-[#121B14] border border-white/15 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 shadow-xs"
+                    >
+                      <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.68 6.34 6.34 0 0 0 9.35 22a6.33 6.33 0 0 0 6.33-6.33V9.17a8.28 8.28 0 0 0 4.85 1.57v-3.5a4.84 4.84 0 0 1-.94-.55z"/>
+                      </svg>
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -260,126 +360,216 @@ export function Footer({ locale }: FooterProps) {
                 {/* Column 1: Categories / Explore */}
                 <div className="space-y-3.5">
                   <h4 className=" text-lg font-bold uppercase tracking-widest text-white">
-                    {dict.footer.categories}
+                    {footerData?.column_1?.title?.[locale] || (locale === 'ar' ? (footerData?.column_1 as any)?.title_ar : (footerData?.column_1 as any)?.title_en) || dict.footer.categories}
                   </h4>
                   <ul className="space-y-2.5 text-sm text-white">
-                    {categories.map((cat) => (
-                      <li key={cat.id}>
-                        <Link
-                          href={
-                            locale === 'ar'
-                              ? `/category/${getCategorySlugForLocale(cat.slug, 'ar')}`
-                              : `/en/category/${getCategorySlugForLocale(cat.slug, 'en')}`
-                          }
-                          className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
-                        >
-                          {cat.name[locale]}
-                        </Link>
-                      </li>
-                    ))}
+                    {footerData?.column_1?.categories && footerData.column_1.categories.length > 0 ? (
+                      footerData.column_1.categories.map((cat: any) => {
+                        const name = (typeof cat.name === 'object' ? cat.name?.[locale] : cat.name) ||
+                          (locale === 'ar' ? cat.name_ar : cat.name_en) ||
+                          cat.name_en ||
+                          cat.name_ar ||
+                          '';
+                        const href = (typeof cat.href === 'object' ? cat.href?.[locale] : cat.href) ||
+                          (locale === 'ar' ? cat.url_ar : cat.url_en) ||
+                          cat.url_en ||
+                          cat.url_ar ||
+                          '#';
+                        if (!name) return null;
+                        return (
+                          <li key={cat.id || name}>
+                            <Link
+                              href={href}
+                              className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                            >
+                              {name}
+                            </Link>
+                          </li>
+                        );
+                      })
+                    ) : (
+                      categories.map((cat) => (
+                        <li key={cat.id}>
+                          <Link
+                            href={
+                              locale === 'ar'
+                                ? `/category/${getCategorySlugForLocale(cat.slug, 'ar')}`
+                                : `/en/category/${getCategorySlugForLocale(cat.slug, 'en')}`
+                            }
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                          >
+                            {cat.name[locale]}
+                          </Link>
+                        </li>
+                      ))
+                    )}
                   </ul>
                 </div>
 
                 {/* Column 2: Quick Links / About Us */}
                 <div className="space-y-3.5">
                   <h4 className=" text-lg font-bold uppercase tracking-widest text-white">
-                    {dict.footer.quickLinks}
+                    {footerData?.column_2?.title?.[locale] || (locale === 'ar' ? (footerData?.column_2 as any)?.title_ar : (footerData?.column_2 as any)?.title_en) || dict.footer.quickLinks}
                   </h4>
                   <ul className="space-y-2.5 text-sm text-white">
-                    <li>
-                      <Link href={getUrl('/products')} className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150">
-                        {dict.nav.allProducts}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href={locale === 'ar' ? '/عن-غراس' : '/en/about'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
-                      >
-                        {dict.nav.about}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href={locale === 'ar' ? '/حجز-مناسبة' : '/en/event-booking'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150 text-white font-medium"
-                      >
-                        {locale === 'ar' ? ' حجز وتنظيم مناسبة' : 'Event & Wedding Booking'}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href={locale === 'ar' ? '/المدونة' : '/en/blog'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
-                      >
-                        {dict.nav.blog}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href={locale === 'ar' ? '/اتصل-بنا' : '/en/contact'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
-                      >
-                        {dict.nav.contact}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href={locale === 'ar' ? '/الأسئلة-الشائعة' : '/en/faq'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
-                      >
-                        {dict.nav.faq}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href={locale === 'ar' ? '/المفضلة' : '/en/wishlist'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
-                      >
-                        {dict.wishlist.title}
-                      </Link>
-                    </li>
+                    {footerData?.column_2?.links && footerData.column_2.links.length > 0 ? (
+                      footerData.column_2.links.map((link: any) => {
+                        const name = (typeof link.name === 'object' ? link.name?.[locale] : link.name) ||
+                          (locale === 'ar' ? link.name_ar : link.name_en) ||
+                          link.name_en ||
+                          link.name_ar ||
+                          '';
+                        const href = (typeof link.href === 'object' ? link.href?.[locale] : link.href) ||
+                          (locale === 'ar' ? link.url_ar : link.url_en) ||
+                          link.url_en ||
+                          link.url_ar ||
+                          '#';
+                        if (!name) return null;
+                        return (
+                          <li key={link.id || name}>
+                            <Link
+                              href={href}
+                              className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                            >
+                              {name}
+                            </Link>
+                          </li>
+                        );
+                      })
+                    ) : (
+                      <>
+                        <li>
+                          <Link href={getUrl('/products')} className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150">
+                            {dict.nav.allProducts}
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/عن-غراس' : '/en/about'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                          >
+                            {dict.nav.about}
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/حجز-مناسبة' : '/en/event-booking'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150 text-white font-medium"
+                          >
+                            {locale === 'ar' ? ' حجز وتنظيم مناسبة' : 'Event & Wedding Booking'}
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/شارك-معنا' : '/en/partner-with-us'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150 text-white font-medium"
+                          >
+                            {locale === 'ar' ? 'انضم كشريك معنا' : 'Partner With Us'}
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/المدونة' : '/en/blog'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                          >
+                            {dict.nav.blog}
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/اتصل-بنا' : '/en/contact'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                          >
+                            {dict.nav.contact}
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/الأسئلة-الشائعة' : '/en/faq'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                          >
+                            {dict.nav.faq}
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/المفضلة' : '/en/wishlist'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                          >
+                            {dict.wishlist.title}
+                          </Link>
+                        </li>
+                      </>
+                    )}
                   </ul>
                 </div>
 
                 {/* Column 3: Customer Service & Policies */}
                 <div className="space-y-3.5">
                   <h4 className=" text-lg font-bold uppercase tracking-widest text-white">
-                    {dict.footer.policies}
+                    {footerData?.column_3?.title?.[locale] || (locale === 'ar' ? (footerData?.column_3 as any)?.title_ar : (footerData?.column_3 as any)?.title_en) || dict.footer.policies}
                   </h4>
                   <ul className="space-y-2.5 text-sm text-white">
-                    <li>
-                      <Link
-                        href={locale === 'ar' ? '/الخصوصية' : '/en/policies/privacy'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
-                      >
-                        {dict.policies.privacyTitle}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href={locale === 'ar' ? '/الشروط-والأحكام' : '/en/policies/terms'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
-                      >
-                        {dict.policies.termsTitle}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href={locale === 'ar' ? '/الشحن-والتوصيل' : '/en/policies/shipping'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
-                      >
-                        {dict.policies.shippingTitle}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href={locale === 'ar' ? '/سياسة-الاسترجاع-والاسترداد' : '/en/policies/returns'}
-                        className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
-                      >
-                        {dict.policies.returnsTitle}
-                      </Link>
-                    </li>
+                    {footerData?.column_3?.links && footerData.column_3.links.length > 0 ? (
+                      footerData.column_3.links.map((link: any) => {
+                        const name = (typeof link.name === 'object' ? link.name?.[locale] : link.name) ||
+                          (locale === 'ar' ? link.name_ar : link.name_en) ||
+                          link.name_en ||
+                          link.name_ar ||
+                          '';
+                        const href = (typeof link.href === 'object' ? link.href?.[locale] : link.href) ||
+                          (locale === 'ar' ? link.url_ar : link.url_en) ||
+                          link.url_en ||
+                          link.url_ar ||
+                          '#';
+                        if (!name) return null;
+                        return (
+                          <li key={link.id || name}>
+                            <Link
+                              href={href}
+                              className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                            >
+                              {name}
+                            </Link>
+                          </li>
+                        );
+                      })
+                    ) : (
+                      <>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/privacy-policy' : '/en/privacy-policy'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                          >
+                            {dict.policies.privacyTitle}
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/terms-conditions' : '/en/terms-conditions'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                          >
+                            {dict.policies.termsTitle}
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/shipping-policy' : '/en/shipping-policy'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                          >
+                            {dict.policies.shippingTitle}
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={locale === 'ar' ? '/return-policy' : '/en/return-policy'}
+                            className="hover:text-[#99C552] hover:translate-x-1 rtl:hover:-translate-x-1 inline-block transition-all duration-150"
+                          >
+                            {dict.policies.returnsTitle}
+                          </Link>
+                        </li>
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -388,8 +578,12 @@ export function Footer({ locale }: FooterProps) {
               <div className="pt-8 sm:pt-10 flex items-center justify-start sm:justify-end gap-3 flex-wrap">
                 {/* Delivery City Pill */}
                 <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs font-semibold text-white/90 shadow-2xs backdrop-blur-xs">
-                  <span>{locale === 'ar' ? 'التوصيل إلى' : 'Delivery to'}</span>
-                  <span className="font-bold text-[#99C552]">🇸🇦 {locale === 'ar' ? 'جدة' : 'Jeddah'}</span>
+                  <span>
+                    {footerData?.settings?.delivery_badge?.[locale] || (locale === 'ar' ? 'التوصيل إلى' : 'Delivery to')}
+                  </span>
+                  <span className="font-bold text-[#99C552]">
+                    🇸🇦 {footerData?.settings?.delivery_city?.[locale] || (locale === 'ar' ? 'جدة' : 'Jeddah')}
+                  </span>
                 </div>
 
                 {/* Language Switcher */}
@@ -405,7 +599,7 @@ export function Footer({ locale }: FooterProps) {
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-5 text-sm text-white">
             {/* Copyright info */}
             <div className="text-center md:text-start">
-              <p>{dict.footer.allRightsReserved}</p>
+              <p>{globalSettings?.footer?.copyright?.[locale] || dict.footer.allRightsReserved}</p>
             </div>
 
 
@@ -426,7 +620,7 @@ export function Footer({ locale }: FooterProps) {
                 ].map((pm) => (
                   <div
                     key={pm.name}
-                    className="h-7 sm:h-7.5 px-2 bg-white rounded-md border border-white/20 shadow-xs flex items-center justify-center hover:scale-105 transition-all"
+                    className="h-7 sm:h-7.5 px-2 bg-white  border border-white/20 shadow-xs flex items-center justify-center hover:scale-105 transition-all"
                     title={pm.name}
                   >
                     <img
@@ -447,11 +641,10 @@ export function Footer({ locale }: FooterProps) {
         type="button"
         onClick={scrollToTop}
         aria-label={locale === 'ar' ? 'الرجوع للأعلى' : 'Back to top'}
-        className={`fixed bottom-5 end-4 sm:bottom-7 sm:end-7 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#1E2E23]/95 hover:bg-[#99C552] text-white hover:text-[#121B14] border border-white/20 flex items-center justify-center transition-all duration-300 shadow-2xl cursor-pointer hover:scale-110 active:scale-95 backdrop-blur-md ${
-          showScrollTop
-            ? 'opacity-100 translate-y-0 pointer-events-auto'
-            : 'opacity-0 translate-y-4 pointer-events-none'
-        }`}
+        className={`fixed bottom-5 end-4 sm:bottom-7 sm:end-7 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#1E2E23]/95 hover:bg-[#99C552] text-white hover:text-[#121B14] border border-white/20 flex items-center justify-center transition-all duration-300 shadow-2xl cursor-pointer hover:scale-110 active:scale-95 backdrop-blur-md ${showScrollTop
+          ? 'opacity-100 translate-y-0 pointer-events-auto'
+          : 'opacity-0 translate-y-4 pointer-events-none'
+          }`}
       >
         <ArrowUp className="w-5 h-5" />
       </button>

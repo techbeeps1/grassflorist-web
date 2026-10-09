@@ -68,43 +68,6 @@ function ScrollHandler() {
     }
   }, [pathname, searchParams]);
 
-  // Global listener on link clicks
-  useEffect(() => {
-    const handleLinkClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement)?.closest('a');
-      if (!target) return;
-
-      const href = target.getAttribute('href');
-      if (
-        !href ||
-        href.startsWith('#') ||
-        href.startsWith('mailto:') ||
-        href.startsWith('tel:') ||
-        target.target === '_blank' ||
-        e.ctrlKey ||
-        e.metaKey ||
-        e.shiftKey
-      ) {
-        return;
-      }
-
-      try {
-        const url = new URL(href, window.location.origin);
-        if (url.origin === window.location.origin) {
-          // If navigating to different page or query, trigger scroll top immediately
-          forceScrollTop();
-        }
-      } catch {
-        // Ignore invalid URLs
-      }
-    };
-
-    document.addEventListener('click', handleLinkClick, { capture: true, passive: true });
-    return () => {
-      document.removeEventListener('click', handleLinkClick, { capture: true });
-    };
-  }, []);
-
   return null;
 }
 

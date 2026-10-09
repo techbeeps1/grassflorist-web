@@ -79,6 +79,9 @@ export const authSlice = createSlice({
         try {
           localStorage.removeItem('grass_auth_token');
           localStorage.removeItem('grass_auth_user');
+          localStorage.removeItem('grass_florist_cart_v1');
+          const newSid = 'sess_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+          localStorage.setItem('grass_session_id', newSid);
         } catch {
           // Ignore
         }

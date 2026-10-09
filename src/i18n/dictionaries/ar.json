@@ -89,9 +89,9 @@
     "customerCareDesc": "فريقنا مستعد دائماً لمساعدتك في تخصيص هديتك ومتابعة الشحنة خطوة بخطوة."
   },
   "product": {
-    "addToCart": "إضافة إلى السلة",
+    "addToCart": "أضف للسلة",
     "addedToCart": "تمت الإضافة بنجاح",
-    "buyNow": "شراء فوري",
+    "buyNow": "شراء الآن",
     "inStock": "متوفر - اطلب خلال ساعتين للتوصيل اليوم",
     "outOfStock": "نفدت الكمية حالياً",
     "sku": "رمز المنتج",
@@ -270,6 +270,10 @@
     "resetPasswordSubtitle": "أدخل كلمة المرور الجديدة لحسابك",
     "name": "الاسم الكامل",
     "namePlaceholder": "مثال: سارة المنصور",
+    "firstName": "الاسم الأول",
+    "firstNamePlaceholder": "مثال: سارة",
+    "lastName": "اسم العائلة",
+    "lastNamePlaceholder": "مثال: المنصور",
     "email": "البريد الإلكتروني",
     "emailPlaceholder": "name@example.com",
     "phone": "رقم الجوال",

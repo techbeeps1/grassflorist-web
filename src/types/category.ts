@@ -4,6 +4,7 @@ export interface Subcategory {
   id: string;
   name: LocalizedString;
   slug: string;
+  image?: string;
   count?: number;
 }
 

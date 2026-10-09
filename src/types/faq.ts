@@ -2,7 +2,8 @@ import { LocalizedString } from './product';
 
 export interface FAQItem {
   id: string;
-  category: 'ordering' | 'delivery' | 'flowerCare' | 'payments';
+  category: string;
   question: LocalizedString;
   answer: LocalizedString;
+  sort_order?: number;
 }

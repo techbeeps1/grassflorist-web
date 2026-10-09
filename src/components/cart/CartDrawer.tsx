@@ -10,11 +10,16 @@ import {
   updateQuantity,
   selectCartTotals,
 } from '@/store/slices/cartSlice';
+import {
+  useUpdateCartQuantityMutation,
+  useRemoveCartItemMutation,
+  getLocalizedProductName,
+} from '@/store/api/cartApi';
 import { Drawer } from '@/components/ui/Drawer';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
-import { formatPrice } from '@/lib/utils';
-import { CurrencySymbol } from '@/components/common/CurrencySymbol';
+import { formatStorageUrl } from '@/lib/wordpress/store-api';
+import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
 import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, ShieldCheck, Plus, Minus } from 'lucide-react';
 
 interface CartDrawerProps {
@@ -28,6 +33,9 @@ export function CartDrawer({ locale }: CartDrawerProps) {
   const dict = getDictionary(locale);
 
   const { total } = useAppSelector(selectCartTotals);
+
+  const [updateServerQty] = useUpdateCartQuantityMutation();
+  const [removeServerItem] = useRemoveCartItemMutation();
 
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
@@ -77,10 +85,9 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                   {locale === 'ar' ? 'شامل الضريبة المضافة' : 'VAT Included'}
                 </span>
               </div>
-              <span dir="ltr" className="text-xl sm:text-2xl font-black text-[#435849] inline-flex items-center gap-1.5">
-                <CurrencySymbol className="w-4 h-4" />
-                <span>{total}</span>
-              </span>
+              <div dir="ltr" className="text-xl sm:text-2xl font-black text-[#435849]">
+                <PriceDisplay amount={total} />
+              </div>
             </div>
 
             {/* Checkout CTA */}
@@ -107,10 +114,11 @@ export function CartDrawer({ locale }: CartDrawerProps) {
       {cartItems.length > 0 ? (
         <div className="space-y-3">
           {cartItems.map((item) => {
+            const slug = getLocalizedProductName(item.product.slug, locale) || item.productId;
             const productUrl =
               locale === 'ar'
-                ? `/product/${item.product.slug.ar}`
-                : `/en/product/${item.product.slug.en}`;
+                ? `/product/${slug}`
+                : `/en/product/${slug}`;
 
             return (
               <div
@@ -124,8 +132,8 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                   className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-white border border-[#EAE2D5] shadow-2xs"
                 >
                   <Image
-                    src={item.product.thumbnail}
-                    alt={item.product.name[locale]}
+                    src={formatStorageUrl(item.product.thumbnail)}
+                    alt={getLocalizedProductName(item.product.name, locale)}
                     fill
                     sizes="80px"
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -141,11 +149,14 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                       onClick={handleClose}
                       className="text-[13px] sm:text-[13.5px] font-bold text-[#1E1915] hover:text-[#435849] transition-colors line-clamp-2 leading-snug"
                     >
-                      {item.product.name[locale]}
+                      {getLocalizedProductName(item.product.name, locale)}
                     </Link>
 
                     <button
-                      onClick={() => dispatch(removeItem(item.cartItemId))}
+                      onClick={() => {
+                        dispatch(removeItem(item.cartItemId));
+                        removeServerItem({ productId: item.productId }).unwrap().catch(() => {});
+                      }}
                       className="text-[#9E9285] hover:text-red-600 p-1 -mt-1 -me-1 rounded-full hover:bg-red-50/80 transition-colors cursor-pointer shrink-0"
                       title={locale === 'ar' ? 'حذف المنتج' : 'Remove item'}
                       aria-label={locale === 'ar' ? 'حذف المنتج' : 'Remove item'}
@@ -175,53 +186,74 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                     </div>
                   )}
 
-                  {/* Quantity Stepper & Price */}
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="inline-flex items-center h-7 rounded-lg bg-white border border-[#E2DAD0] shadow-2xs">
-                      <button
-                        type="button"
-                        disabled={item.quantity <= 1}
-                        onClick={() =>
-                          dispatch(
-                            updateQuantity({
-                              cartItemId: item.cartItemId,
-                              quantity: item.quantity - 1,
-                            })
-                          )
-                        }
-                        aria-label="Decrease quantity"
-                        className="w-7 h-full flex items-center justify-center text-[#6B5E52] hover:text-[#1E1915] hover:bg-[#F5EFE6] transition-colors disabled:opacity-25 disabled:pointer-events-none cursor-pointer rounded-s-lg"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
+                  {/* Quantity Stepper & Price with In-Stock Check */}
+                  {(() => {
+                    const itemStock = item.product.stock !== undefined ? item.product.stock : 99;
+                    const isOutOfStock = itemStock <= 0;
+                    const isMaxStockReached = item.quantity >= itemStock;
 
-                      <span className="min-w-[26px] text-center text-xs font-bold text-[#1E1915] tabular-nums select-none px-0.5">
-                        {item.quantity}
-                      </span>
+                    return (
+                      <div className="mt-2 space-y-1">
+                        {isOutOfStock ? (
+                          <span className="text-[10px] font-bold text-rose-600 block">
+                            {locale === 'ar' ? 'نفدت الكمية من المخزون' : 'Out of stock'}
+                          </span>
+                        ) : itemStock <= 5 ? (
+                          <span className="text-[10px] font-medium text-amber-700 block">
+                            {locale === 'ar' ? `متبقي ${itemStock} قطع بالمخزون` : `Only ${itemStock} left in stock`}
+                          </span>
+                        ) : null}
 
-                      <button
-                        type="button"
-                        disabled={item.quantity >= 99}
-                        onClick={() =>
-                          dispatch(
-                            updateQuantity({
-                              cartItemId: item.cartItemId,
-                              quantity: item.quantity + 1,
-                            })
-                          )
-                        }
-                        aria-label="Increase quantity"
-                        className="w-7 h-full flex items-center justify-center text-[#6B5E52] hover:text-[#1E1915] hover:bg-[#F5EFE6] transition-colors disabled:opacity-25 disabled:pointer-events-none cursor-pointer rounded-e-lg"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
+                        <div className="flex items-center justify-between">
+                          <div className="inline-flex items-center h-7 rounded-lg bg-white border border-[#E2DAD0] shadow-2xs">
+                            <button
+                              type="button"
+                              disabled={item.quantity <= 1}
+                              onClick={() => {
+                                dispatch(
+                                  updateQuantity({
+                                    cartItemId: item.cartItemId,
+                                    quantity: item.quantity - 1,
+                                  })
+                                );
+                                updateServerQty({ productId: item.productId, quantityChange: -1 }).unwrap().catch(() => {});
+                              }}
+                              aria-label="Decrease quantity"
+                              className="w-7 h-full flex items-center justify-center text-[#6B5E52] hover:text-[#1E1915] hover:bg-[#F5EFE6] transition-colors disabled:opacity-25 disabled:pointer-events-none cursor-pointer rounded-s-lg"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
 
-                    <span dir="ltr" className="text-[14px] sm:text-[15px] font-extrabold text-[#1E1915] tracking-tight inline-flex items-center gap-1">
-                      <CurrencySymbol className="w-3.5 h-3.5" />
-                      <span>{item.itemTotal}</span>
-                    </span>
-                  </div>
+                            <span className="min-w-[26px] text-center text-xs font-bold text-[#1E1915] tabular-nums select-none px-0.5">
+                              {item.quantity}
+                            </span>
+
+                            <button
+                              type="button"
+                              disabled={isOutOfStock || isMaxStockReached}
+                              onClick={() => {
+                                dispatch(
+                                  updateQuantity({
+                                    cartItemId: item.cartItemId,
+                                    quantity: item.quantity + 1,
+                                  })
+                                );
+                                updateServerQty({ productId: item.productId, quantityChange: 1 }).unwrap().catch(() => {});
+                              }}
+                              aria-label="Increase quantity"
+                              className="w-7 h-full flex items-center justify-center text-[#6B5E52] hover:text-[#1E1915] hover:bg-[#F5EFE6] transition-colors disabled:opacity-25 disabled:pointer-events-none cursor-pointer rounded-e-lg"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          <div dir="ltr" className="text-[14px] sm:text-[15px] font-extrabold text-[#1E1915] tracking-tight">
+                            <PriceDisplay amount={item.itemTotal} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             );

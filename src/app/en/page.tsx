@@ -8,20 +8,42 @@ export const metadata: Metadata = generatePageMetadata({
   locale: 'en',
 });
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function EnglishHomePage() {
-  const { categories, featuredProducts, bestsellers, newArrivals, categorySections } =
-    await getHomePageData('en');
+  const {
+    heroSlides,
+    categories,
+    popularSection,
+    editorialBanner,
+    benefitsSection,
+    eventsSection,
+    featuredProducts,
+    bestsellers,
+    newArrivals,
+    categorySections,
+    blogSection,
+    testimonialsSection,
+    faqSection,
+  } = await getHomePageData('en');
 
   return (
     <HomePageView
       locale="en"
+      heroSlides={heroSlides}
       categories={categories}
+      popularSection={popularSection}
+      editorialBanner={editorialBanner}
+      benefitsSection={benefitsSection}
+      eventsSection={eventsSection}
       featuredProducts={featuredProducts}
       bestsellers={bestsellers}
       newArrivals={newArrivals}
       categorySections={categorySections}
+      blogSection={blogSection}
+      testimonialsSection={testimonialsSection}
+      faqSection={faqSection}
     />
   );
 }

@@ -17,9 +17,16 @@ import {
   selectCartTotals,
   selectFreeShippingProgress,
 } from '@/store/slices/cartSlice';
+import {
+  useUpdateCartQuantityMutation,
+  useRemoveCartItemMutation,
+  useApplyServerCouponMutation,
+  getLocalizedProductName,
+} from '@/store/api/cartApi';
 import { addToast } from '@/store/slices/uiSlice';
 import { formatPrice } from '@/lib/utils';
-import { CurrencySymbol } from '@/components/common/CurrencySymbol';
+import { formatStorageUrl } from '@/lib/wordpress/store-api';
+import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
 import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface CartPageViewProps {
@@ -36,6 +43,10 @@ export function CartPageView({ locale }: CartPageViewProps) {
   const { subtotal, discount, vat, shippingFee, total } = useAppSelector(selectCartTotals);
   const { remaining, percentage, isFree } = useAppSelector(selectFreeShippingProgress);
 
+  const [updateServerQty] = useUpdateCartQuantityMutation();
+  const [removeServerItem] = useRemoveCartItemMutation();
+  const [applyServerCoupon] = useApplyServerCouponMutation();
+
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
@@ -50,7 +61,9 @@ export function CartPageView({ locale }: CartPageViewProps) {
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
     if (promoCodeInput.trim()) {
-      dispatch(applyCoupon(promoCodeInput.trim()));
+      const code = promoCodeInput.trim();
+      dispatch(applyCoupon(code));
+      applyServerCoupon(code).unwrap().catch(() => {});
       dispatch(
         addToast({
           type: 'success',
@@ -105,10 +118,11 @@ export function CartPageView({ locale }: CartPageViewProps) {
               {/* Items Card List */}
               <div className="bg-surface rounded-2xl border border-border divide-y divide-border overflow-hidden shadow-xs">
                 {cartItems.map((item) => {
+                  const slug = getLocalizedProductName(item.product.slug, locale) || item.productId;
                   const productUrl =
                     locale === 'ar'
-                      ? `/product/${item.product.slug.ar}`
-                      : `/en/product/${item.product.slug.en}`;
+                      ? `/product/${slug}`
+                      : `/en/product/${slug}`;
 
                   return (
                     <div
@@ -121,8 +135,8 @@ export function CartPageView({ locale }: CartPageViewProps) {
                           className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-surface-subtle shrink-0 border border-border"
                         >
                           <Image
-                            src={item.product.thumbnail}
-                            alt={item.product.name[locale]}
+                            src={formatStorageUrl(item.product.thumbnail)}
+                            alt={getLocalizedProductName(item.product.name, locale)}
                             fill
                             sizes="96px"
                             className="object-cover"
@@ -136,7 +150,7 @@ export function CartPageView({ locale }: CartPageViewProps) {
                             href={productUrl}
                             className="text-sm sm:text-base font-bold text-text-main hover:text-primary transition-colors line-clamp-1"
                           >
-                            {item.product.name[locale]}
+                            {getLocalizedProductName(item.product.name, locale)}
                           </Link>
 
                           {/* Addon details */}
@@ -158,39 +172,66 @@ export function CartPageView({ locale }: CartPageViewProps) {
                         </div>
                       </div>
 
-                      <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-6 pt-3 sm:pt-0 border-t sm:border-t-0 border-border">
-                        <QuantitySelector
-                          quantity={item.quantity}
-                          onIncrease={() =>
-                            dispatch(
-                              updateQuantity({
-                                cartItemId: item.cartItemId,
-                                quantity: item.quantity + 1,
-                              })
-                            )
-                          }
-                          onDecrease={() =>
-                            dispatch(
-                              updateQuantity({
-                                cartItemId: item.cartItemId,
-                                quantity: item.quantity - 1,
-                              })
-                            )
-                          }
-                        />
+                      <div className="w-full sm:w-auto flex flex-col sm:items-end gap-1.5 pt-3 sm:pt-0 border-t sm:border-t-0 border-border">
+                        {(() => {
+                          const itemStock = item.product.stock !== undefined ? item.product.stock : 99;
+                          const isOutOfStock = itemStock <= 0;
 
-                        <span dir="ltr" className="text-base font-extrabold text-primary min-w-[90px] text-end inline-flex items-center justify-end gap-1">
-                          <CurrencySymbol className="w-3.5 h-3.5" />
-                          <span>{item.itemTotal}</span>
-                        </span>
+                          return (
+                            <>
+                              <div className="flex items-center justify-between sm:justify-end gap-6 w-full">
+                                <QuantitySelector
+                                  quantity={item.quantity}
+                                  max={Math.max(1, itemStock)}
+                                  disabled={isOutOfStock}
+                                  onIncrease={() => {
+                                    dispatch(
+                                      updateQuantity({
+                                        cartItemId: item.cartItemId,
+                                        quantity: item.quantity + 1,
+                                      })
+                                    );
+                                    updateServerQty({ productId: item.productId, quantityChange: 1 }).unwrap().catch(() => {});
+                                  }}
+                                  onDecrease={() => {
+                                    dispatch(
+                                      updateQuantity({
+                                        cartItemId: item.cartItemId,
+                                        quantity: item.quantity - 1,
+                                      })
+                                    );
+                                    updateServerQty({ productId: item.productId, quantityChange: -1 }).unwrap().catch(() => {});
+                                  }}
+                                />
 
-                        <button
-                          onClick={() => dispatch(removeItem(item.cartItemId))}
-                          className="p-2 text-text-muted hover:text-error transition-colors cursor-pointer"
-                          aria-label="Remove item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                                <div dir="ltr" className="text-base font-extrabold text-primary min-w-[90px] text-end">
+                                  <PriceDisplay amount={item.itemTotal} />
+                                </div>
+
+                                <button
+                                  onClick={() => {
+                                    dispatch(removeItem(item.cartItemId));
+                                    removeServerItem({ productId: item.productId }).unwrap().catch(() => {});
+                                  }}
+                                  className="p-2 text-text-muted hover:text-error transition-colors cursor-pointer"
+                                  aria-label="Remove item"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+
+                              {isOutOfStock ? (
+                                <span className="text-[11px] font-bold text-rose-600 block">
+                                  {locale === 'ar' ? 'نفدت الكمية من المخزون' : 'Out of stock'}
+                                </span>
+                              ) : itemStock <= 5 ? (
+                                <span className="text-[11px] font-medium text-amber-700 block">
+                                  {locale === 'ar' ? `متبقي ${itemStock} قطع بالمخزون` : `Only ${itemStock} left in stock`}
+                                </span>
+                              ) : null}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   );
@@ -242,45 +283,32 @@ export function CartPageView({ locale }: CartPageViewProps) {
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between text-text-muted">
                     <span>{dict.cart.subtotal}</span>
-                    <span dir="ltr" className="inline-flex items-center gap-1 font-medium">
-                      <CurrencySymbol className="w-3 h-3" />
-                      <span>{subtotal}</span>
-                    </span>
+                    <PriceDisplay amount={subtotal} />
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-emerald-600 font-semibold">
                       <span>{dict.cart.discount} ({couponCode})</span>
                       <span dir="ltr" className="inline-flex items-center gap-1">
                         <span>-</span>
-                        <CurrencySymbol className="w-3 h-3" />
-                        <span>{discount}</span>
+                        <PriceDisplay amount={discount} />
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between text-text-muted">
                     <span>{dict.cart.shipping}</span>
                     <span className={isFree ? 'text-emerald-600 font-bold' : ''}>
-                      {isFree ? dict.cart.freeShipping : (
-                        <span dir="ltr" className="inline-flex items-center gap-1">
-                          <CurrencySymbol className="w-3 h-3" />
-                          <span>{shippingFee}</span>
-                        </span>
-                      )}
+                      {isFree ? dict.cart.freeShipping : <PriceDisplay amount={shippingFee} />}
                     </span>
                   </div>
                   <div className="flex justify-between text-text-muted">
                     <span>{dict.cart.vat}</span>
-                    <span dir="ltr" className="inline-flex items-center gap-1">
-                      <CurrencySymbol className="w-3 h-3" />
-                      <span>{vat}</span>
-                    </span>
+                    <PriceDisplay amount={vat} />
                   </div>
                   <div className="flex justify-between text-lg font-black text-text-main pt-3 border-t border-border">
                     <span>{dict.cart.total}</span>
-                    <span dir="ltr" className="text-primary inline-flex items-center gap-1.5">
-                      <CurrencySymbol className="w-4 h-4" />
-                      <span>{total}</span>
-                    </span>
+                    <div dir="ltr" className="text-primary font-black">
+                      <PriceDisplay amount={total} />
+                    </div>
                   </div>
                 </div>
 

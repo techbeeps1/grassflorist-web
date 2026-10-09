@@ -4,21 +4,24 @@ import Image from 'next/image';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
-import { blogPosts } from '@/data/blog';
+import { BlogPost } from '@/types/blog';
+import { blogPosts as fallbackBlogPosts } from '@/data/blog';
 import { formatDate } from '@/lib/utils';
 import { Clock, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface BlogListingPageViewProps {
   locale: Locale;
+  posts?: BlogPost[];
 }
 
-export function BlogListingPageView({ locale }: BlogListingPageViewProps) {
+export function BlogListingPageView({ locale, posts: incomingPosts }: BlogListingPageViewProps) {
   const dict = getDictionary(locale);
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
-  const featuredPost = blogPosts[0];
-  const remainingPosts = blogPosts.slice(1);
+  const allPosts = (incomingPosts && incomingPosts.length > 0) ? incomingPosts : fallbackBlogPosts;
+  const featuredPost = allPosts[0];
+  const remainingPosts = allPosts.slice(1);
 
   const breadcrumbItems = [
     { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },
@@ -59,6 +62,7 @@ export function BlogListingPageView({ locale }: BlogListingPageViewProps) {
                   alt={featuredPost.title[locale]}
                   fill
                   priority
+                  unoptimized
                   sizes="(max-width: 1024px) 100vw, 60vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -86,6 +90,7 @@ export function BlogListingPageView({ locale }: BlogListingPageViewProps) {
                         src={featuredPost.author.avatar}
                         alt={featuredPost.author.name[locale]}
                         fill
+                        unoptimized
                         sizes="28px"
                         className="object-cover"
                       />
@@ -124,6 +129,7 @@ export function BlogListingPageView({ locale }: BlogListingPageViewProps) {
                     src={post.coverImage}
                     alt={post.title[locale]}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />

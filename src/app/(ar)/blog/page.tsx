@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { BlogListingPageView } from '@/views/BlogListingPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
+import { getBlogPosts } from '@/lib/wordpress/store-api';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'المجلة النباتية وأدلة العناية بالزهور | غراس فلوريست',
@@ -9,6 +10,10 @@ export const metadata: Metadata = generatePageMetadata({
   locale: 'ar',
 });
 
-export default function ArabicBlogListingPage() {
-  return <BlogListingPageView locale="ar" />;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export default async function ArabicBlogListingPage() {
+  const posts = await getBlogPosts('ar');
+  return <BlogListingPageView locale="ar" posts={posts} />;
 }

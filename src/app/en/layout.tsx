@@ -6,6 +6,7 @@ import { Header } from '@/components/header/Header';
 import { Footer } from '@/components/footer/Footer';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
+import { DynamicHead } from '@/components/common/DynamicHead';
 import { seoConfig } from '@/config/seo';
 import { siteConfig } from '@/config/site';
 
@@ -16,6 +17,16 @@ export const metadata: Metadata = {
     template: seoConfig.titleTemplate.en,
   },
   description: seoConfig.defaultDescription.en,
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export default function EnglishRootLayout({
@@ -27,6 +38,7 @@ export default function EnglishRootLayout({
     <html lang="en" dir="ltr" className={tajawal.variable}>
       <body className="min-h-screen flex flex-col font-sans text-base bg-background text-text-main antialiased selection:bg-primary-light selection:text-primary">
         <StoreProvider>
+          <DynamicHead />
           <ScrollToTop />
           <a
             href="#main-content"

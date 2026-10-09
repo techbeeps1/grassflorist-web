@@ -11,7 +11,8 @@ export const metadata: Metadata = generatePageMetadata({
   locale: 'en',
 });
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function EnglishProductsPage() {
   const [{ products }, categories] = await Promise.all([

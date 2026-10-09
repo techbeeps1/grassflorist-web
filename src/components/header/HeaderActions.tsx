@@ -9,8 +9,7 @@ import { selectWishlistCount } from '@/store/slices/wishlistSlice';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { AccountDropdown } from './AccountDropdown';
 import { type Locale } from '@/config/site';
-import { formatPrice } from '@/lib/utils';
-import { CurrencySymbol } from '@/components/common/CurrencySymbol';
+import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
 import { Heart, ShoppingBag } from 'lucide-react';
 
 interface HeaderActionsProps {
@@ -22,6 +21,15 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
   const cartCount = useAppSelector(selectCartItemsCount);
   const cartSubtotal = useAppSelector(selectCartSubtotal);
   const wishlistCount = useAppSelector(selectWishlistCount);
+
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const displayCartCount = mounted ? cartCount : 0;
+  const displayWishlistCount = mounted ? wishlistCount : 0;
+  const displaySubtotal = mounted ? cartSubtotal : '0.00';
 
   const wishlistUrl = locale === 'ar' ? '/wishlist' : '/en/wishlist';
 
@@ -42,9 +50,9 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
         className="relative p-2 text-text-main hover:text-primary hover:bg-surface-subtle rounded-full transition-colors cursor-pointer shrink-0"
       >
         <Heart className="w-5 h-5" />
-        {wishlistCount > 0 && (
+        {displayWishlistCount > 0 && (
           <span className="absolute top-0.5 end-0.5 min-w-[18px] h-[18px] bg-rose-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-xs animate-scale-in">
-            {wishlistCount}
+            {displayWishlistCount}
           </span>
         )}
       </Link>
@@ -57,17 +65,21 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
       >
         <div className="relative">
           <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
-          {cartCount > 0 && (
+          {displayCartCount > 0 && (
             <span className="absolute -top-1.5 -end-1.5 min-w-[16px] h-[16px] bg-secondary text-[#1A1E21] text-[9px] font-black rounded-full flex items-center justify-center px-0.5 shadow-xs">
-              {cartCount}
+              {displayCartCount}
             </span>
           )}
         </div>
 
-        {cartCount > 0 && (
+        {displayCartCount > 0 && (
           <span dir="ltr" className="hidden xl:inline-flex items-center gap-1 text-xs font-bold text-white ps-1">
-            <CurrencySymbol className="w-3 h-3 brightness-0 invert" />
-            <span>{cartSubtotal}</span>
+            <PriceDisplay
+              amount={Number(cartSubtotal) || 0}
+              locale={locale}
+              className="text-xs font-bold text-white"
+              symbolClassName="w-3 h-3 text-white brightness-0 invert"
+            />
           </span>
         )}
       </button>

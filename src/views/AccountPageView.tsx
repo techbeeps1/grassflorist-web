@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { logout, updateUser } from '@/store/slices/authSlice';
 import { addToast } from '@/store/slices/uiSlice';
-import { useGetUserOrdersQuery, useUpdateProfileMutation } from '@/store/api/authApi';
+import { useGetUserOrdersQuery, useUpdateProfileMutation, useGetUserProfileQuery } from '@/store/api/authApi';
 import { Order } from '@/types/order';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { CurrencySymbol } from '@/components/common/CurrencySymbol';
+import { CountrySelect } from '@/components/common/CountrySelect';
+import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import {
   User as UserIcon,
   Package,
@@ -41,22 +43,61 @@ interface AccountPageViewProps {
 
 type AccountTab = 'profile' | 'orders' | 'addresses';
 
-export function AccountPageView({ locale }: AccountPageViewProps) {
+function AccountPageContent({ locale }: AccountPageViewProps) {
   const dict = getDictionary(locale);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
 
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
 
-  const [activeTab, setActiveTab] = useState<AccountTab>('profile');
+  const tabParam = searchParams.get('tab');
+  const getInitialTab = (): AccountTab => {
+    if (tabParam === 'orders') return 'orders';
+    if (tabParam === 'addresses') return 'addresses';
+    return 'profile';
+  };
+
+  const [activeTab, setActiveTab] = useState<AccountTab>(getInitialTab);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // Sync tab from URL query params (e.g. when navigated via header dropdown or links)
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'orders' || tab === 'addresses' || tab === 'profile') {
+      setActiveTab(tab as AccountTab);
+    }
+  }, [searchParams]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab === 'orders' || tab === 'addresses' || tab === 'profile') {
+        setActiveTab(tab as AccountTab);
+      } else {
+        setActiveTab('profile');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleTabChange = (tab: AccountTab) => {
+    setActiveTab(tab);
+    const basePath = locale === 'ar' ? '/account' : '/en/account';
+    const newUrl = tab === 'profile' ? basePath : `${basePath}?tab=${tab}`;
+    window.history.replaceState(null, '', newUrl);
+  };
 
   // Profile Edit State
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
-  const [city, setCity] = useState(user?.city || 'جدة');
+  const [country, setCountry] = useState(user?.country || 'Saudi Arabia');
+  const [city, setCity] = useState(user?.city || '');
   const [district, setDistrict] = useState(user?.district || '');
   const [street, setStreet] = useState(user?.street || '');
   const [isEditing, setIsEditing] = useState(false);
@@ -65,6 +106,12 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
   const { data: userOrders = [], isLoading: isOrdersLoading } = useGetUserOrdersQuery(undefined, {
     skip: !isAuthenticated,
   });
+  const { data: profileUser } = useGetUserProfileQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+
+  const currentUser = profileUser || user;
+  const hasSavedAddress = Boolean(currentUser?.city || currentUser?.street || currentUser?.district);
 
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ChevronLeft : ChevronRight;
@@ -72,22 +119,29 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
   // Protect Account Route
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push(locale === 'ar' ? '/login?redirect=/account' : '/en/login?redirect=/account');
+      router.push(locale === 'ar' ? '/login?redirect=/account' : '/en/login?redirect=/en/account');
     }
   }, [isAuthenticated, locale, router]);
 
   useEffect(() => {
-    if (user) {
-      setName(user.name);
-      setEmail(user.email);
-      setPhone(user.phone || '');
-      setCity(user.city || 'جدة');
-      setDistrict(user.district || '');
-      setStreet(user.street || '');
+    if (profileUser) {
+      dispatch(updateUser(profileUser));
     }
-  }, [user]);
+  }, [profileUser, dispatch]);
 
-  if (!isAuthenticated || !user) {
+  useEffect(() => {
+    if (currentUser) {
+      setName(currentUser.name || '');
+      setEmail(currentUser.email || '');
+      setPhone(currentUser.phone || '');
+      setCountry(currentUser.country || 'Saudi Arabia');
+      setCity(currentUser.city || '');
+      setDistrict(currentUser.district || '');
+      setStreet(currentUser.street || '');
+    }
+  }, [currentUser]);
+
+  if (!isAuthenticated || !currentUser) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center bg-[#FAF7F2]">
         <div className="w-8 h-8 rounded-full border-2 border-[#435849] border-t-transparent animate-spin" />
@@ -99,16 +153,17 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
     e.preventDefault();
     try {
       await updateProfileMutation({
-        userId: user.id,
+        userId: currentUser.id,
         name,
         email,
         phone,
+        country,
         city,
         district,
         street,
       }).unwrap();
 
-      dispatch(updateUser({ name, email, phone, city, district, street }));
+      dispatch(updateUser({ name, email, phone, country, city, district, street }));
       setIsEditing(false);
       dispatch(
         addToast({
@@ -180,19 +235,19 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
         <div className="bg-gradient-to-r from-[#FAF3ED] via-[#F5ECE2] to-[#EAE0D3] rounded-3xl p-6 sm:p-8 mb-8 border border-[#E4D8CB] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 text-start">
           <div className="flex items-center gap-4 sm:gap-5">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#435849] text-white flex items-center justify-center font-serif text-2xl sm:text-3xl font-bold shadow-md uppercase">
-              {user.name.charAt(0) || 'G'}
+              {currentUser.name.charAt(0) || 'G'}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-[#201B18] tracking-tight">
-                  {user.name}
+                  {currentUser.name}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#8CA841]/20 text-[#435849] text-[10px] font-extrabold uppercase tracking-wide">
                   VIP Club
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-[#7D7065] mt-0.5">{user.email}</p>
-              {user.phone && <p className="text-xs text-[#8C8075] mt-0.5" dir="ltr">{user.phone}</p>}
+              <p className="text-xs sm:text-sm text-[#7D7065] mt-0.5">{currentUser.email}</p>
+              {currentUser.phone && <p className="text-xs text-[#8C8075] mt-0.5" dir="ltr">{currentUser.phone}</p>}
             </div>
           </div>
 
@@ -210,7 +265,7 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
           {/* Sidebar Nav */}
           <div className="lg:col-span-4 bg-white rounded-2xl p-3 border border-[#E4D8CB] shadow-xs space-y-1">
             <button
-              onClick={() => setActiveTab('profile')}
+              onClick={() => handleTabChange('profile')}
               className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 activeTab === 'profile'
                   ? 'bg-[#435849] text-white shadow-xs'
@@ -225,7 +280,7 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
             </button>
 
             <button
-              onClick={() => setActiveTab('orders')}
+              onClick={() => handleTabChange('orders')}
               className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 activeTab === 'orders'
                   ? 'bg-[#435849] text-white shadow-xs'
@@ -253,7 +308,7 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
             </button>
 
             <button
-              onClick={() => setActiveTab('addresses')}
+              onClick={() => handleTabChange('addresses')}
               className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 activeTab === 'addresses'
                   ? 'bg-[#435849] text-white shadow-xs'
@@ -360,6 +415,20 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
 
                       <div>
                         <label className="block text-xs font-bold text-[#201B18] mb-1.5">
+                          {locale === 'ar' ? 'الدولة' : 'Country'}
+                        </label>
+                        <CountrySelect
+                          value={country}
+                          onChange={(val) => setCountry(val)}
+                          locale={locale}
+                          className="bg-[#FAF8F5] border-[#D5C6B5] rounded-xl text-[#201B18]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-[#201B18] mb-1.5">
                           {dict.checkout.deliveryCity}
                         </label>
                         <input
@@ -369,9 +438,7 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
                           className="w-full h-11 px-3.5 text-xs sm:text-sm bg-[#FAF8F5] border border-[#D5C6B5] rounded-xl text-[#201B18] focus:outline-none focus:border-[#435849]"
                         />
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-[#201B18] mb-1.5">
                           {dict.checkout.deliveryDistrict}
@@ -384,19 +451,19 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
                           className="w-full h-11 px-3.5 text-xs sm:text-sm bg-[#FAF8F5] border border-[#D5C6B5] rounded-xl text-[#201B18] focus:outline-none focus:border-[#435849]"
                         />
                       </div>
+                    </div>
 
-                      <div>
-                        <label className="block text-xs font-bold text-[#201B18] mb-1.5">
-                          {dict.checkout.deliveryStreet}
-                        </label>
-                        <input
-                          type="text"
-                          value={street}
-                          onChange={(e) => setStreet(e.target.value)}
-                          placeholder={locale === 'ar' ? 'شارع الأمير سلطان' : 'Prince Sultan St'}
-                          className="w-full h-11 px-3.5 text-xs sm:text-sm bg-[#FAF8F5] border border-[#D5C6B5] rounded-xl text-[#201B18] focus:outline-none focus:border-[#435849]"
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#201B18] mb-1.5">
+                        {dict.checkout.deliveryStreet}
+                      </label>
+                      <input
+                        type="text"
+                        value={street}
+                        onChange={(e) => setStreet(e.target.value)}
+                        placeholder={locale === 'ar' ? 'شارع الأمير سلطان' : 'Prince Sultan St'}
+                        className="w-full h-11 px-3.5 text-xs sm:text-sm bg-[#FAF8F5] border border-[#D5C6B5] rounded-xl text-[#201B18] focus:outline-none focus:border-[#435849]"
+                      />
                     </div>
 
                     <div className="flex items-center gap-3 pt-4 border-t border-[#E4D8CB]">
@@ -427,14 +494,14 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
                       <span className="text-[11px] text-[#8C8075] font-bold uppercase block">
                         {dict.auth.name}
                       </span>
-                      <p className="text-sm font-extrabold text-[#201B18]">{user.name}</p>
+                      <p className="text-sm font-extrabold text-[#201B18]">{currentUser.name}</p>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E4D8CB]/80 space-y-1">
                       <span className="text-[11px] text-[#8C8075] font-bold uppercase block">
                         {dict.auth.email}
                       </span>
-                      <p className="text-sm font-extrabold text-[#201B18]">{user.email}</p>
+                      <p className="text-sm font-extrabold text-[#201B18]">{currentUser.email}</p>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E4D8CB]/80 space-y-1">
@@ -442,16 +509,26 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
                         {dict.auth.phone}
                       </span>
                       <p className="text-sm font-extrabold text-[#201B18]" dir="ltr">
-                        {user.phone || (locale === 'ar' ? 'غير مسجل' : 'Not added')}
+                        {currentUser.phone || (locale === 'ar' ? 'غير مسجل' : 'Not added')}
                       </p>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E4D8CB]/80 space-y-1">
                       <span className="text-[11px] text-[#8C8075] font-bold uppercase block">
-                        {dict.checkout.deliveryCity}
+                        {locale === 'ar' ? 'الدولة' : 'Country'}
                       </span>
                       <p className="text-sm font-extrabold text-[#201B18]">
-                        {user.city || 'جدة'} {user.district ? `- ${user.district}` : ''}
+                        {currentUser.country || (locale === 'ar' ? 'المملكة العربية السعودية' : 'Saudi Arabia')}
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E4D8CB]/80 space-y-1 sm:col-span-2">
+                      <span className="text-[11px] text-[#8C8075] font-bold uppercase block">
+                        {dict.checkout.deliveryCity} & {dict.checkout.deliveryStreet}
+                      </span>
+                      <p className="text-sm font-extrabold text-[#201B18]">
+                        {[currentUser.street, currentUser.district, currentUser.city].filter(Boolean).join(', ') ||
+                          (locale === 'ar' ? 'غير مسجل' : 'Not added')}
                       </p>
                     </div>
                   </div>
@@ -511,7 +588,7 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
                                 <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white border border-[#E8DFD3] shrink-0">
                                   {item.product.thumbnail ? (
                                     <Image
-                                      src={item.product.thumbnail}
+                                      src={formatStorageUrl(item.product.thumbnail)}
                                       alt={item.product.name[locale]}
                                       fill
                                       className="object-cover"
@@ -593,36 +670,84 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
             {/* TAB 3: SAVED ADDRESSES */}
             {activeTab === 'addresses' && (
               <div>
-                <div className="pb-5 border-b border-[#E8DFD3] mb-6">
-                  <h2 className="text-xl font-bold text-[#1E1915] tracking-tight">
-                    {dict.account.addressesTab}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[#7D7065] mt-1">
-                    {locale === 'ar'
-                      ? 'العناوين المحفوظة لتسهيل وتنسيق سرعة التوصيل'
-                      : 'Manage your saved delivery addresses for faster checkout'}
-                  </p>
-                </div>
-
-                <div className="p-5 rounded-2xl border border-[#2D3F33]/20 bg-[#FDFBF7] relative space-y-2 text-start">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-[#2D3F33] flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4" />
-                      <span>{locale === 'ar' ? 'العنوان الافتراضي (جدة)' : 'Primary Address (Jeddah)'}</span>
-                    </span>
-                    <span className="px-2.5 py-0.5 bg-[#EAF5EC] text-[#2D6A4F] text-[10px] font-bold rounded-full border border-[#C8E6CF]">
-                      {locale === 'ar' ? 'افتراضي' : 'Default'}
-                    </span>
+                <div className="flex items-center justify-between pb-5 border-b border-[#E8DFD3] mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-[#1E1915] tracking-tight">
+                      {dict.account.addressesTab}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[#7D7065] mt-1">
+                      {locale === 'ar'
+                        ? 'العناوين المحفوظة لتسهيل وتنسيق سرعة التوصيل'
+                        : 'Manage your saved delivery addresses for faster checkout'}
+                    </p>
                   </div>
-
-                  <p className="text-xs sm:text-sm font-semibold text-[#1E1915]">
-                    {user.name}
-                  </p>
-                  <p className="text-xs text-[#7D7065] leading-relaxed">
-                    {user.street || (locale === 'ar' ? 'طريق الملك عبدالعزيز، حي الروضة' : 'King Abdulaziz Rd, Al Rawdah')}, {user.district || (locale === 'ar' ? 'حي الروضة' : 'Al Rawdah')}, {user.city || 'جدة'}
-                  </p>
-                  {user.phone && <p className="text-xs text-[#8C8075]" dir="ltr">{user.phone}</p>}
+                  {hasSavedAddress && (
+                    <button
+                      onClick={() => {
+                        handleTabChange('profile');
+                        setIsEditing(true);
+                      }}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#EBF1ED] text-[#435849] text-xs font-bold border border-[#D5C6B5] transition-colors cursor-pointer"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>{dict.account.editProfile}</span>
+                    </button>
+                  )}
                 </div>
+
+                {hasSavedAddress ? (
+                  <div className="p-5 rounded-2xl border border-[#2D3F33]/20 bg-[#FDFBF7] relative space-y-2 text-start">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-[#2D3F33] flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4" />
+                        <span>
+                          {currentUser.city
+                            ? `${locale === 'ar' ? 'العنوان الافتراضي' : 'Primary Address'} (${currentUser.city})`
+                            : (locale === 'ar' ? 'العنوان الافتراضي' : 'Primary Address')}
+                        </span>
+                      </span>
+                      <span className="px-2.5 py-0.5 bg-[#EAF5EC] text-[#2D6A4F] text-[10px] font-bold rounded-full border border-[#C8E6CF]">
+                        {locale === 'ar' ? 'افتراضي' : 'Default'}
+                      </span>
+                    </div>
+
+                    <p className="text-xs sm:text-sm font-semibold text-[#1E1915]">
+                      {currentUser.name}
+                    </p>
+                    <p className="text-xs text-[#7D7065] leading-relaxed">
+                      {[currentUser.street, currentUser.district, currentUser.city, currentUser.country || (locale === 'ar' ? 'المملكة العربية السعودية' : 'Saudi Arabia')].filter(Boolean).join(', ')}
+                    </p>
+                    {currentUser.phone && (
+                      <p className="text-xs text-[#8C8075]" dir="ltr">
+                        {currentUser.phone}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="py-12 px-6 rounded-2xl border border-dashed border-[#D5C6B5] bg-[#FAF8F5]/60 text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-[#EBF1ED] text-[#435849] flex items-center justify-center mx-auto">
+                      <MapPin className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-sm font-bold text-[#201B18]">
+                      {locale === 'ar' ? 'لا توجد عناوين محفوظة حتى الآن' : 'No saved addresses yet'}
+                    </h3>
+                    <p className="text-xs text-[#7D7065] max-w-sm mx-auto">
+                      {locale === 'ar'
+                        ? 'لم تقم بحفظ أي عنوان توصيل بعد. يمكنك إضافة عنوانك لتسهيل عملية الشراء.'
+                        : "You haven't saved any delivery address yet. Add one to make checkout faster."}
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleTabChange('profile');
+                        setIsEditing(true);
+                      }}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#435849] text-white hover:bg-[#344539] text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>{locale === 'ar' ? 'إضافة عنوان جديد' : 'Add Delivery Address'}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -694,7 +819,7 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
                         <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-[#FAF7F2] border border-[#E8DFD3] shrink-0">
                           {item.product.thumbnail ? (
                             <Image
-                              src={item.product.thumbnail}
+                              src={formatStorageUrl(item.product.thumbnail)}
                               alt={item.product.name[locale]}
                               fill
                               className="object-cover"
@@ -732,5 +857,19 @@ export function AccountPageView({ locale }: AccountPageViewProps) {
         )}
       </div>
     </div>
+  );
+}
+
+export function AccountPageView(props: AccountPageViewProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[60vh] flex items-center justify-center bg-[#FAF7F2]">
+          <div className="w-8 h-8 rounded-full border-2 border-[#435849] border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <AccountPageContent {...props} />
+    </Suspense>
   );
 }

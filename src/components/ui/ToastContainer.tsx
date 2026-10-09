@@ -1,60 +1,86 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store';
-import { removeToast } from '@/store/slices/uiSlice';
+import { removeToast, ToastNotification } from '@/store/slices/uiSlice';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+function ToastItem({ toast }: { toast: ToastNotification }) {
+  const dispatch = useAppDispatch();
+
+  // Auto-close toast after 4.5 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(removeToast(toast.id));
+    }, 4500);
+
+    return () => clearTimeout(timer);
+  }, [toast.id, dispatch]);
+
+  const icons = {
+    success: <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />,
+    error: <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />,
+    info: <Info className="w-5 h-5 text-blue-600 shrink-0" />,
+  };
+
+  const borders = {
+    success: 'border-emerald-200/90 bg-emerald-50/95 text-emerald-950 shadow-emerald-950/10',
+    error: 'border-rose-200/90 bg-rose-50/95 text-rose-950 shadow-rose-950/10',
+    info: 'border-blue-200/90 bg-blue-50/95 text-blue-950 shadow-blue-950/10',
+  };
+
+  return (
+    <div
+      role="alert"
+      className={cn(
+        'pointer-events-auto relative overflow-hidden flex items-start justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border shadow-xl backdrop-blur-md transition-all duration-300 w-full sm:w-[380px] max-w-full box-border',
+        borders[toast.type]
+      )}
+    >
+      <div className="flex items-start gap-3 min-w-0 flex-1">
+        <span className="mt-0.5">{icons[toast.type]}</span>
+        <span className="text-xs sm:text-sm font-semibold leading-relaxed break-words">
+          {toast.message}
+        </span>
+      </div>
+      <button
+        onClick={() => dispatch(removeToast(toast.id))}
+        className="p-1 rounded-lg hover:bg-black/10 active:scale-95 transition-all cursor-pointer shrink-0 text-current/70 hover:text-current mt-0.5"
+        aria-label="Dismiss notification"
+      >
+        <X className="w-4 h-4" />
+      </button>
+
+      {/* Subtle bottom progress line */}
+      <div className="absolute bottom-0 inset-x-0 h-0.5 bg-black/10 overflow-hidden">
+        <div
+          className="h-full bg-current opacity-40 transition-all ease-linear"
+          style={{
+            animation: 'toastProgress 4.5s linear forwards',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function ToastContainer() {
   const toasts = useAppSelector((state) => state.ui.toasts);
-  const dispatch = useAppDispatch();
 
   if (toasts.length === 0) return null;
 
   return (
-    <div
+    <aside
+      aria-label="Notifications"
       aria-live="polite"
       aria-atomic="true"
-      className="fixed bottom-4 sm:bottom-6 inset-x-4 sm:inset-x-auto sm:start-6 sm:w-auto sm:max-w-sm z-50 flex flex-col gap-2 pointer-events-none"
+      className="fixed top-20 sm:top-24 right-4 sm:right-6 z-[9999] flex flex-col gap-2.5 pointer-events-none max-w-sm sm:max-w-md w-[calc(100%-2rem)] sm:w-auto"
     >
-      {toasts.map((toast) => {
-        const icons = {
-          success: <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />,
-          error: <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600 shrink-0" />,
-          info: <Info className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 shrink-0" />,
-        };
-
-        const borders = {
-          success: 'border-emerald-200/90 bg-emerald-50/95 text-emerald-950 shadow-emerald-950/5',
-          error: 'border-rose-200/90 bg-rose-50/95 text-rose-950 shadow-rose-950/5',
-          info: 'border-blue-200/90 bg-blue-50/95 text-blue-950 shadow-blue-950/5',
-        };
-
-        return (
-          <div
-            key={toast.id}
-            className={cn(
-              'pointer-events-auto flex items-center justify-between gap-2.5 p-3 sm:p-3.5 rounded-2xl border shadow-lg backdrop-blur-md transition-all animate-slide-up w-full max-w-full box-border',
-              borders[toast.type]
-            )}
-          >
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-              {icons[toast.type]}
-              <span className="text-xs sm:text-sm font-semibold leading-snug break-words">
-                {toast.message}
-              </span>
-            </div>
-            <button
-              onClick={() => dispatch(removeToast(toast.id))}
-              className="p-1 rounded-lg hover:bg-black/5 active:scale-95 transition-all cursor-pointer shrink-0 text-current/70 hover:text-current"
-              aria-label="Dismiss toast"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        );
-      })}
-    </div>
+      {toasts.map((toast) => (
+        <ToastItem key={toast.id} toast={toast} />
+      ))}
+    </aside>
   );
 }
+

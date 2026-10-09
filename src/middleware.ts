@@ -6,22 +6,42 @@ const ARABIC_STATIC_PAGE_REWRITES: Record<string, string> = {
   '/من-نحن': '/about',
   '/اتصل-بنا': '/contact',
   '/المدونة': '/blog',
-  '/الخصوصية': '/policies/privacy',
-  '/سياسة-الخصوصية': '/policies/privacy',
-  '/سياسة-التوصيل-والخصوصية': '/policies/privacy',
-  '/سياسة-الاسترجاع-والاسترداد': '/policies/returns',
-  '/سياسة-الاسترجاع-والاستبدال': '/policies/returns',
+  '/الخصوصية': '/privacy-policy',
+  '/سياسة-الخصوصية': '/privacy-policy',
+  '/سياسة-التوصيل-والخصوصية': '/privacy-policy',
+  '/سياسة-الاسترجاع-والاسترداد': '/return-policy',
+  '/سياسة-الاسترجاع-والاستبدال': '/return-policy',
   '/الأسئلة-الشائعة': '/faq',
   '/المفضلة': '/wishlist',
-  '/الشروط-والأحكام': '/policies/terms',
-  '/الشحن-والتوصيل': '/policies/shipping',
+  '/الشروط-والأحكام': '/terms-conditions',
+  '/الشحن-والتوصيل': '/shipping-policy',
   '/حجز-مناسبة': '/event-booking',
   '/حجز-وتنظيم-المناسبات': '/event-booking',
   '/تنظيم-المناسبات': '/event-booking',
+  '/شارك-معنا': '/partner-with-us',
+  '/كن-شريكنا': '/partner-with-us',
+};
+
+const LEGACY_POLICY_REDIRECTS: Record<string, string> = {
+  '/en/policies/shipping': '/en/shipping-policy',
+  '/en/policies/terms': '/en/terms-conditions',
+  '/en/policies/privacy': '/en/privacy-policy',
+  '/en/policies/returns': '/en/return-policy',
+  '/policies/shipping': '/shipping-policy',
+  '/policies/terms': '/terms-conditions',
+  '/policies/privacy': '/privacy-policy',
+  '/policies/returns': '/return-policy',
 };
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // 0. Redirect old /policies/* paths to new clean URLs
+  if (LEGACY_POLICY_REDIRECTS[pathname]) {
+    const url = request.nextUrl.clone();
+    url.pathname = LEGACY_POLICY_REDIRECTS[pathname];
+    return NextResponse.redirect(url, 301);
+  }
 
   // 1. Strict Enforcement: Arabic NEVER uses /ar/.
   // If user requests /ar or /ar/*, redirect permanently (301) to root equivalent.

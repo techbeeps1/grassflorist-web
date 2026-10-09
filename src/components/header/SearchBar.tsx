@@ -9,6 +9,7 @@ import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { useGetProductsQuery } from '@/store/api/productsApi';
 import { formatPrice } from '@/lib/utils';
+import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 
 interface SearchBarProps {
@@ -126,7 +127,7 @@ export function SearchBar({ locale }: SearchBarProps) {
                     >
                       <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-surface-subtle">
                         <Image
-                          src={product.thumbnail}
+                          src={formatStorageUrl(product.thumbnail)}
                           alt={product.name[locale]}
                           fill
                           sizes="48px"
