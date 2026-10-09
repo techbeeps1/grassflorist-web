@@ -97,14 +97,16 @@ export const checkoutApi = baseApi.injectEndpoints({
 
     verifyPayment: builder.mutation<
       any,
-      { orderId: string | number; gateway?: string }
+      { orderId: string | number; gateway?: string; referenceId?: string }
     >({
       query: (data) => ({
         url: '/v1/payments/verify',
         method: 'POST',
         body: {
           order_id: data.orderId,
+          gateway: data.gateway || 'hyperpay',
           payment_gateway: data.gateway || 'hyperpay',
+          reference_id: data.referenceId,
         },
       }),
     }),

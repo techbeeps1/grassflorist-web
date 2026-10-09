@@ -26,6 +26,7 @@ export const ordersApi = baseApi.injectEndpoints({
           method: 'POST',
           body: {
             session_id: getCartSessionId(),
+            order_number: (orderPayload as any).orderNumber || (orderPayload as any).order_number || undefined,
             first_name: senderFirst,
             last_name: senderLast,
             email: senderEmail,
@@ -50,7 +51,8 @@ export const ordersApi = baseApi.injectEndpoints({
             sender_name_on_card: orderPayload.giftCard?.senderName || '',
             song_link: orderPayload.songLink || orderPayload.giftCard?.songLink || '',
             payment_method: orderPayload.paymentMethod || 'mada',
-            shipping_method: 'flat',
+            shipping_method: (orderPayload as any).shippingFee === 0 ? 'free' : 'standard',
+            shipping_amount: (orderPayload as any).shippingFee ?? 0,
             coupon_code: (orderPayload as any).couponCode || (orderPayload as any).coupon_code || '',
             currency: (orderPayload as any).currency || 'SAR',
             exchange_rate: (orderPayload as any).exchange_rate || 1.0,

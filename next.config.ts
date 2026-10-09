@@ -17,6 +17,16 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "staging.grassflorist.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "api.grassflorist.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "grassflorist.com",
         pathname: "/**",
       },

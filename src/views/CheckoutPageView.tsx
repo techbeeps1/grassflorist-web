@@ -22,6 +22,7 @@ import {
   useGetPaymentMethodsQuery,
   useGetDeliverySlotsQuery,
   useInitiatePaymentMutation,
+  useVerifyPaymentMutation,
 } from '@/store/api/checkoutApi';
 import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -56,6 +57,8 @@ import {
 import { CountryCodePicker, ALL_COUNTRY_CODES } from '@/components/checkout/CountryCodePicker';
 import { DeliveryDatePicker } from '@/components/checkout/DeliveryDatePicker';
 import { CountrySelect } from '@/components/common/CountrySelect';
+import { HyperPayWidgetModal } from '@/components/checkout/HyperPayWidgetModal';
+import { TabbyInstallmentModal } from '@/components/checkout/TabbyInstallmentModal';
 
 // Dynamically load Leaflet Map to avoid SSR issues
 const AddressMapPicker = dynamic(
@@ -423,8 +426,25 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
   // Order Options & Terms
   const [promoInput, setPromoInput] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'mada' | 'apple_pay' | 'stc_pay' | 'tabby' | 'tamara' | 'cod'>('credit_card');
+  const [paymentMethod, setPaymentMethod] = useState<'mada' | 'credit_card' | 'stc_pay' | 'tabby' | 'tamara' | 'paypal' | 'cod'>('mada');
   const [agreeTerms, setAgreeTerms] = useState(true);
+
+  // Draft Order Session Persistence (reuses same order ID across switches & refreshes)
+  const [draftOrderNumber, setDraftOrderNumber] = useState<string | null>(null);
+
+  // Payment UI & Verification states
+  const [showTabbyModal, setShowTabbyModal] = useState(false);
+  const [hyperpayWidget, setHyperpayWidget] = useState<{
+    checkoutId: string;
+    scriptUrl: string;
+    brands: string;
+    orderNumber: string;
+  } | null>(null);
+  const [paymentNotification, setPaymentNotification] = useState<{
+    type: 'warning' | 'error' | 'success';
+    message: string;
+  } | null>(null);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
 
   // Errors state
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -442,6 +462,103 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const isDateBlocked = Boolean(slotsResponse?.is_blocked);
   const blockedInfo = slotsResponse?.blocked_info;
   const [initiatePayment] = useInitiatePaymentMutation();
+  const [verifyPayment] = useVerifyPaymentMutation();
+
+  // 🔁 Detect gateway redirects / cancel / verification on page mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const orderNum = params.get('order_number') || params.get('order_id');
+    const isCancelled = params.get('cancelled') === '1';
+    const isFailed = params.get('failed') === '1';
+    const gateway = params.get('gateway') || 'hyperpay';
+    const hyperpayId = params.get('id');
+
+    if (orderNum) {
+      setDraftOrderNumber(orderNum);
+      sessionStorage.setItem('grass_draft_order_number', orderNum);
+    } else {
+      const savedDraft = sessionStorage.getItem('grass_draft_order_number');
+      if (savedDraft) setDraftOrderNumber(savedDraft);
+    }
+
+    if (isCancelled) {
+      setPaymentNotification({
+        type: 'warning',
+        message: locale === 'ar'
+          ? 'تم إلغاء عملية الدفع. سلتك محفوظة ويمكنك اختيار وسيلة دفع أخرى لإتمام الطلب.'
+          : 'Payment was cancelled. Your cart has been saved and you can choose another payment method.',
+      });
+      return;
+    }
+
+    if (isFailed) {
+      setPaymentNotification({
+        type: 'error',
+        message: locale === 'ar'
+          ? 'فشلت عملية الدفع. يرجى التحقق من البطاقة أو اختيار وسيلة دفع بديلة.'
+          : 'Payment failed. Please check your card details or select an alternative payment method.',
+      });
+      return;
+    }
+
+    if (orderNum || hyperpayId) {
+      setIsVerifyingPayment(true);
+      verifyPayment({
+        orderId: orderNum || hyperpayId!,
+        gateway,
+        referenceId: hyperpayId || undefined,
+      })
+        .unwrap()
+        .then((res: any) => {
+          setIsVerifyingPayment(false);
+          const isPaid = Boolean(res?.verification?.is_paid || res?.payment_status === 'paid');
+          if (isPaid) {
+            dispatch(clearCart());
+            sessionStorage.removeItem('grass_draft_order_number');
+            setConfirmedOrder({
+              orderNumber: res.order_number || orderNum || 'ORD-COMPLETED',
+              createdAt: new Date().toISOString(),
+              status: 'confirmed',
+              items: cartItems,
+              recipient: {
+                type: 'gift',
+                name: (recipientName || `${recipientFirstName} ${recipientLastName}`.trim()) || 'Valued Customer',
+                firstName: recipientFirstName,
+                lastName: recipientLastName,
+                phone: `${recipientCountryCode}${recipientPhone.replace(/^0+/, '')}`,
+                city,
+                district,
+                street: shippingAddress,
+              },
+              delivery: {
+                date: deliveryDate,
+                timeSlot: deliveryTimeSlot as any,
+              },
+              paymentMethod: (gateway as any) || 'online',
+              subtotal,
+              vat,
+              shippingFee,
+              discount,
+              total: res?.verification?.amount || total,
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            setPaymentNotification({
+              type: 'error',
+              message: res?.verification?.result_description || (locale === 'ar' ? 'لم تكتمل عملية الدفع بنجاح. يرجى المحاولة مرة أخرى.' : 'Payment was not completed. Please try again.'),
+            });
+          }
+        })
+        .catch((err: any) => {
+          setIsVerifyingPayment(false);
+          setPaymentNotification({
+            type: 'error',
+            message: err?.data?.message || (locale === 'ar' ? 'تعذر التحقق من الدفع، يرجى المحاولة لاحقاً.' : 'Could not verify payment status. Please try again.'),
+          });
+        });
+    }
+  }, []);
 
   // Ensure a valid slot is selected when slots data loads or changes
   useEffect(() => {
@@ -550,6 +667,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
       const result = await createOrder({
         items: cartItems,
+        orderNumber: draftOrderNumber || undefined,
         sender: {
           firstName: senderFirstName,
           lastName: senderLastName,
@@ -601,8 +719,10 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
         },
       } as any).unwrap();
 
-      if (paymentMethod !== 'cod' && result.orderNumber) {
-        initiatePayment({ orderId: result.orderNumber, gateway: paymentMethod }).unwrap().catch(() => { });
+      // Persist draft order number for session reuse across payment method switches & refreshes
+      if (result.orderNumber) {
+        setDraftOrderNumber(result.orderNumber);
+        sessionStorage.setItem('grass_draft_order_number', result.orderNumber);
       }
 
       if (user) {
@@ -619,14 +739,68 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
         });
       }
 
-      setConfirmedOrder(result);
-      dispatch(clearCart());
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // If Cash on Delivery (COD), finalize order immediately
+      if (paymentMethod === 'cod') {
+        dispatch(clearCart());
+        sessionStorage.removeItem('grass_draft_order_number');
+        setConfirmedOrder(result);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      // For online gateways (Mada, Credit Cards, STCPay, Tabby, Tamara, PayPal):
+      // Initiate gateway checkout session without clearing cart until payment verified!
+      let gatewayCode = paymentMethod as string;
+      let brand = '';
+
+      if (paymentMethod === 'mada') {
+        gatewayCode = 'hyperpay';
+        brand = 'MADA';
+      } else if (paymentMethod === 'credit_card') {
+        gatewayCode = 'hyperpay';
+        brand = 'VISA MASTER AMEX';
+      } else if (paymentMethod === 'stc_pay') {
+        gatewayCode = 'hyperpay';
+        brand = 'STCPAY';
+      }
+
+      const initRes = await initiatePayment({
+        orderId: result.orderNumber,
+        gateway: gatewayCode,
+        payment_brand: brand,
+      } as any).unwrap();
+
+      if (initRes.redirect_url) {
+        // Tabby, Tamara, PayPal: redirect to gateway checkout page
+        window.location.href = initRes.redirect_url;
+        return;
+      }
+
+      if (initRes.checkout_id && initRes.script_url) {
+        // HyperPay: open interactive secure widget modal
+        setHyperpayWidget({
+          checkoutId: initRes.checkout_id,
+          scriptUrl: initRes.script_url,
+          brands: brand,
+          orderNumber: result.orderNumber,
+        });
+        return;
+      }
+
+      if (initRes.success === false) {
+        setPaymentNotification({
+          type: 'error',
+          message: initRes.message || (locale === 'ar' ? 'تعذر إنشاء جلسة الدفع، يرجى المحاولة لاحقاً.' : 'Failed to initiate payment session.'),
+        });
+      }
     } catch (err: any) {
-      alert(
-        err?.data?.message ||
-        (locale === 'ar' ? 'تعذر إتمام الطلب، يرجى المحاولة لاحقاً.' : 'Failed to place order. Please check fields and try again.')
-      );
+      setPaymentNotification({
+        type: 'error',
+        message:
+          err?.data?.message ||
+          (locale === 'ar' ? 'تعذر إتمام الطلب، يرجى مراجعة الحقول والمحاولة مجدداً.' : 'Failed to place order. Please check fields and try again.'),
+      });
+      window.scrollTo({ top: 100, behavior: 'smooth' });
     }
   };
 
@@ -716,6 +890,43 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
             </span>
           </nav>
         </div>
+
+        {/* Payment Verification / Notification Banners */}
+        {isVerifyingPayment && (
+          <div className="mb-6 p-4 rounded-xl border bg-blue-50 border-blue-200 text-blue-900 flex items-center gap-3 animate-pulse">
+            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0" />
+            <span className="text-xs font-bold">
+              {locale === 'ar' ? 'جارٍ التحقق من حالة الدفع وتأكيد طلبك...' : 'Verifying payment status and confirming your order...'}
+            </span>
+          </div>
+        )}
+
+        {paymentNotification && (
+          <div className={`mb-6 p-4 rounded-xl border flex items-start justify-between gap-3 ${paymentNotification.type === 'warning'
+              ? 'bg-amber-50 border-amber-200 text-amber-800'
+              : 'bg-red-50 border-red-200 text-red-800'
+            }`}>
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <div className="text-xs">
+                <p className="font-bold">{paymentNotification.message}</p>
+                {draftOrderNumber && (
+                  <p className="text-[11px] opacity-80 mt-0.5">
+                    {locale === 'ar' ? 'رقم مسودة طلبك المحفوظة:' : 'Saved Draft Order #:'}{' '}
+                    <span className="font-mono font-bold">{draftOrderNumber}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPaymentNotification(null)}
+              className="text-gray-400 hover:text-gray-700 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {cartItems.length > 0 ? (
           <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
@@ -1485,75 +1696,198 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   <p className="text-[11px] text-gray-400">
                     {locale === 'ar' ? 'جميع المعاملات تتم بأمان وحماية مشفرة' : 'All transactions are processed in a secure environment.'}
                   </p>
-                  <div className="flex flex-wrap items-center justify-center gap-2 pt-1 opacity-90">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-blue-900 text-white tracking-wider">VISA</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-red-600 text-white tracking-wider">MC</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-700 text-white tracking-wider">mada</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-purple-700 text-white tracking-wider">stc pay</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-[#3EEDB4] text-gray-900 tracking-wider">tabby</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-400 text-gray-900 tracking-wider">tamara</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-blue-600 text-white tracking-wider">PayPal</span>
-                  </div>
+
                 </div>
 
-                {/* Payment Options Radio Buttons */}
-                <div className="space-y-2 pt-2">
-                  {[
-                    {
-                      id: 'credit_card' as const,
-                      label: locale === 'ar' ? 'الدفع بالبطاقة الائتمانية / مدى' : 'Credit / Debit Card Payment',
-                      badges: 'mada / VISA / MasterCard',
-                    },
-                    {
-                      id: 'apple_pay' as const,
-                      label: locale === 'ar' ? 'أبل باي' : 'Apple Pay',
-                      badges: '',
-                    },
-                    {
-                      id: 'stc_pay' as const,
-                      label: locale === 'ar' ? 'اس تي سي باي' : 'STC Pay',
-                      badges: '',
-                    },
-                    {
-                      id: 'tabby' as const,
-                      label: locale === 'ar' ? 'الدفع لاحقاً عبر تابي (قسط على 4 دفعات)' : 'Pay later with Tabby',
-                      badges: 'tabby',
-                    },
-                    {
-                      id: 'tamara' as const,
-                      label: locale === 'ar' ? 'الدفع عبر تمارا' : 'Tamara',
-                      badges: 'tamara',
-                    },
-                    {
-                      id: 'cod' as const,
-                      label: locale === 'ar' ? 'الدفع عند الاستلام' : 'Cash on Delivery (COD)',
-                      badges: '',
-                    },
-                  ].map((pm) => (
+                {/* Payment Options Radio List matching screenshot */}
+                <div className="space-y-3 pt-2">
+                  {/* 1. Mada Debit Card */}
+                  <label
+                    className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'mada'
+                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="payment_choice"
+                        checked={paymentMethod === 'mada'}
+                        onChange={() => setPaymentMethod('mada')}
+                        className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
+                      />
+                      <span>{locale === 'ar' ? 'بطاقة مدى البنكية' : 'mada debit card'}</span>
+                    </div>
+                    <img src="/payments/mada-logo.svg" alt="mada" className="h-4 object-contain shrink-0" />
+                  </label>
+
+                  {/* 2. Credit Cards Payment */}
+                  <label
+                    className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'credit_card'
+                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="payment_choice"
+                        checked={paymentMethod === 'credit_card'}
+                        onChange={() => setPaymentMethod('credit_card')}
+                        className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
+                      />
+                      <span>{locale === 'ar' ? 'البطاقات الائتمانية' : 'Credit Cards Payment'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <img src="/payments/visa.svg" alt="Visa" className="h-3.5 object-contain" />
+                      <img src="/payments/mastercard.svg" alt="Mastercard" className="h-4 object-contain" />
+                      <img src="/payments/amex.svg" alt="Amex" className="h-4 object-contain" />
+                    </div>
+                  </label>
+
+                  {/* 3. STCPay */}
+                  <label
+                    className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'stc_pay'
+                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="payment_choice"
+                        checked={paymentMethod === 'stc_pay'}
+                        onChange={() => setPaymentMethod('stc_pay')}
+                        className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
+                      />
+                      <span>{locale === 'ar' ? 'اس تي سي باي' : 'STCPay'}</span>
+                    </div>
+                    <img src="/payments/stcpay.svg" alt="STCPay" className="h-4.5 object-contain shrink-0" />
+                  </label>
+
+                  {/* 4. Pay later with Tabby */}
+                  <div>
                     <label
-                      key={pm.id}
-                      className={`flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition-all ${paymentMethod === pm.id
-                        ? 'border-[#8fae2a] bg-[#8fae2a]/10 font-bold text-gray-900 shadow-2xs'
-                        : 'border-gray-200 bg-white hover:border-[#8fae2a]/40 text-gray-700'
+                      className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'tabby'
+                          ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                          : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                         }`}
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-3">
                         <input
                           type="radio"
                           name="payment_choice"
-                          checked={paymentMethod === pm.id}
-                          onChange={() => setPaymentMethod(pm.id)}
+                          checked={paymentMethod === 'tabby'}
+                          onChange={() => setPaymentMethod('tabby')}
                           className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
                         />
-                        <span>{pm.label}</span>
+                        <span>{locale === 'ar' ? 'الدفع لاحقاً عبر تابي' : 'Pay later with Tabby'}</span>
                       </div>
-                      {pm.badges && (
-                        <span className="text-[10px] text-gray-400 font-normal">
-                          {pm.badges}
-                        </span>
-                      )}
+                      <img src="/payments/tabby.svg" alt="Tabby" className="h-5.5 object-contain shrink-0" />
                     </label>
-                  ))}
+
+                    {/* Expandable Tabby Installment Box */}
+                    {paymentMethod === 'tabby' && (
+                      <div className="mt-2.5 p-4 bg-white border border-gray-200/90 rounded-xl shadow-xs text-start animate-in fade-in slide-in-from-top-1 duration-200">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                          <div className="space-y-1">
+                            <span className="text-[11px] text-gray-500 font-medium block">
+                              {locale === 'ar' ? 'بدءاً من' : 'As low as'}
+                            </span>
+                            <div dir="ltr" className="text-lg font-black text-gray-900 flex items-center gap-1">
+                              <CurrencySymbol className="w-4 h-4" forcedCurrency="SAR" />
+                              <span>{(total / 4).toFixed(2)}/mo</span>
+                            </div>
+                            <span className="text-xs text-gray-500 block">
+                              {locale === 'ar' ? '4 دفعات شهرية ميسرة' : '4 monthly payments'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setShowTabbyModal(true)}
+                              className="mt-1 text-[11px] font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors cursor-pointer inline-block"
+                            >
+                              {locale === 'ar' ? 'عرض الخيارات' : 'View options'}
+                            </button>
+                          </div>
+
+                          <div className="space-y-2 text-xs text-gray-700 border-t sm:border-t-0 sm:border-s border-gray-100 pt-3 sm:pt-0 sm:ps-4">
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs shrink-0">✨</span>
+                              <span className="font-medium">{locale === 'ar' ? 'بدون رسوم تأخير' : 'No late fees'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs shrink-0">🌙</span>
+                              <span className="font-medium">{locale === 'ar' ? 'متوافق مع الشريعة' : 'Shariah compliant'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs shrink-0">🛡️</span>
+                              <span className="font-medium">{locale === 'ar' ? 'حماية المشتري' : 'Buyer protection'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 5. Tamara */}
+                  <label
+                    className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'tamara'
+                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="payment_choice"
+                        checked={paymentMethod === 'tamara'}
+                        onChange={() => setPaymentMethod('tamara')}
+                        className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
+                      />
+                      <span>{locale === 'ar' ? 'تمارا' : 'Tamara'}</span>
+                    </div>
+                    <img src="/payments/tamara.svg" alt="Tamara" className="h-5.5 object-contain shrink-0" />
+                  </label>
+
+                  {/* 6. PayPal Express */}
+                  <label
+                    className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'paypal'
+                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="payment_choice"
+                        checked={paymentMethod === 'paypal'}
+                        onChange={() => setPaymentMethod('paypal')}
+                        className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
+                      />
+                      <span>{locale === 'ar' ? 'باي بال إكسبريس' : 'PayPal Express'}</span>
+                    </div>
+                    <img src="/payments/paypal.svg" alt="PayPal" className="h-4.5 object-contain shrink-0" />
+                  </label>
+
+                  {/* 7. Cash on Delivery (COD) */}
+                  <label
+                    className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'cod'
+                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="payment_choice"
+                        checked={paymentMethod === 'cod'}
+                        onChange={() => setPaymentMethod('cod')}
+                        className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
+                      />
+                      <span>{locale === 'ar' ? 'الدفع عند الاستلام' : 'Cash on Delivery (COD)'}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">COD</span>
+                  </label>
                 </div>
 
                 {/* Privacy Policy disclaimer */}
@@ -1614,6 +1948,30 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
             </Link>
           </div>
         )}
+
+        {/* HyperPay Secure Card Widget Modal */}
+        {hyperpayWidget && (
+          <HyperPayWidgetModal
+            isOpen={Boolean(hyperpayWidget)}
+            onClose={() => setHyperpayWidget(null)}
+            checkoutId={hyperpayWidget.checkoutId}
+            scriptUrl={hyperpayWidget.scriptUrl}
+            brands={hyperpayWidget.brands}
+            orderNumber={hyperpayWidget.orderNumber}
+            amount={activeCurrency === 'USD' ? totalUsd : total}
+            currency={activeCurrency}
+            locale={locale}
+          />
+        )}
+
+        {/* Tabby 4 Installments Info Breakdown Modal */}
+        <TabbyInstallmentModal
+          isOpen={showTabbyModal}
+          onClose={() => setShowTabbyModal(false)}
+          totalAmount={activeCurrency === 'USD' ? totalUsd : total}
+          currency={activeCurrency}
+          locale={locale}
+        />
       </div>
     </div>
   );
