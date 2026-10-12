@@ -27,16 +27,11 @@ export function Skeleton({ className, rounded = 'md', ...props }: SkeletonProps)
 
 export function ProductCardSkeleton() {
   return (
-    <div className="flex flex-col bg-white rounded-3xl overflow-hidden border border-[#EFE8DE] p-3 sm:p-3.5 shadow-2xs">
-      <Skeleton className="w-full aspect-[4/3] rounded-2xl mb-3" />
-      <Skeleton className="w-1/4 h-2.5 mb-2" />
-      <Skeleton className="w-4/5 h-4 mb-2" />
-      <Skeleton className="w-full h-3 mb-3" />
-      <Skeleton className="w-1/3 h-3 mb-3" />
-      <div className="flex items-center gap-2 mt-auto pt-2">
-        <Skeleton className="flex-1 h-9 rounded-full" />
-        <Skeleton className="w-9 h-9 rounded-full shrink-0" />
-      </div>
+    <div className="flex flex-col w-full">
+      <Skeleton className="w-full aspect-square rounded-[4px] mb-2.5 sm:mb-3" />
+      <Skeleton className="w-20 sm:w-24 h-4 sm:h-5 mb-1.5 rounded-md" />
+      <Skeleton className="w-full h-3.5 sm:h-4 rounded-md mb-1" />
+      <Skeleton className="w-3/4 h-3.5 sm:h-4 rounded-md" />
     </div>
   );
 }
