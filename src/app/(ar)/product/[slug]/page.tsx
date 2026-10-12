@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { ProductDetailPageView } from '@/views/ProductDetailPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 import { getStoreProductBySlug, getStoreProducts, getStoreProductDetails } from '@/lib/wordpress/store-api';
+import { ProductDetailPageSkeleton } from '@/components/product/ProductDetailPageSkeleton';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -54,7 +55,7 @@ export default async function ArabicProductDetailPage({ params }: PageProps) {
   }
 
   return (
-    <Suspense fallback={<div className="py-20 text-center text-sm">جاري تحميل تفاصيل الباقة...</div>}>
+    <Suspense fallback={<ProductDetailPageSkeleton locale="ar" />}>
       <ProductDetailPageView
         slug={decodedSlug}
         locale="ar"

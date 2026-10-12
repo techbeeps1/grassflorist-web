@@ -6,7 +6,7 @@ import Image from 'next/image';
 import useEmblaCarousel from 'embla-carousel-react';
 import { occasions } from '@/data/occasions';
 import { type Locale } from '@/config/site';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Category } from '@/types/category';
 import { getCategorySlugForLocale, decodeHtmlEntities } from '@/lib/wordpress/store-api';
 import { cn } from '@/lib/utils';
@@ -22,6 +22,7 @@ interface CategorySliderProps {
   isContained?: boolean;
   hideHeader?: boolean;
   onCategorySelect?: (slug?: string) => void;
+  onCategoryNavigate?: (slug: string) => void;
 }
 
 function cleanTitle(str?: string): string {
@@ -46,9 +47,16 @@ export function CategorySlider({
   isContained = true,
   hideHeader = false,
   onCategorySelect,
+  onCategoryNavigate,
 }: CategorySliderProps) {
   const isRtl = locale === 'ar';
   const isCompact = variant === 'compact';
+
+  const [navigatingSlug, setNavigatingSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    setNavigatingSlug(null);
+  }, [activeSlug]);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
@@ -86,21 +94,30 @@ export function CategorySlider({
   }, [emblaApi]);
 
   const decodedActiveSlug = activeSlug ? decodeURIComponent(activeSlug).trim().toLowerCase() : '';
+  const cleanActive = decodedActiveSlug.replace(/[-_\s]+/g, ' ');
 
   const sliderItems =
     categories && categories.length > 0
       ? categories.map((cat) => {
         const arSlug = getCategorySlugForLocale(cat.slug, 'ar');
         const enSlug = getCategorySlugForLocale(cat.slug, 'en');
+        const decodedCatSlug = decodeURIComponent(cat.slug).trim().toLowerCase();
+        const cleanCatSlug = decodedCatSlug.replace(/[-_\s]+/g, ' ');
+        const cleanCatNameEn = cat.name.en ? cat.name.en.trim().toLowerCase().replace(/[-_\s]+/g, ' ') : '';
+        const cleanCatNameAr = cat.name.ar ? cat.name.ar.trim().toLowerCase().replace(/[-_\s]+/g, ' ') : '';
+        const cleanArSlug = arSlug.trim().toLowerCase().replace(/[-_\s]+/g, ' ');
+        const cleanEnSlug = enSlug.trim().toLowerCase().replace(/[-_\s]+/g, ' ');
+
         const isSelected = Boolean(
           decodedActiveSlug &&
           (cat.slug.toLowerCase() === decodedActiveSlug ||
-            decodeURIComponent(cat.slug).toLowerCase() === decodedActiveSlug ||
+            decodedCatSlug === decodedActiveSlug ||
             cat.id.toString().toLowerCase() === decodedActiveSlug ||
-            arSlug.toLowerCase() === decodedActiveSlug ||
-            enSlug.toLowerCase() === decodedActiveSlug ||
-            (cat.name.en && cat.name.en.toLowerCase() === decodedActiveSlug) ||
-            (cat.name.ar && cat.name.ar.toLowerCase() === decodedActiveSlug))
+            cleanCatSlug === cleanActive ||
+            cleanCatNameEn === cleanActive ||
+            cleanCatNameAr === cleanActive ||
+            cleanArSlug === cleanActive ||
+            cleanEnSlug === cleanActive)
         );
 
         return {
@@ -116,9 +133,13 @@ export function CategorySlider({
         };
       })
       : occasions.map((occ) => {
+        const occSlug = occ.slug.trim().toLowerCase();
+        const cleanOccSlug = occSlug.replace(/[-_\s]+/g, ' ');
         const isSelected = Boolean(
           decodedActiveSlug &&
-          (occ.slug.toLowerCase() === decodedActiveSlug || occ.id.toLowerCase() === decodedActiveSlug)
+          (occSlug === decodedActiveSlug ||
+            occ.id.toLowerCase() === decodedActiveSlug ||
+            cleanOccSlug === cleanActive)
         );
         return {
           id: occ.id,
@@ -130,14 +151,15 @@ export function CategorySlider({
         };
       });
 
-  // Auto-scroll to active category on mount
-  const hasScrolledToActive = useRef(false);
+  // Auto-scroll to active category when activeSlug changes or on mount
+  const lastScrolledSlug = useRef<string | null>(null);
   useEffect(() => {
-    if (!emblaApi || hasScrolledToActive.current || !decodedActiveSlug) return;
+    if (!emblaApi || !decodedActiveSlug) return;
+    if (lastScrolledSlug.current === decodedActiveSlug) return;
     const activeIndex = sliderItems.findIndex((item) => item.isSelected);
     if (activeIndex > -1) {
       emblaApi.scrollTo(activeIndex, false);
-      hasScrolledToActive.current = true;
+      lastScrolledSlug.current = decodedActiveSlug;
     }
   }, [emblaApi, sliderItems, decodedActiveSlug]);
 
@@ -198,14 +220,30 @@ export function CategorySlider({
           <div className="flex gap-4 sm:gap-6 md:gap-7 lg:gap-8 cursor-grab active:cursor-grabbing items-center">
             {sliderItems.map((item) => {
               const displayName = cleanTitle(item.name[locale] || item.name.en || '');
+              const isNavigatingThis = Boolean(
+                navigatingSlug &&
+                (navigatingSlug === item.slug ||
+                  navigatingSlug.toLowerCase() === item.slug.toLowerCase() ||
+                  decodeURIComponent(item.slug).toLowerCase() === navigatingSlug.toLowerCase() ||
+                  String(item.id) === navigatingSlug) &&
+                !item.isSelected
+              );
+
               return (
                 <div key={item.id} className="shrink-0">
                   <Link
                     href={item.link}
+                    prefetch={true}
+                    scroll={false}
                     onClick={(e) => {
                       if (onCategorySelect) {
                         e.preventDefault();
                         onCategorySelect(item.isSelected ? undefined : item.slug);
+                      } else {
+                        if (!item.isSelected) {
+                          setNavigatingSlug(item.slug);
+                          onCategoryNavigate?.(item.slug);
+                        }
                       }
                     }}
                     className="group flex flex-col items-center text-center select-none cursor-pointer focus:outline-none rounded-2xl p-1"
@@ -216,6 +254,8 @@ export function CategorySlider({
                         'relative w-20 h-20 sm:w-26 sm:h-26 md:w-28 md:h-28 lg:w-30 lg:h-30 xl:w-32 xl:h-32 rounded-full transition-all duration-300 flex items-center justify-center shadow-2xs overflow-hidden',
                         item.isSelected
                           ? 'bg-[#EAE0D4] ring-2 ring-[#435849] ring-offset-2 ring-offset-white scale-105 shadow-md'
+                          : isNavigatingThis
+                          ? 'bg-[#EAE0D4] ring-2 ring-[#435849] ring-offset-2 ring-offset-white scale-105 shadow-md'
                           : 'bg-[#EFE8DE] group-hover:bg-[#EAE0D4] group-hover:scale-105 group-hover:shadow-md'
                       )}
                     >
@@ -225,16 +265,26 @@ export function CategorySlider({
                           alt=""
                           fill
                           sizes="(max-width: 640px) 80px, (max-width: 1024px) 112px, 128px"
-                          className="object-contain group-hover:scale-110 transition-transform duration-300 ease-out"
+                          className={cn(
+                            'object-contain group-hover:scale-110 transition-transform duration-300 ease-out',
+                            isNavigatingThis && 'opacity-40 blur-[1px]'
+                          )}
                         />
                       </div>
+
+                      {/* Loading Spinner Indicator */}
+                      {isNavigatingThis && (
+                        <div className="absolute inset-0 bg-[#EAE0D4]/75 backdrop-blur-[1px] rounded-full flex items-center justify-center z-10">
+                          <Loader2 className="w-6 h-6 sm:w-7 sm:h-7 text-[#435849] animate-spin" />
+                        </div>
+                      )}
                     </div>
 
                     {/* Clean Title Text Below Circle */}
                     <span
                       className={cn(
                         'mt-2 sm:mt-2.5 text-xs sm:text-sm transition-colors whitespace-nowrap',
-                        item.isSelected
+                        (item.isSelected || isNavigatingThis)
                           ? 'font-extrabold text-[#435849]'
                           : 'font-bold text-[#201B18] group-hover:text-[#435849]'
                       )}
@@ -243,8 +293,13 @@ export function CategorySlider({
                     </span>
 
                     {/* Active Underline Pill */}
-                    {item.isSelected && (
-                      <span className="mt-1 w-5 h-1 bg-[#435849] rounded-full inline-block" />
+                    {(item.isSelected || isNavigatingThis) && (
+                      <span
+                        className={cn(
+                          'mt-1 w-5 h-1 bg-[#435849] rounded-full inline-block transition-all',
+                          isNavigatingThis && 'w-8 animate-pulse'
+                        )}
+                      />
                     )}
                   </Link>
                 </div>

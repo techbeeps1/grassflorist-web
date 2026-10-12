@@ -1786,6 +1786,22 @@ export async function getHomePageData(locale: Locale) {
 }
 
 /**
+ * Fetch categories selected for the Home page slider (Admin popular_category)
+ */
+export async function getHomeSliderCategories(locale: Locale): Promise<Category[]> {
+  try {
+    const homeData = await getHomePageData(locale);
+    if (Array.isArray(homeData?.categories) && homeData.categories.length > 0) {
+      return homeData.categories;
+    }
+  } catch (error) {
+    console.warn('[getHomeSliderCategories] Error loading home slider categories:', error);
+  }
+  return getStoreCategories(locale);
+}
+
+
+/**
  * Fetch all published blog posts from Laravel /api/blog
  */
 export async function getBlogPosts(locale: Locale): Promise<BlogPost[]> {

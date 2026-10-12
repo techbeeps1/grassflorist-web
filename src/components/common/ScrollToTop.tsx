@@ -20,6 +20,18 @@ function forceScrollTop() {
   }
 }
 
+function isSameCategory(p1?: string | null, p2?: string | null): boolean {
+  if (!p1 || !p2) return false;
+  const clean1 = p1.replace(/^\/(en|ar)/, '').replace(/\/+$/, '');
+  const clean2 = p2.replace(/^\/(en|ar)/, '').replace(/\/+$/, '');
+  const parts1 = clean1.split('/').filter(Boolean);
+  const parts2 = clean2.split('/').filter(Boolean);
+  if (parts1[0] === 'category' && parts2[0] === 'category') {
+    return Boolean(parts1[1] && parts1[1] === parts2[1]);
+  }
+  return false;
+}
+
 function ScrollHandler() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -44,29 +56,32 @@ function ScrollHandler() {
       }
     }
 
-    const currentUrl = `${pathname}${searchParams ? `?${searchParams.toString()}` : ''}`;
+    // Only scroll to top when the page pathname (actual route) changes,
+    // not when switching subcategories within the same category (/category/slug/subslug)!
+    if (prevPathRef.current !== pathname) {
+      const isSubcategorySwitch = isSameCategory(prevPathRef.current, pathname);
+      prevPathRef.current = pathname;
 
-    if (prevPathRef.current !== currentUrl) {
-      prevPathRef.current = currentUrl;
-
-      // 1. Instant execution
-      forceScrollTop();
-
-      // 2. Next animation frame (after React commit)
-      requestAnimationFrame(() => {
+      if (!isSubcategorySwitch) {
+        // 1. Instant execution
         forceScrollTop();
-      });
 
-      // 3. Short timeout fallback (after asynchronous layout shifts / image slots mount)
-      const t1 = setTimeout(forceScrollTop, 20);
-      const t2 = setTimeout(forceScrollTop, 100);
+        // 2. Next animation frame (after React commit)
+        requestAnimationFrame(() => {
+          forceScrollTop();
+        });
 
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-      };
+        // 3. Short timeout fallback (after asynchronous layout shifts / image slots mount)
+        const t1 = setTimeout(forceScrollTop, 20);
+        const t2 = setTimeout(forceScrollTop, 100);
+
+        return () => {
+          clearTimeout(t1);
+          clearTimeout(t2);
+        };
+      }
     }
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   return null;
 }

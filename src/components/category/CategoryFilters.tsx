@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { categories as defaultCategories } from '@/data/categories';
 import { ProductFilterState } from '@/types/product';
-import { Category } from '@/types/category';
+import { Category, Subcategory } from '@/types/category';
 import { getCategorySlugForLocale, decodeHtmlEntities } from '@/lib/wordpress/store-api';
 import { RotateCcw, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,10 @@ interface CategoryFiltersProps {
   onReset: () => void;
   categories?: Category[];
   activeCategorySlug?: string;
+  subcategories?: Subcategory[];
+  activeSubcategory?: string;
+  onSubcategorySelect?: (subSlug?: string) => void;
+  categorySlug?: string;
   className?: string;
 }
 
@@ -39,6 +43,10 @@ export function CategoryFilters({
   onReset,
   categories: dynamicCategories,
   activeCategorySlug,
+  subcategories,
+  activeSubcategory,
+  onSubcategorySelect,
+  categorySlug,
   className,
 }: CategoryFiltersProps) {
   const dict = getDictionary(locale);
@@ -71,8 +79,42 @@ export function CategoryFilters({
   });
 
   const [isExpanded, setIsExpanded] = useState(() => activeCatIndex >= DEFAULT_VISIBLE_COUNT);
-
   const visibleCategories = isExpanded ? displayCategories : displayCategories.slice(0, DEFAULT_VISIBLE_COUNT);
+
+  // Subcategories expand / collapse logic
+  const [isSubExpanded, setIsSubExpanded] = useState(() => {
+    if (!subcategories || !activeSubcategory) return false;
+    const activeSubIndex = subcategories.findIndex((sub) => {
+      const decodedActive = decodeURIComponent(activeSubcategory).toLowerCase().trim();
+      const decodedSubSlug = decodeURIComponent(sub.slug).toLowerCase().trim();
+      return (
+        decodedActive === decodedSubSlug ||
+        decodedActive === sub.slug.toLowerCase().trim() ||
+        String(sub.id) === decodedActive
+      );
+    });
+    return activeSubIndex >= DEFAULT_VISIBLE_COUNT;
+  });
+
+  useEffect(() => {
+    if (!subcategories || !activeSubcategory) return;
+    const activeSubIndex = subcategories.findIndex((sub) => {
+      const decodedActive = decodeURIComponent(activeSubcategory).toLowerCase().trim();
+      const decodedSubSlug = decodeURIComponent(sub.slug).toLowerCase().trim();
+      return (
+        decodedActive === decodedSubSlug ||
+        decodedActive === sub.slug.toLowerCase().trim() ||
+        String(sub.id) === decodedActive
+      );
+    });
+    if (activeSubIndex >= DEFAULT_VISIBLE_COUNT) {
+      setIsSubExpanded(true);
+    }
+  }, [activeSubcategory, subcategories]);
+
+  const visibleSubcategories = isSubExpanded
+    ? subcategories || []
+    : (subcategories || []).slice(0, DEFAULT_VISIBLE_COUNT);
 
   const handlePriceChange = (min?: number, max?: number) => {
     onFilterChange({ ...filters, minPrice: min, maxPrice: max });
@@ -95,8 +137,11 @@ export function CategoryFilters({
     (typeof filters?.maxPrice === 'number' && !isNaN(filters.maxPrice))
   );
 
+  const hasActiveFilters = Boolean(hasPriceFilter || Boolean(activeSubcategory));
+
   const handleResetFilters = () => {
     handlePriceChange(undefined, undefined);
+    onSubcategorySelect?.(undefined);
     onReset();
   };
 
@@ -107,7 +152,7 @@ export function CategoryFilters({
         <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">
           {dict.category.filters}
         </h3>
-        {hasPriceFilter && (
+        {hasActiveFilters && (
           <button
             type="button"
             onClick={handleResetFilters}
@@ -118,6 +163,106 @@ export function CategoryFilters({
           </button>
         )}
       </div>
+
+      {/* Subcategories Filter (Shown when category has subcategories) */}
+      {subcategories && subcategories.length > 0 && (
+        <div className="pb-3 border-b border-border">
+          <h4 className="text-xs font-bold text-text-main uppercase tracking-wider mb-2.5">
+            {locale === 'ar' ? 'التصنيفات الفرعية' : 'Subcategories'}
+          </h4>
+          <div
+            className={cn(
+              'space-y-1',
+              isSubExpanded && 'max-h-48 overflow-y-auto pe-1.5 custom-scrollbar'
+            )}
+          >
+            {/* All Subcategories Option */}
+            <button
+              type="button"
+              onClick={() => onSubcategorySelect?.(undefined)}
+              className={cn(
+                'w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-start outline-none focus:outline-none',
+                !activeSubcategory
+                  ? 'bg-primary text-white font-bold shadow-xs'
+                  : 'text-text-secondary hover:bg-surface-subtle hover:text-text-main'
+              )}
+            >
+              <span>{locale === 'ar' ? 'جميع التشكيلات' : 'All Subcategories'}</span>
+              {!activeSubcategory && <Check className="w-3.5 h-3.5 shrink-0 ms-1" />}
+            </button>
+
+            {/* Subcategory Items */}
+            {visibleSubcategories.map((sub) => {
+              const decodedActive = activeSubcategory
+                ? decodeURIComponent(activeSubcategory).toLowerCase().trim()
+                : '';
+              const decodedSubSlug = decodeURIComponent(sub.slug).toLowerCase().trim();
+              const cleanActive = decodedActive.replace(/[-_\s]+/g, ' ');
+              const cleanSubSlug = decodedSubSlug.replace(/[-_\s]+/g, ' ');
+              const cleanSubEn = sub.name?.en
+                ? sub.name.en.toLowerCase().trim().replace(/[-_\s]+/g, ' ')
+                : '';
+              const cleanSubAr = sub.name?.ar
+                ? sub.name.ar.toLowerCase().trim().replace(/[-_\s]+/g, ' ')
+                : '';
+
+              const isSelected = Boolean(
+                decodedActive &&
+                  (decodedActive === decodedSubSlug ||
+                    decodedActive === sub.slug.toLowerCase().trim() ||
+                    (sub.id && String(decodedActive) === String(sub.id)) ||
+                    cleanActive === cleanSubSlug ||
+                    cleanActive === cleanSubEn ||
+                    cleanActive === cleanSubAr)
+              );
+
+              return (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => onSubcategorySelect?.(isSelected ? undefined : sub.slug)}
+                  className={cn(
+                    'w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-start outline-none focus:outline-none',
+                    isSelected
+                      ? 'bg-primary text-white font-bold shadow-xs'
+                      : 'text-text-secondary hover:bg-surface-subtle hover:text-text-main'
+                  )}
+                >
+                  <span className="truncate">
+                    {cleanTitle(sub.name[locale] || sub.name.en || sub.name.ar)}
+                  </span>
+                  {isSelected && <Check className="w-3.5 h-3.5 shrink-0 ms-1" />}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* More / Less Subcategories Toggle */}
+          {subcategories.length > DEFAULT_VISIBLE_COUNT && (
+            <button
+              type="button"
+              onClick={() => setIsSubExpanded(!isSubExpanded)}
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold text-primary hover:text-primary-dark transition-colors cursor-pointer border border-dashed border-primary/30 rounded-xl hover:bg-primary/5 mt-2"
+            >
+              {isSubExpanded ? (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  <span>{locale === 'ar' ? 'عرض أقل' : 'Show Less'}</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                  <span>
+                    {locale === 'ar'
+                      ? `+ المزيد (${subcategories.length - DEFAULT_VISIBLE_COUNT})`
+                      : `+ More (${subcategories.length - DEFAULT_VISIBLE_COUNT})`}
+                  </span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Categories Filter / Quick Category Switcher */}
       <div>

@@ -87,14 +87,20 @@ export function SubcategoryPills({
     return () => el.removeEventListener('wheel', handleWheel);
   }, [isRtl]);
 
-  // Auto-scroll active subcategory into view
+  // Auto-scroll active subcategory pill into view within container ONLY (without scrolling window)
   useEffect(() => {
-    if (activeBtnRef.current && containerRef.current) {
-      activeBtnRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      });
+    const container = containerRef.current;
+    const activeBtn = activeBtnRef.current;
+    if (activeBtn && container) {
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = activeBtn.getBoundingClientRect();
+      const offset = (btnRect.left + btnRect.width / 2) - (containerRect.left + containerRect.width / 2);
+      if (Math.abs(offset) > 10) {
+        container.scrollBy({
+          left: offset,
+          behavior: 'smooth',
+        });
+      }
     }
   }, [activeSubcategory]);
 
@@ -235,9 +241,23 @@ export function SubcategoryPills({
 
         {/* Individual Subcategory Pills */}
         {subcategories.map((sub) => {
-          const isSelected =
-            activeSubcategory === sub.slug ||
-            (sub.id && String(activeSubcategory) === String(sub.id));
+          const decodedActive = activeSubcategory ? decodeURIComponent(activeSubcategory).toLowerCase().trim() : '';
+          const decodedSubSlug = decodeURIComponent(sub.slug).toLowerCase().trim();
+          const cleanActive = decodedActive.replace(/[-_\s]+/g, ' ');
+          const cleanSubSlug = decodedSubSlug.replace(/[-_\s]+/g, ' ');
+          const cleanSubEn = sub.name?.en ? sub.name.en.toLowerCase().trim().replace(/[-_\s]+/g, ' ') : '';
+          const cleanSubAr = sub.name?.ar ? sub.name.ar.toLowerCase().trim().replace(/[-_\s]+/g, ' ') : '';
+
+          const isSelected = Boolean(
+            decodedActive && (
+              decodedActive === decodedSubSlug ||
+              decodedActive === sub.slug.toLowerCase().trim() ||
+              (sub.id && String(decodedActive) === String(sub.id)) ||
+              cleanActive === cleanSubSlug ||
+              cleanActive === cleanSubEn ||
+              cleanActive === cleanSubAr
+            )
+          );
 
           return (
             <button

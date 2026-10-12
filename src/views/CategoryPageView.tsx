@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, Suspense } from 'react';
 import Image from 'next/image';
 import { notFound, useSearchParams } from 'next/navigation';
 import { type Locale, siteConfig } from '@/config/site';
@@ -18,6 +18,8 @@ import { categories } from '@/data/categories';
 import { ProductFilterState } from '@/types/product';
 import { generateBreadcrumbSchema } from '@/lib/schema';
 import { SlidersHorizontal } from 'lucide-react';
+import { Skeleton, ProductCardSkeleton } from '@/components/ui/Skeleton';
+import { CategoryPageSkeleton } from '@/components/category/CategoryPageSkeleton';
 
 import { Product } from '@/types/product';
 import { Category } from '@/types/category';
@@ -34,6 +36,7 @@ interface CategoryPageViewProps {
   initialCategory?: Category | null;
   initialProducts?: Product[];
   allCategories?: Category[];
+  initialSubcategory?: string;
 }
 
 function CategoryPageContent({
@@ -42,6 +45,7 @@ function CategoryPageContent({
   initialCategory,
   initialProducts,
   allCategories,
+  initialSubcategory,
 }: CategoryPageViewProps) {
   const dict = getDictionary(locale);
   const searchParams = useSearchParams();
@@ -68,7 +72,11 @@ function CategoryPageContent({
     notFound();
   }
 
-  const subcategoryParam = searchParams?.get('subcategory') || undefined;
+  const subcategoryParam = initialSubcategory || searchParams?.get('subcategory') || undefined;
+
+  const hasSubcategories = Boolean(
+    currentCategory.subcategories && currentCategory.subcategories.length > 0
+  );
 
   const [filters, setFilters] = useState<ProductFilterState>({
     category: slug,
@@ -78,6 +86,95 @@ function CategoryPageContent({
   const [activeSubcategory, setActiveSubcategory] = useState<string | undefined>(
     subcategoryParam
   );
+
+  // Track previous category and initialSubcategory to only sync on route changes
+  const prevSlugRef = useRef(slug);
+  const prevServerSubRef = useRef(initialSubcategory);
+
+  useEffect(() => {
+    // If the category slug itself changed (navigating to different category)
+    if (prevSlugRef.current !== slug) {
+      prevSlugRef.current = slug;
+      prevServerSubRef.current = initialSubcategory;
+      setActiveSubcategory(initialSubcategory || undefined);
+      return;
+    }
+
+    // If initialSubcategory prop changed externally (e.g. server navigation)
+    if (prevServerSubRef.current !== initialSubcategory) {
+      prevServerSubRef.current = initialSubcategory;
+      setActiveSubcategory(initialSubcategory);
+    }
+  }, [slug, initialSubcategory]);
+
+  // Loading state when user clicks a category in the slider
+  const [isNavigatingCategory, setIsNavigatingCategory] = useState(false);
+
+  // Reset loading state when new category page loads
+  useEffect(() => {
+    setIsNavigatingCategory(false);
+  }, [slug]);
+
+  const subcategorySectionRef = useRef<HTMLDivElement>(null);
+
+  const scrollToProductsIfNeeded = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const targetEl = subcategorySectionRef.current;
+    if (targetEl) {
+      const headerEl = document.querySelector('header');
+      const headerOffset = headerEl ? headerEl.offsetHeight + 14 : 90;
+      const elementPosition = targetEl.getBoundingClientRect().top + window.scrollY;
+      const targetScroll = Math.max(0, elementPosition - headerOffset);
+      // Only scroll down if user was currently above the products section (e.g. at the top looking at slider)
+      if (window.scrollY < targetScroll - 40) {
+        window.scrollTo({
+          top: targetScroll,
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, []);
+
+  // Push clean nested path format: e.g. /en/category/best-seller/for-her
+  const handleSubcategorySelect = (subSlug?: string) => {
+    setActiveSubcategory(subSlug);
+    if (typeof window !== 'undefined') {
+      const basePath = locale === 'ar' ? `/category/${slug}` : `/en/category/${slug}`;
+      const newPath = subSlug ? `${basePath}/${subSlug}` : basePath;
+      window.history.pushState({}, '', newPath);
+      scrollToProductsIfNeeded();
+    }
+  };
+
+  // Only on initial load: smoothly scroll to products if subcategory param was already present
+  const initialScrollChecked = useRef(false);
+  useEffect(() => {
+    if (subcategoryParam && !initialScrollChecked.current) {
+      initialScrollChecked.current = true;
+      const timer = setTimeout(() => {
+        scrollToProductsIfNeeded();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [subcategoryParam, scrollToProductsIfNeeded]);
+
+  // Browser back/forward button support for subcategory clean paths & query params
+  useEffect(() => {
+    const handlePopState = () => {
+      const pathname = window.location.pathname;
+      const parts = pathname.split('/').filter(Boolean);
+      const catIdx = parts.indexOf('category');
+      if (catIdx !== -1 && parts.length > catIdx + 2) {
+        setActiveSubcategory(parts[catIdx + 2]);
+      } else {
+        const params = new URLSearchParams(window.location.search);
+        setActiveSubcategory(params.get('subcategory') || undefined);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   const BATCH_SIZE = 24;
@@ -89,19 +186,47 @@ function CategoryPageContent({
 
   const baseProducts = initialProducts || [];
 
+  // Circular Slider categories: Home page slider categories, guaranteeing currentCategory is included
+  const sliderCategories = useMemo(() => {
+    const list = [...(allCategories && allCategories.length > 0 ? allCategories : categories)];
+    if (currentCategory) {
+      const decodedCurrentSlug = decodeURIComponent(currentCategory.slug).trim().toLowerCase();
+      const currentId = String(currentCategory.id);
+      const exists = list.some((c) => {
+        const cSlug = decodeURIComponent(c.slug).trim().toLowerCase();
+        return (
+          String(c.id) === currentId ||
+          cSlug === decodedCurrentSlug ||
+          (c.name.en && c.name.en.toLowerCase() === decodedCurrentSlug) ||
+          (c.name.ar && c.name.ar.toLowerCase() === decodedCurrentSlug)
+        );
+      });
+      if (!exists && currentCategory.image) {
+        list.push(currentCategory);
+      }
+    }
+    return list;
+  }, [allCategories, currentCategory]);
+
   const categoryProducts = useMemo(() => {
     let result = [...baseProducts];
 
     if (activeSubcategory) {
       const activeDecoded = decodeURIComponent(activeSubcategory).toLowerCase().trim();
-      const targetSub = currentCategory.subcategories?.find(
-        (s) =>
-          s.slug.toLowerCase() === activeDecoded ||
-          decodeURIComponent(s.slug).toLowerCase() === activeDecoded ||
+      const cleanActive = activeDecoded.replace(/[-_\s]+/g, ' ');
+      const targetSub = currentCategory.subcategories?.find((s) => {
+        const sSlug = decodeURIComponent(s.slug).toLowerCase().trim();
+        const cleanSSlug = sSlug.replace(/[-_\s]+/g, ' ');
+        const cleanSEn = s.name.en ? s.name.en.toLowerCase().trim().replace(/[-_\s]+/g, ' ') : '';
+        const cleanSAr = s.name.ar ? s.name.ar.toLowerCase().trim().replace(/[-_\s]+/g, ' ') : '';
+        return (
+          sSlug === activeDecoded ||
           String(s.id) === activeSubcategory ||
-          (s.name.en && s.name.en.toLowerCase() === activeDecoded) ||
-          (s.name.ar && s.name.ar.toLowerCase() === activeDecoded)
-      );
+          cleanSSlug === cleanActive ||
+          cleanSEn === cleanActive ||
+          cleanSAr === cleanActive
+        );
+      });
       const targetSubId = targetSub
         ? Number(targetSub.id)
         : !isNaN(Number(activeSubcategory))
@@ -118,7 +243,15 @@ function CategoryPageContent({
         // 2. Slug match in categorySlugs
         if (
           p.categorySlugs &&
-          (p.categorySlugs.includes(activeDecoded) || p.categorySlugs.includes(targetSubSlug))
+          p.categorySlugs.some((cs) => {
+            const dec = decodeURIComponent(cs).toLowerCase().trim();
+            const cleanCs = dec.replace(/[-_\s]+/g, ' ');
+            return (
+              dec === activeDecoded ||
+              dec === targetSubSlug ||
+              cleanCs === cleanActive
+            );
+          })
         ) {
           return true;
         }
@@ -208,7 +341,7 @@ function CategoryPageContent({
     }
 
     return result;
-  }, [slug, activeSubcategory, filters]);
+  }, [slug, activeSubcategory, filters, baseProducts, currentCategory]);
 
   const displayedProducts = useMemo(() => {
     return categoryProducts.slice(0, visibleCount);
@@ -271,30 +404,17 @@ function CategoryPageContent({
             </div>
           </div>
 
-          {/* Category Switcher Carousel: Displays Subcategories with images when available */}
+          {/* Main Category Discovery Slider (matches Home page slider categories) */}
           <div className="lg:mb-14 sm:mt-0 md:sm-12 my-10">
             <CategorySlider
               locale={locale}
-              categories={
-                currentCategory.subcategories && currentCategory.subcategories.length > 0
-                  ? currentCategory.subcategories.map((sub) => ({
-                      id: sub.id,
-                      name: sub.name,
-                      slug: sub.slug,
-                      description: currentCategory.description,
-                      image: sub.image || currentCategory.image,
-                      seoTitle: sub.name,
-                      seoDescription: currentCategory.seoDescription,
-                      featured: true,
-                      itemCount: sub.count || 10,
-                      subcategories: [],
-                    }))
-                  : allCategories && allCategories.length > 0
-                  ? allCategories
-                  : categories
-              }
-              activeSlug={activeSubcategory || slug}
-              onCategorySelect={setActiveSubcategory}
+              categories={sliderCategories}
+              activeSlug={slug}
+              onCategoryNavigate={(targetSlug) => {
+                if (targetSlug !== slug) {
+                  setIsNavigatingCategory(true);
+                }
+              }}
               variant="compact"
               hideHeader={true}
               isContained={false}
@@ -302,18 +422,33 @@ function CategoryPageContent({
             />
           </div>
 
-          {/* Subcategory Pills with horizontal scroll navigation */}
-          {/* {currentCategory.subcategories && currentCategory.subcategories.length > 0 && (
-            <SubcategoryPills
-              subcategories={currentCategory.subcategories}
-              activeSubcategory={activeSubcategory}
-              onSelect={setActiveSubcategory}
-              locale={locale}
-            />
-          )} */}
+          {/* Subcategory Pills: commented out as per user request (moved to sidebar filters) */}
+          {/*
+          {isNavigatingCategory ? (
+            <div className="flex items-center gap-2 overflow-hidden py-1 mb-6 animate-pulse">
+              <Skeleton className="h-8 w-28 rounded-full bg-[#E5DDD2] shrink-0" />
+              <Skeleton className="h-8 w-24 rounded-full bg-[#EAE3D9] shrink-0" />
+              <Skeleton className="h-8 w-26 rounded-full bg-[#EAE3D9] shrink-0" />
+              <Skeleton className="h-8 w-20 rounded-full bg-[#EAE3D9] shrink-0" />
+              <Skeleton className="h-8 w-24 rounded-full bg-[#EAE3D9] shrink-0" />
+            </div>
+          ) : currentCategory.subcategories && currentCategory.subcategories.length > 0 && (
+            <div ref={subcategorySectionRef} className="scroll-mt-24">
+              <SubcategoryPills
+                subcategories={currentCategory.subcategories}
+                activeSubcategory={activeSubcategory}
+                onSelect={handleSubcategorySelect}
+                locale={locale}
+              />
+            </div>
+          )}
+          */}
 
           {/* Controls Bar */}
-          <div className="bg-surface-subtle border border-border/80 rounded-2xl p-3 sm:p-3.5 mb-6 sm:mb-8">
+          <div
+            ref={subcategorySectionRef}
+            className="bg-surface-subtle border border-border/80 rounded-2xl p-3 sm:p-3.5 mb-6 sm:mb-8 scroll-mt-24"
+          >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               {/* Mobile: Filter & Sort buttons row | Desktop: Left Filter & Count */}
               <div className="grid grid-cols-2 sm:flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
@@ -370,21 +505,39 @@ function CategoryPageContent({
                 onFilterChange={setFilters}
                 categories={allCategories}
                 activeCategorySlug={slug}
+                subcategories={currentCategory.subcategories}
+                activeSubcategory={activeSubcategory}
+                onSubcategorySelect={handleSubcategorySelect}
+                categorySlug={slug}
                 onReset={() => {
                   setFilters({ category: slug, sortBy: 'popular' });
                   setActiveSubcategory(undefined);
+                  if (typeof window !== 'undefined') {
+                    const basePath = locale === 'ar' ? `/category/${slug}` : `/en/category/${slug}`;
+                    window.history.pushState({}, '', basePath);
+                  }
                 }}
               />
             </div>
 
             <div className="lg:col-span-9">
-              <ProductGrid products={displayedProducts} locale={locale} />
-              <LoadMorePagination
-                total={categoryProducts.length}
-                currentCount={visibleCount}
-                onLoadMore={() => setVisibleCount((prev) => prev + BATCH_SIZE)}
-                locale={locale}
-              />
+              {isNavigatingCategory ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3.5 sm:gap-6 animate-pulse">
+                  {[...Array(6)].map((_, i) => (
+                    <ProductCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <ProductGrid products={displayedProducts} locale={locale} />
+                  <LoadMorePagination
+                    total={categoryProducts.length}
+                    currentCount={visibleCount}
+                    onLoadMore={() => setVisibleCount((prev) => prev + BATCH_SIZE)}
+                    locale={locale}
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -398,9 +551,17 @@ function CategoryPageContent({
           onFilterChange={setFilters}
           categories={allCategories}
           activeCategorySlug={slug}
+          subcategories={currentCategory.subcategories}
+          activeSubcategory={activeSubcategory}
+          onSubcategorySelect={handleSubcategorySelect}
+          categorySlug={slug}
           onReset={() => {
             setFilters({ category: slug, sortBy: 'popular' });
             setActiveSubcategory(undefined);
+            if (typeof window !== 'undefined') {
+              const basePath = locale === 'ar' ? `/category/${slug}` : `/en/category/${slug}`;
+              window.history.pushState({}, '', basePath);
+            }
           }}
           productCount={categoryProducts.length}
         />
@@ -411,7 +572,7 @@ function CategoryPageContent({
 
 export function CategoryPageView(props: CategoryPageViewProps) {
   return (
-    <Suspense fallback={<div className="py-6 bg-surface min-h-[80vh]" />}>
+    <Suspense fallback={<CategoryPageSkeleton locale={props.locale} />}>
       <CategoryPageContent {...props} />
     </Suspense>
   );

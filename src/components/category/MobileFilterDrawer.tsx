@@ -8,7 +8,7 @@ import { ProductFilterState } from '@/types/product';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 
-import { Category } from '@/types/category';
+import { Category, Subcategory } from '@/types/category';
 
 interface MobileFilterDrawerProps {
   isOpen: boolean;
@@ -20,6 +20,10 @@ interface MobileFilterDrawerProps {
   productCount: number;
   categories?: Category[];
   activeCategorySlug?: string;
+  subcategories?: Subcategory[];
+  activeSubcategory?: string;
+  onSubcategorySelect?: (subSlug?: string) => void;
+  categorySlug?: string;
 }
 
 export function MobileFilterDrawer({
@@ -32,6 +36,10 @@ export function MobileFilterDrawer({
   productCount,
   categories,
   activeCategorySlug,
+  subcategories,
+  activeSubcategory,
+  onSubcategorySelect,
+  categorySlug,
 }: MobileFilterDrawerProps) {
   const dict = getDictionary(locale);
 
@@ -39,6 +47,8 @@ export function MobileFilterDrawer({
     (typeof filters?.minPrice === 'number' && !isNaN(filters.minPrice)) ||
     (typeof filters?.maxPrice === 'number' && !isNaN(filters.maxPrice))
   );
+
+  const hasActiveFilters = Boolean(hasPriceFilter || Boolean(activeSubcategory));
 
   return (
     <Drawer
@@ -48,7 +58,7 @@ export function MobileFilterDrawer({
       title={dict.category.filters}
       footer={
         <div className="flex items-center gap-3">
-          {hasPriceFilter && (
+          {hasActiveFilters && (
             <Button
               variant="outline"
               size="md"
@@ -79,6 +89,10 @@ export function MobileFilterDrawer({
         onReset={onReset}
         categories={categories}
         activeCategorySlug={activeCategorySlug}
+        subcategories={subcategories}
+        activeSubcategory={activeSubcategory}
+        onSubcategorySelect={onSubcategorySelect}
+        categorySlug={categorySlug}
       />
     </Drawer>
   );

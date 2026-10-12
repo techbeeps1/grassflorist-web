@@ -23,6 +23,7 @@ import {
   translateArabicCategoryName,
   translateArabicToEnglishDescription,
 } from '@/lib/wordpress/store-api';
+import { ProductDetailPageSkeleton } from '@/components/product/ProductDetailPageSkeleton';
 import {
   Heart,
   ShoppingBag,
@@ -55,14 +56,7 @@ export function ProductDetailPageView({
   const product = initialProduct || clientProduct;
 
   if (!product && isClientLoading) {
-    return (
-      <div className="py-24 text-center flex flex-col items-center justify-center min-h-[60vh] bg-surface">
-        <Loader2 className="w-8 h-8 text-primary animate-spin mb-3" />
-        <p className="text-sm font-semibold text-text-muted">
-          {locale === 'ar' ? 'جاري تحميل تفاصيل الباقة...' : 'Loading product details...'}
-        </p>
-      </div>
-    );
+    return <ProductDetailPageSkeleton locale={locale} />;
   }
 
   if (!product) {
