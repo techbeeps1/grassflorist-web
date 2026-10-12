@@ -524,6 +524,136 @@ export function translateArabicCategoryName(categoryName: string, slug?: string)
   return translateArabicProductName(clean, slug) || 'Flowers & Gifts';
 }
 
+export const CATEGORY_EN_TO_AR_MAP: Record<string, string> = {
+  'all flowers': 'جميع الزهور',
+  'flowers': 'جميع الزهور',
+  'luxury bouquets': 'باقات فاخرة',
+  'luxury arrangements': 'باقات فاخرة',
+  'cake & chocolate': 'كيك وشوكولاته',
+  'cake and chocolate': 'كيك وشوكولاته',
+  'cakes & chocolates': 'كيك وشوكولاته',
+  'chocolates & cakes': 'كيك وشوكولاته',
+  'chocolate': 'شوكولاته',
+  'chocolates': 'شوكولاته',
+  'cake': 'كيك',
+  'cakes': 'كيك',
+  'chocolate bouquet': 'بوكيه شوكولاته',
+  'chocolate bouquets': 'بوكيه شوكولاته',
+  'balloons': 'بالونات',
+  'latex balloons': 'بالونات مطاطية',
+  'letters balloons': 'بالونات أحرف',
+  'letter balloons': 'بالونات أحرف',
+  'golden letters': 'أحرف ذهبية',
+  'silver letters': 'أحرف فضية',
+  'numbers balloons': 'بالونات الأرقام',
+  'number balloons': 'بالونات الأرقام',
+  'golden numbers': 'أرقام ذهبية',
+  'silver numbers': 'أرقام فضية',
+  'occasions': 'المناسبات',
+  'ocassions': 'المناسبات',
+  'for mother': 'للأم',
+  'mother day': 'عيد الأم',
+  "mother's day": 'عيد الأم',
+  'for father': 'للآب',
+  'father day': 'عيد الأب',
+  "father's day": 'عيد الأب',
+  'for her': 'للمرأة',
+  'for him': 'للرجل',
+  'birthday': 'عيد ميلاد',
+  'happy birthday': 'عيد ميلاد سعيد',
+  'graduation': 'تخرج',
+  'love': 'حب',
+  'love & romance': 'حب',
+  'get well': 'تمنيات بالشفاء',
+  'get well soon': 'تمنيات بالشفاء',
+  'hand bouquet': 'هاند بوكيه',
+  'hand bouquets': 'هاند بوكيه',
+  'apology': 'اعتذار',
+  'i am sorry': 'اعتذار',
+  'i love you': 'أحبك',
+  'new baby': 'مولود جديد',
+  'new born': 'تهنئة بالمولود',
+  'new baby girl': 'مولودة جديدة',
+  'promotion & new job': 'وظيفة وترقية',
+  'new job': 'وظيفة وترقية',
+  'fruits bouquet': 'باقات الفواكه',
+  'fruit bouquets': 'باقات الفواكه',
+  'suggestions': 'اقتراحات',
+  'valentine': 'فلنتاين',
+  'ramadan': 'رمضان',
+  'eid': 'العيد',
+  'national day': 'اليوم الوطني',
+  'flag day': 'يوم العلم',
+  'foundation day': 'يوم التأسيس',
+  'founding day': 'يوم التأسيس',
+  'teachers day': 'يوم المعلم',
+  "teacher's day": 'يوم المعلم',
+  'womens day': 'يوم المرأة',
+  "women's day": 'يوم المرأة',
+  'new year': 'رأس السنة',
+  'wedding': 'زواج',
+  'bridal bouquet': 'مسكة عروس',
+  'bridal bookeh': 'مسكة عروس',
+  'bundles': 'باقات',
+  'white friday': 'الجمعة البيضاء',
+  'anniversary': 'ذكرى سنوية',
+  'happy anniversary': 'عيد زواج سعيد',
+  'housewarming': 'منزل مبارك',
+  'thank you': 'شكراً',
+  'colors': 'الألوان',
+  'peach': 'بيج',
+  'beige': 'بيج',
+  'assorted': 'منوع',
+  'mixed': 'منوع',
+  'necklace & crown': 'سلاسل وأطواق',
+  'fatima birthday': 'عيد ميلاد فاطمة',
+  'fatime birthday': 'عيد ميلاد فاطمة',
+  'sister of fatima birthday': 'عيد ميلاد أخت فاطمة',
+  'sister of fatime birthday': 'عيد ميلاد أخت فاطمة',
+  'pink october': 'اكتوبر الوردي',
+  'best seller': 'الأفضل مبيعاً',
+  'best sellers': 'الأفضل مبيعاً',
+  'vases': 'فازات ورد',
+  'flower vases': 'فازات ورد',
+  'boxes': 'بوكسات ورد',
+  'flower boxes': 'بوكسات ورد',
+};
+
+export function translateEnglishCategoryNameToArabic(categoryName: string, slug?: string): string {
+  if (!categoryName) return 'زهور وهدايا';
+  const clean = safeDecodeUri(decodeHtmlEntities(categoryName)).trim();
+  if (hasArabicText(clean)) return clean;
+
+  const normalized = clean.toLowerCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (CATEGORY_EN_TO_AR_MAP[normalized]) {
+    return CATEGORY_EN_TO_AR_MAP[normalized];
+  }
+
+  const stripped = normalized.replace(/['"’]/g, '');
+  if (CATEGORY_EN_TO_AR_MAP[stripped]) {
+    return CATEGORY_EN_TO_AR_MAP[stripped];
+  }
+
+  if (slug) {
+    const slugNorm = safeDecodeUri(slug).toLowerCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (hasArabicText(slugNorm)) {
+      return slugNorm;
+    }
+    if (CATEGORY_EN_TO_AR_MAP[slugNorm]) {
+      return CATEGORY_EN_TO_AR_MAP[slugNorm];
+    }
+    const slugStripped = slugNorm.replace(/['"’]/g, '');
+    if (CATEGORY_EN_TO_AR_MAP[slugStripped]) {
+      return CATEGORY_EN_TO_AR_MAP[slugStripped];
+    }
+    if (CATEGORY_SLUG_ALIASES[slug.toLowerCase()]) {
+      return safeDecodeUri(CATEGORY_SLUG_ALIASES[slug.toLowerCase()]).replace(/[-_]/g, ' ');
+    }
+  }
+
+  return clean;
+}
+
 export function translateArabicToEnglishDescription(
   rawDesc: string,
   productNameEn: string,
@@ -833,9 +963,22 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
     ? item.categories[0]
     : null;
 
-  const catNameAr = primaryCategory?.name ? safeDecodeUri(decodeHtmlEntities(primaryCategory.name)) : 'زهور وهدايا';
+  let rawCatAr = typeof primaryCategory?.name === 'object' ? primaryCategory?.name?.ar : primaryCategory?.name_ar;
+  let rawCatEn = typeof primaryCategory?.name === 'object' ? primaryCategory?.name?.en : primaryCategory?.name_en;
+  if (!rawCatAr && typeof primaryCategory?.name === 'string' && hasArabicText(primaryCategory.name)) {
+    rawCatAr = primaryCategory.name;
+  }
+  if (!rawCatEn && typeof primaryCategory?.name === 'string' && !hasArabicText(primaryCategory.name)) {
+    rawCatEn = primaryCategory.name;
+  }
+
   const catSlug = primaryCategory?.slug ? safeDecodeUri(primaryCategory.slug) : 'flowers';
-  const catNameEn = translateArabicCategoryName(catNameAr, catSlug);
+  const catNameAr = rawCatAr && hasArabicText(rawCatAr)
+    ? safeDecodeUri(decodeHtmlEntities(rawCatAr))
+    : translateEnglishCategoryNameToArabic(rawCatEn || (typeof primaryCategory?.name === 'string' ? primaryCategory.name : 'زهور وهدايا'), catSlug);
+  const catNameEn = rawCatEn && !hasArabicText(rawCatEn)
+    ? safeDecodeUri(decodeHtmlEntities(rawCatEn))
+    : translateArabicCategoryName(catNameAr, catSlug);
 
   let descAr = cleanDesc || nameAr;
   let descEn = cleanDesc || nameEn;
@@ -958,27 +1101,41 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
  * Map Laravel Category to Frontend Category Type
  */
 export function mapLaravelCategoryToCategory(cat: any): Category {
-  const rawNameAr =
-    typeof cat.name === 'object' && cat.name?.ar
-      ? cat.name.ar
-      : typeof cat.name === 'string'
-      ? cat.name
-      : cat.slug;
-  const rawNameEn =
-    typeof cat.name === 'object' && cat.name?.en
-      ? cat.name.en
-      : undefined;
+  let rawAr = '';
+  let rawEn = '';
 
-  let nameAr = safeDecodeUri(decodeHtmlEntities(rawNameAr || ''));
-  const decodedSlug = safeDecodeUri(cat.slug || '');
-
-  if (hasArabicText(decodedSlug) && (!nameAr || nameAr.includes('%'))) {
-    nameAr = decodedSlug.replace(/[-_]/g, ' ');
+  if (typeof cat.name === 'object' && cat.name !== null) {
+    rawAr = cat.name.ar || cat.name_ar || '';
+    rawEn = cat.name.en || cat.name_en || '';
+  } else if (typeof cat.name === 'string') {
+    if (hasArabicText(cat.name)) {
+      rawAr = cat.name;
+    } else {
+      rawEn = cat.name;
+    }
   }
 
-  let nameEn = rawNameEn ? safeDecodeUri(decodeHtmlEntities(rawNameEn)) : undefined;
+  if (!rawAr && cat.name_ar) rawAr = cat.name_ar;
+  if (!rawEn && cat.name_en) rawEn = cat.name_en;
+
+  const decodedSlug = safeDecodeUri(cat.slug || cat.slug_en || cat.slug_ar || '');
+  const slugAr = safeDecodeUri(cat.slug_ar || '');
+  const slugEn = safeDecodeUri(cat.slug_en || cat.slug || '');
+
+  let nameAr = safeDecodeUri(decodeHtmlEntities(rawAr || ''));
+  if (!nameAr || !hasArabicText(nameAr)) {
+    if (hasArabicText(slugAr)) {
+      nameAr = slugAr.replace(/[-_]/g, ' ');
+    } else if (hasArabicText(decodedSlug)) {
+      nameAr = decodedSlug.replace(/[-_]/g, ' ');
+    } else {
+      nameAr = translateEnglishCategoryNameToArabic(rawEn || cat.name || decodedSlug, decodedSlug);
+    }
+  }
+
+  let nameEn = safeDecodeUri(decodeHtmlEntities(rawEn || ''));
   if (!nameEn || hasArabicText(nameEn) || nameEn === nameAr) {
-    nameEn = translateArabicCategoryName(nameAr, decodedSlug);
+    nameEn = translateArabicCategoryName(nameAr, slugEn || decodedSlug);
   }
 
   const image = formatStorageUrl(cat.cat_image || cat.image || cat.image_path);
@@ -993,17 +1150,40 @@ export function mapLaravelCategoryToCategory(cat: any): Category {
       : [];
 
   const subcategories: Subcategory[] = rawChildren.map((ch: any) => {
-    const chRawAr = typeof ch.name === 'object' ? ch.name?.ar || ch.slug : ch.name || ch.slug;
-    const chRawEn = typeof ch.name === 'object' ? ch.name?.en : undefined;
-    let chAr = safeDecodeUri(decodeHtmlEntities(chRawAr || ''));
-    const chSlug = safeDecodeUri(ch.slug || '');
-    if (hasArabicText(chSlug) && (!chAr || chAr.includes('%'))) {
-      chAr = chSlug.replace(/[-_]/g, ' ');
+    let chRawAr = '';
+    let chRawEn = '';
+    if (typeof ch.name === 'object' && ch.name !== null) {
+      chRawAr = ch.name.ar || ch.name_ar || '';
+      chRawEn = ch.name.en || ch.name_en || '';
+    } else if (typeof ch.name === 'string') {
+      if (hasArabicText(ch.name)) {
+        chRawAr = ch.name;
+      } else {
+        chRawEn = ch.name;
+      }
     }
-    let chEn = chRawEn ? safeDecodeUri(decodeHtmlEntities(chRawEn)) : undefined;
+    if (!chRawAr && ch.name_ar) chRawAr = ch.name_ar;
+    if (!chRawEn && ch.name_en) chRawEn = ch.name_en;
+
+    const chSlug = safeDecodeUri(ch.slug || '');
+    const chSlugAr = safeDecodeUri(ch.slug_ar || '');
+
+    let chAr = safeDecodeUri(decodeHtmlEntities(chRawAr || ''));
+    if (!chAr || !hasArabicText(chAr)) {
+      if (hasArabicText(chSlugAr)) {
+        chAr = chSlugAr.replace(/[-_]/g, ' ');
+      } else if (hasArabicText(chSlug)) {
+        chAr = chSlug.replace(/[-_]/g, ' ');
+      } else {
+        chAr = translateEnglishCategoryNameToArabic(chRawEn || ch.name || chSlug, chSlug);
+      }
+    }
+
+    let chEn = safeDecodeUri(decodeHtmlEntities(chRawEn || ''));
     if (!chEn || hasArabicText(chEn) || chEn === chAr) {
       chEn = translateArabicCategoryName(chAr, chSlug);
     }
+
     const subImage = formatStorageUrl(ch.cat_image || ch.image || ch.image_path);
     return {
       id: String(ch.id),
