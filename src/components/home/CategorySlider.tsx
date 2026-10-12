@@ -8,7 +8,7 @@ import { occasions } from '@/data/occasions';
 import { type Locale } from '@/config/site';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Category } from '@/types/category';
-import { getCategorySlugForLocale, decodeHtmlEntities } from '@/lib/wordpress/store-api';
+import { getCategorySlugForLocale, decodeHtmlEntities, translateEnglishCategoryNameToArabic } from '@/lib/wordpress/store-api';
 import { cn } from '@/lib/utils';
 
 interface CategorySliderProps {
@@ -219,7 +219,12 @@ export function CategorySlider({
         >
           <div className="flex gap-4 sm:gap-6 md:gap-7 lg:gap-8 cursor-grab active:cursor-grabbing items-center">
             {sliderItems.map((item) => {
-              const displayName = cleanTitle(item.name[locale] || item.name.en || '');
+              const rawItemName = item.name[locale] || item.name.en || '';
+              const displayName = locale === 'ar'
+                ? (item.name.ar && /[\u0600-\u06FF]/.test(item.name.ar)
+                  ? cleanTitle(item.name.ar)
+                  : translateEnglishCategoryNameToArabic(rawItemName, item.slug))
+                : cleanTitle(item.name.en || item.name.ar || '');
               const isNavigatingThis = Boolean(
                 navigatingSlug &&
                 (navigatingSlug === item.slug ||

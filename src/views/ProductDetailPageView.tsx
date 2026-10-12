@@ -21,6 +21,7 @@ import { generateProductSchema, generateBreadcrumbSchema } from '@/lib/schema';
 import {
   translateArabicProductName,
   translateArabicCategoryName,
+  translateEnglishCategoryNameToArabic,
   translateArabicToEnglishDescription,
 } from '@/lib/wordpress/store-api';
 import { ProductDetailPageSkeleton } from '@/components/product/ProductDetailPageSkeleton';
@@ -89,7 +90,9 @@ export function ProductDetailPageView({
       ? (!product.category?.en || /[\u0600-\u06FF]/.test(product.category.en)
         ? translateArabicCategoryName(product.category?.ar || product.category?.en || '', product.categorySlug)
         : product.category.en)
-      : (product.category?.ar || product.category?.en || '');
+      : (product.category?.ar && /[\u0600-\u06FF]/.test(product.category.ar)
+        ? product.category.ar
+        : translateEnglishCategoryNameToArabic(product.category?.ar || product.category?.en || '', product.categorySlug));
 
   const rawShortDescription =
     product.shortDescription?.[locale] ||

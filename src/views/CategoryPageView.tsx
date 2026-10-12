@@ -23,7 +23,7 @@ import { CategoryPageSkeleton } from '@/components/category/CategoryPageSkeleton
 
 import { Product } from '@/types/product';
 import { Category } from '@/types/category';
-import { decodeHtmlEntities, safeDecodeUri } from '@/lib/wordpress/store-api';
+import { decodeHtmlEntities, safeDecodeUri, translateEnglishCategoryNameToArabic } from '@/lib/wordpress/store-api';
 
 function cleanTitle(str?: string): string {
   if (!str) return '';
@@ -347,7 +347,12 @@ function CategoryPageContent({
     return categoryProducts.slice(0, visibleCount);
   }, [categoryProducts, visibleCount]);
 
-  const cleanCategoryName = cleanTitle(currentCategory.name[locale] || currentCategory.name.en || '');
+  const rawCatTitle = currentCategory.name[locale] || currentCategory.name.en || '';
+  const cleanCategoryName = locale === 'ar'
+    ? (currentCategory.name.ar && /[\u0600-\u06FF]/.test(currentCategory.name.ar)
+      ? cleanTitle(currentCategory.name.ar)
+      : translateEnglishCategoryNameToArabic(rawCatTitle, slug))
+    : cleanTitle(currentCategory.name.en || currentCategory.name.ar || '');
 
   const breadcrumbItems = [
     { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },

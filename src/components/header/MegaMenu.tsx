@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { type Locale } from '@/config/site';
 import { mainNavItems, type NavItem } from '@/config/navigation';
-import { type DynamicNavItem } from '@/lib/wordpress/store-api';
+import { type DynamicNavItem, translateEnglishCategoryNameToArabic, translateArabicCategoryName } from '@/lib/wordpress/store-api';
 import {
   ChevronDown,
   ArrowRight,
@@ -89,12 +89,18 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
       .then((res) => res.json())
       .then((data) => {
         if (isMounted && data?.success && Array.isArray(data.header) && data.header.length > 0) {
+          const resolveItemName = (obj: any) => {
+            const rawEn = obj.name_en || (typeof obj.name === 'object' ? obj.name?.en : (!/[\u0600-\u06FF]/.test(obj.name || '') ? obj.name : '')) || '';
+            const rawAr = obj.name_ar || (typeof obj.name === 'object' ? obj.name?.ar : (/[\u0600-\u06FF]/.test(obj.name || '') ? obj.name : '')) || '';
+            const slug = obj.url_ar || obj.url_en || obj.slug || '';
+            const ar = rawAr && /[\u0600-\u06FF]/.test(rawAr) ? rawAr : translateEnglishCategoryNameToArabic(rawEn || obj.name || '', slug);
+            const en = rawEn && !/[\u0600-\u06FF]/.test(rawEn) ? rawEn : translateArabicCategoryName(ar, slug);
+            return { ar, en };
+          };
+
           const normalized: DynamicNavItem[] = data.header.map((item: any) => ({
             id: item.id || String(Math.random()),
-            name: {
-              en: item.name_en || (typeof item.name === 'object' ? item.name?.en : item.name) || '',
-              ar: item.name_ar || (typeof item.name === 'object' ? item.name?.ar : item.name) || '',
-            },
+            name: resolveItemName(item),
             href: {
               en: item.url_en || (typeof item.href === 'object' ? item.href?.en : item.href) || '',
               ar: item.url_ar || (typeof item.href === 'object' ? item.href?.ar : item.href) || '',
@@ -105,10 +111,7 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
             featuredCategoryId: item.featured_category_id,
             subcategories: (item.subcategories || []).map((sub: any) => ({
               id: sub.id || String(Math.random()),
-              name: {
-                en: sub.name_en || (typeof sub.name === 'object' ? sub.name?.en : sub.name) || '',
-                ar: sub.name_ar || (typeof sub.name === 'object' ? sub.name?.ar : sub.name) || '',
-              },
+              name: resolveItemName(sub),
               href: {
                 en: sub.url_en || (typeof sub.href === 'object' ? sub.href?.en : sub.href) || '',
                 ar: sub.url_ar || (typeof sub.href === 'object' ? sub.href?.ar : sub.href) || '',
@@ -116,10 +119,7 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
               icon: sub.icon || 'flower',
               children: (sub.children || []).map((child: any) => ({
                 id: child.id || String(Math.random()),
-                name: {
-                  en: child.name_en || (typeof child.name === 'object' ? child.name?.en : child.name) || '',
-                  ar: child.name_ar || (typeof child.name === 'object' ? child.name?.ar : child.name) || '',
-                },
+                name: resolveItemName(child),
                 href: {
                   en: child.url_en || (typeof child.href === 'object' ? child.href?.en : child.href) || '',
                   ar: child.url_ar || (typeof child.href === 'object' ? child.href?.ar : child.href) || '',
