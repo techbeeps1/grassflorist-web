@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
+import { getStoredConsent, applyGtagConsent } from './cookie-consent/cookie-storage';
 
 function injectHtmlSnippet(htmlContent: string | undefined, target: HTMLElement, containerId: string) {
   if (!htmlContent || typeof htmlContent !== 'string' || !htmlContent.trim()) return;
@@ -71,6 +72,29 @@ export function DynamicHead() {
 
     const scripts = settings.scripts;
     if (!scripts) return;
+
+    // Consent Mode v2 Default Setup
+    const storedConsent = getStoredConsent();
+    const consentDefaultScript = `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        'analytics_storage': '${storedConsent ? (storedConsent.analytics ? 'granted' : 'denied') : 'granted'}',
+        'ad_storage': '${storedConsent ? (storedConsent.advertisement ? 'granted' : 'denied') : 'granted'}',
+        'ad_user_data': '${storedConsent ? (storedConsent.advertisement ? 'granted' : 'denied') : 'granted'}',
+        'ad_personalization': '${storedConsent ? (storedConsent.advertisement ? 'granted' : 'denied') : 'granted'}',
+        'functionality_storage': '${storedConsent ? (storedConsent.functional ? 'granted' : 'denied') : 'granted'}',
+        'performance_storage': '${storedConsent ? (storedConsent.performance ? 'granted' : 'denied') : 'granted'}'
+      });
+    `;
+    injectInlineScript(consentDefaultScript, 'google-consent-mode-init');
+
+    const handleConsentUpdate = (e: any) => {
+      if (e.detail) {
+        applyGtagConsent(e.detail);
+      }
+    };
+    window.addEventListener('grass-cookie-consent-updated', handleConsentUpdate);
 
     // 2. Google Tag Manager (GTM)
     const gtmHead = scripts.gtm?.head_code;
@@ -146,6 +170,10 @@ export function DynamicHead() {
     if (customFooter) {
       injectHtmlSnippet(customFooter, document.body, 'custom-footer-injection');
     }
+
+    return () => {
+      window.removeEventListener('grass-cookie-consent-updated', handleConsentUpdate);
+    };
   }, [settings]);
 
   return null;

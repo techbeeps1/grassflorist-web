@@ -12,8 +12,10 @@ interface HyperPayWidgetModalProps {
   brands: string;
   orderNumber: string;
   amount: number;
+  sarAmount?: number;
   currency?: string;
   locale?: 'ar' | 'en';
+  returnUrl?: string;
 }
 
 export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
@@ -24,8 +26,10 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
   brands,
   orderNumber,
   amount,
+  sarAmount,
   currency = 'SAR',
   locale = 'ar',
+  returnUrl,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -35,14 +39,14 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
     // Shopper result URL where HyperPay redirects back after 3DS authorization
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const basePath = locale === 'ar' ? '/checkout' : '/en/checkout';
-    const resultUrl = `${origin}${basePath}?order_number=${encodeURIComponent(orderNumber)}&gateway=hyperpay`;
+    const finalResultUrl = returnUrl || `${origin}${basePath}?order_number=${encodeURIComponent(orderNumber)}&gateway=hyperpay`;
 
     // Clear previous widget form
     if (containerRef.current) {
       containerRef.current.innerHTML = '';
 
       const form = document.createElement('form');
-      form.action = resultUrl;
+      form.action = finalResultUrl;
       form.className = 'paymentWidgets';
       form.setAttribute('data-brands', brands);
       containerRef.current.appendChild(form);
@@ -65,7 +69,7 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
       const s = document.getElementById(scriptId);
       if (s) s.remove();
     };
-  }, [isOpen, scriptUrl, checkoutId, brands, orderNumber, locale]);
+  }, [isOpen, scriptUrl, checkoutId, brands, orderNumber, locale, returnUrl]);
 
   if (!isOpen) return null;
 
@@ -102,17 +106,33 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
 
         {/* Amount Summary */}
         <div className="px-6 py-3 bg-emerald-50/50 border-b border-emerald-100/60 flex items-center justify-between text-xs">
-          <span className="font-semibold text-gray-700">
-            {locale === 'ar' ? 'المبلغ المطلوب سداده:' : 'Amount to Pay:'}
-          </span>
-          <span dir="ltr" className="font-black text-[#8fae2a] text-sm flex items-center gap-1">
-            <CurrencySymbol className="w-3.5 h-3.5" forcedCurrency={(currency as 'SAR' | 'USD') || 'SAR'} />
-            <span>{Number(amount).toFixed(2)} {currency}</span>
-          </span>
+          <div>
+            <span className="font-semibold text-gray-700 block">
+              {locale === 'ar' ? 'المبلغ المطلوب سداده:' : 'Amount to Pay:'}
+            </span>
+            {currency === 'USD' && (
+              <span className="text-[10px] text-gray-500 font-medium block">
+                {locale === 'ar' ? '(الخصم الفعلي من البطاقة بالريال السعودي)' : '(Bank charge in SAR)'}
+              </span>
+            )}
+          </div>
+          <div className="text-end">
+            <span dir="ltr" className="font-black text-[#8fae2a] text-sm flex items-center justify-end gap-1">
+              <CurrencySymbol className="w-3.5 h-3.5" forcedCurrency={(currency as 'SAR' | 'USD') || 'SAR'} />
+              <span>{Number(amount).toFixed(2)} {currency}</span>
+            </span>
+            {currency === 'USD' && (
+              <span dir="ltr" className="text-[11px] text-gray-500 font-semibold flex items-center justify-end gap-1 mt-0.5">
+                <span>≈</span>
+                <CurrencySymbol forcedCurrency="SAR" size={12} className="w-3 h-3 inline -mt-0.5" />
+                <span>{Number(sarAmount || (amount / 0.2667)).toFixed(2)} SAR</span>
+              </span>
+            )}
+          </div>
         </div>
 
         {/* HyperPay Widget Form Container */}
-        <div className="p-6 overflow-y-auto flex-1 min-h-[320px] flex flex-col justify-center items-center">
+        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 min-h-[320px] flex flex-col justify-center items-center">
           <div ref={containerRef} className="w-full flex justify-center min-h-[220px]" />
           <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 inline" />

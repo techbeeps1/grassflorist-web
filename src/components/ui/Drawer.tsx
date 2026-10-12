@@ -142,7 +142,7 @@ export function Drawer({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 overscroll-contain">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-5 sm:px-6 py-5 overscroll-contain">
           {children}
         </div>
 

@@ -303,14 +303,14 @@ function CategoryPageContent({
           </div>
 
           {/* Subcategory Pills with horizontal scroll navigation */}
-          {currentCategory.subcategories && currentCategory.subcategories.length > 0 && (
+          {/* {currentCategory.subcategories && currentCategory.subcategories.length > 0 && (
             <SubcategoryPills
               subcategories={currentCategory.subcategories}
               activeSubcategory={activeSubcategory}
               onSelect={setActiveSubcategory}
               locale={locale}
             />
-          )}
+          )} */}
 
           {/* Controls Bar */}
           <div className="bg-surface-subtle border border-border/80 rounded-2xl p-3 sm:p-3.5 mb-6 sm:mb-8">

@@ -6,7 +6,8 @@ import {
   FetchBaseQueryError,
 } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../index';
-import { logout } from '../slices/authSlice';
+import { logout, setToken } from '../slices/authSlice';
+import { addToast } from '../slices/uiSlice';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
@@ -57,21 +58,115 @@ const rawBaseQuery = fetchBaseQuery({
   },
 });
 
+// Single-flight promise lock to prevent parallel duplicate refresh requests
+let refreshPromise: Promise<string | null> | null = null;
+let lastSessionExpiredNotice = 0;
+
 /**
- * Custom baseQuery that intercepts 401 Unauthorized for secure logout / token refresh
+ * Handle session expiration when refresh token is invalid or expired
+ */
+function handleSessionExpired(api: any) {
+  const now = Date.now();
+  // Throttle notification and redirect to avoid duplicates if multiple requests fail at once
+  if (now - lastSessionExpiredNotice < 4000) return;
+  lastSessionExpiredNotice = now;
+
+  const locale = getCurrentLocale();
+  const isEn = locale === 'en';
+
+  // 1. Dispatch toast notification
+  api.dispatch(
+    addToast({
+      type: 'error',
+      message: isEn
+        ? 'Your session has expired. Please log in again.'
+        : 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مجدداً.',
+    })
+  );
+
+  // 2. Clear auth credentials in state & storage
+  api.dispatch(logout());
+
+  // 3. Redirect to login page with session_expired indicator
+  if (typeof window !== 'undefined') {
+    const currentPath = window.location.pathname + window.location.search;
+    if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
+      const redirectParam = encodeURIComponent(currentPath);
+      const loginUrl = isEn
+        ? `/en/login?session_expired=1&redirect=${redirectParam}`
+        : `/login?session_expired=1&redirect=${redirectParam}`;
+      window.location.href = loginUrl;
+    }
+  }
+}
+
+/**
+ * Custom baseQuery that intercepts 401 Unauthorized for automatic silent token refresh.
+ * If refresh fails, alerts user and redirects to login page.
  */
 const dynamicBaseQuery: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
+  let result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
-    // If receiving 401 Unauthorized from protected endpoint, trigger clean logout
+    const url = typeof args === 'string' ? args : args.url;
+    const isRefreshUrl = url.includes('/refresh');
+    const isAuthExempt =
+      url.includes('/login') ||
+      url.includes('/register') ||
+      url.includes('/forgot-password') ||
+      url.includes('/reset-password') ||
+      isRefreshUrl;
+
     const state = api.getState() as RootState;
-    if (state?.auth?.isAuthenticated) {
-      api.dispatch(logout());
+    const existingToken =
+      state?.auth?.token ||
+      (typeof window !== 'undefined' ? localStorage.getItem('grass_auth_token') : null);
+
+    // If request was from an authenticated user and not an exempt auth endpoint
+    if (!isAuthExempt && existingToken) {
+      if (!refreshPromise) {
+        // Start single-flight silent refresh
+        refreshPromise = (async () => {
+          try {
+            const refreshResult = await rawBaseQuery(
+              {
+                url: '/my-account/refresh',
+                method: 'POST',
+              },
+              api,
+              extraOptions
+            );
+
+            if (refreshResult.data && (refreshResult.data as any).access_token) {
+              const newToken = (refreshResult.data as any).access_token as string;
+              api.dispatch(setToken(newToken));
+              return newToken;
+            }
+            return null;
+          } catch {
+            return null;
+          } finally {
+            refreshPromise = null;
+          }
+        })();
+      }
+
+      const refreshedToken = await refreshPromise;
+
+      if (refreshedToken) {
+        // Retry the original query with the refreshed token
+        result = await rawBaseQuery(args, api, extraOptions);
+      } else {
+        // Silent refresh failed (refresh token expired or invalid) -> redirect to login with notification
+        handleSessionExpired(api);
+      }
+    } else if (isRefreshUrl) {
+      // Direct refresh request returned 401
+      handleSessionExpired(api);
     }
   }
 

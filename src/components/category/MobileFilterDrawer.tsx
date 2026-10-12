@@ -35,6 +35,11 @@ export function MobileFilterDrawer({
 }: MobileFilterDrawerProps) {
   const dict = getDictionary(locale);
 
+  const hasPriceFilter = Boolean(
+    (typeof filters?.minPrice === 'number' && !isNaN(filters.minPrice)) ||
+    (typeof filters?.maxPrice === 'number' && !isNaN(filters.maxPrice))
+  );
+
   return (
     <Drawer
       isOpen={isOpen}
@@ -43,14 +48,19 @@ export function MobileFilterDrawer({
       title={dict.category.filters}
       footer={
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="md"
-            onClick={onReset}
-            className="flex-1 font-bold text-xs"
-          >
-            {dict.category.clearAll}
-          </Button>
+          {hasPriceFilter && (
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => {
+                onFilterChange({ ...filters, minPrice: undefined, maxPrice: undefined });
+                onReset();
+              }}
+              className="flex-1 font-bold text-xs"
+            >
+              {dict.category.clearAll}
+            </Button>
+          )}
           <Button
             variant="primary"
             size="md"

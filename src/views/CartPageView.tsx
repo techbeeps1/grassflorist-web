@@ -13,21 +13,22 @@ import {
   removeItem,
   updateQuantity,
   applyCoupon,
+  setAppliedCoupon,
   removeCoupon,
   selectCartTotals,
   selectFreeShippingProgress,
 } from '@/store/slices/cartSlice';
 import {
-  useUpdateCartQuantityMutation,
-  useRemoveCartItemMutation,
   useApplyServerCouponMutation,
   getLocalizedProductName,
 } from '@/store/api/cartApi';
+import { useCartActions } from '@/hooks/useCartActions';
 import { addToast } from '@/store/slices/uiSlice';
 import { formatPrice } from '@/lib/utils';
 import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
-import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft } from 'lucide-react';
+import { CartPageItemSkeleton } from '@/components/ui/Skeleton';
+import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 
 interface CartPageViewProps {
   locale: Locale;
@@ -43,8 +44,7 @@ export function CartPageView({ locale }: CartPageViewProps) {
   const { subtotal, discount, vat, shippingFee, total } = useAppSelector(selectCartTotals);
   const { remaining, percentage, isFree } = useAppSelector(selectFreeShippingProgress);
 
-  const [updateServerQty] = useUpdateCartQuantityMutation();
-  const [removeServerItem] = useRemoveCartItemMutation();
+  const { updateQuantity, removeItem, pendingAddItem, updatingItemIds, removingItemIds } = useCartActions();
   const [applyServerCoupon] = useApplyServerCouponMutation();
 
   const isRtl = locale === 'ar';
@@ -52,18 +52,27 @@ export function CartPageView({ locale }: CartPageViewProps) {
 
   const checkoutUrl = locale === 'ar' ? '/checkout' : '/en/checkout';
   const catalogUrl = locale === 'ar' ? '/products' : '/en/products';
+  const hasItemsOrPending = cartItems.length > 0 || Boolean(pendingAddItem);
 
   const breadcrumbItems = [
     { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },
     { label: dict.cart.title },
   ];
 
-  const handleApplyPromo = (e: React.FormEvent) => {
+  const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (promoCodeInput.trim()) {
-      const code = promoCodeInput.trim();
-      dispatch(applyCoupon(code));
-      applyServerCoupon(code).unwrap().catch(() => {});
+    const code = promoCodeInput.trim();
+    if (!code) return;
+    try {
+      const res = await applyServerCoupon({ code, subtotal }).unwrap();
+      dispatch(
+        setAppliedCoupon({
+          code: res.code || code,
+          type: res.type,
+          value: Number(res.value),
+          maxDiscountAmount: Number(res.max_discount_amount || 0),
+        })
+      );
       dispatch(
         addToast({
           type: 'success',
@@ -74,6 +83,17 @@ export function CartPageView({ locale }: CartPageViewProps) {
         })
       );
       setPromoCodeInput('');
+    } catch (err: any) {
+      dispatch(
+        addToast({
+          type: 'error',
+          message:
+            err?.data?.message ||
+            (locale === 'ar'
+              ? 'رمز القسيمة غير صالح أو منتهي الصلاحية'
+              : 'Invalid or expired coupon code'),
+        })
+      );
     }
   };
 
@@ -93,7 +113,7 @@ export function CartPageView({ locale }: CartPageViewProps) {
           </p>
         </div>
 
-        {cartItems.length > 0 ? (
+        {hasItemsOrPending ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Items Column */}
             <div className="lg:col-span-8 space-y-6">
@@ -117,7 +137,51 @@ export function CartPageView({ locale }: CartPageViewProps) {
 
               {/* Items Card List */}
               <div className="bg-surface rounded-2xl border border-border divide-y divide-border overflow-hidden shadow-xs">
+                {/* 🌟 1. Skeleton Loading for newly added item while API responds */}
+                {pendingAddItem && (
+                  <div className="relative">
+                    <div className="absolute top-4 end-4 z-10">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-white text-xs font-bold shadow-xs">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>{locale === 'ar' ? 'جارٍ الإضافة إلى السلة...' : 'Adding to cart...'}</span>
+                      </span>
+                    </div>
+                    <CartPageItemSkeleton
+                      title={
+                        pendingAddItem.product
+                          ? getLocalizedProductName(pendingAddItem.product.name, locale)
+                          : undefined
+                      }
+                    />
+                  </div>
+                )}
+
                 {cartItems.map((item) => {
+                  const isRemoving = Boolean(removingItemIds[item.cartItemId] || removingItemIds[String(item.productId)]);
+                  const isUpdating = Boolean(updatingItemIds[item.cartItemId] || updatingItemIds[String(item.productId)]);
+
+                  if (isRemoving) {
+                    return (
+                      <div
+                        key={item.cartItemId}
+                        className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center justify-between text-start opacity-60 bg-surface-subtle/50 animate-pulse select-none"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[#E8E2D8] shrink-0" />
+                          <div className="space-y-2">
+                            <span className="text-sm sm:text-base font-bold text-text-muted line-through">
+                              {getLocalizedProductName(item.product.name, locale)}
+                            </span>
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 text-rose-600 text-xs font-bold">
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              <span>{locale === 'ar' ? 'جارٍ حذف المنتج من السلة...' : 'Removing item from cart...'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const slug = getLocalizedProductName(item.product.slug, locale) || item.productId;
                   const productUrl =
                     locale === 'ar'
@@ -127,7 +191,9 @@ export function CartPageView({ locale }: CartPageViewProps) {
                   return (
                     <div
                       key={item.cartItemId}
-                      className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center justify-between text-start"
+                      className={`p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center justify-between text-start transition-colors ${
+                        isUpdating ? 'bg-primary/5' : ''
+                      }`}
                     >
                       <div className="flex items-center gap-4">
                         <Link
@@ -183,37 +249,23 @@ export function CartPageView({ locale }: CartPageViewProps) {
                                 <QuantitySelector
                                   quantity={item.quantity}
                                   max={Math.max(1, itemStock)}
-                                  disabled={isOutOfStock}
-                                  onIncrease={() => {
-                                    dispatch(
-                                      updateQuantity({
-                                        cartItemId: item.cartItemId,
-                                        quantity: item.quantity + 1,
-                                      })
-                                    );
-                                    updateServerQty({ productId: item.productId, quantityChange: 1 }).unwrap().catch(() => {});
-                                  }}
-                                  onDecrease={() => {
-                                    dispatch(
-                                      updateQuantity({
-                                        cartItemId: item.cartItemId,
-                                        quantity: item.quantity - 1,
-                                      })
-                                    );
-                                    updateServerQty({ productId: item.productId, quantityChange: -1 }).unwrap().catch(() => {});
-                                  }}
+                                  disabled={isOutOfStock || isUpdating}
+                                  onIncrease={() => updateQuantity(item.productId, item.quantity + 1, item.cartItemId)}
+                                  onDecrease={() => updateQuantity(item.productId, item.quantity - 1, item.cartItemId)}
                                 />
 
                                 <div dir="ltr" className="text-base font-extrabold text-primary min-w-[90px] text-end">
-                                  <PriceDisplay amount={item.itemTotal} />
+                                  {isUpdating ? (
+                                    <div className="h-5 w-20 bg-[#E8E2D8] rounded-md animate-pulse ms-auto" />
+                                  ) : (
+                                    <PriceDisplay amount={item.itemTotal} />
+                                  )}
                                 </div>
 
                                 <button
-                                  onClick={() => {
-                                    dispatch(removeItem(item.cartItemId));
-                                    removeServerItem({ productId: item.productId }).unwrap().catch(() => {});
-                                  }}
-                                  className="p-2 text-text-muted hover:text-error transition-colors cursor-pointer"
+                                  disabled={isUpdating}
+                                  onClick={() => removeItem(item.productId, item.cartItemId)}
+                                  className="p-2 text-text-muted hover:text-error transition-colors cursor-pointer disabled:opacity-30 disabled:pointer-events-none"
                                   aria-label="Remove item"
                                 >
                                   <Trash2 className="w-4 h-4" />

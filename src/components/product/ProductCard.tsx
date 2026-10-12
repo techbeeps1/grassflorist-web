@@ -8,17 +8,16 @@ import { Product } from '@/types/product';
 import { type Locale } from '@/config/site';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { toggleWishlist, selectIsInWishlist } from '@/store/slices/wishlistSlice';
-import { addItem } from '@/store/slices/cartSlice';
-import { useAddToCartMutation } from '@/store/api/cartApi';
+import { useCartActions } from '@/hooks/useCartActions';
 import {
   useAddToWishlistMutation,
   useRemoveFromWishlistServerMutation,
 } from '@/store/api/wishlistApi';
-import { setCartDrawerOpen, addToast } from '@/store/slices/uiSlice';
+import { addToast } from '@/store/slices/uiSlice';
 import { formatPrice, calculateDiscount, cn } from '@/lib/utils';
 import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
-import { Heart, ShoppingBag, Check, Zap } from 'lucide-react';
+import { Heart, ShoppingBag, Check, Zap, Loader2 } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -73,53 +72,30 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
     );
   };
 
-  const [addServerCart] = useAddToCartMutation();
+  const { addToCart } = useCartActions();
 
   const isOutOfStock =
     (product.stock !== undefined && product.stock <= 0) ||
     product.availability === 'out_of_stock';
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (isOutOfStock) return;
-
-    const cartItemId = `${product.id}-standard`;
-    dispatch(
-      addItem({
-        cartItemId,
-        productId: product.id,
-        product,
-        quantity: 1,
-        itemTotal: product.price,
-      })
-    );
-
-    // Instant drawer open (0ms lag)
-    dispatch(setCartDrawerOpen(true));
-
-    // Sync to server in background
-    addServerCart({ productId: product.id, quantity: 1 }).unwrap().catch(() => {});
+    setIsAdding(true);
+    await addToCart(product, 1, { openDrawer: true });
+    setIsAdding(false);
   };
 
-  const handleBuyNow = (e: React.MouseEvent) => {
+  const handleBuyNow = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (isOutOfStock) return;
     setIsBuyingNow(true);
-
-    const cartItemId = `${product.id}-standard`;
-    dispatch(
-      addItem({
-        cartItemId,
-        productId: product.id,
-        product,
-        quantity: 1,
-        itemTotal: product.price,
-      })
-    );
-
-    addServerCart({ productId: product.id, quantity: 1 }).unwrap().catch(() => {});
+    await addToCart(product, 1, { openDrawer: false });
+    setIsBuyingNow(false);
 
     const checkoutUrl = locale === 'ar' ? '/checkout' : '/en/checkout';
     router.push(checkoutUrl);
@@ -276,7 +252,7 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
               isOutOfStock
                 ? 'bg-stone-100 text-stone-400 border border-stone-200 cursor-not-allowed'
                 : isAdding
-                ? 'bg-emerald-600 text-white shadow-xs'
+                ? 'bg-[#435849]/10 text-[#435849] border border-[#435849]/30 shadow-xs cursor-wait'
                 : 'bg-white hover:bg-[#FAF7F2] text-[#2C382F] border border-[#DDD3C4] shadow-xs hover:border-[#435849]'
             )}
           >
@@ -284,8 +260,8 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
               <span className="truncate">{locale === 'ar' ? 'نفدت الكمية' : 'Out of Stock'}</span>
             ) : isAdding ? (
               <>
-                <Check className="w-3.5 h-3.5 text-white" />
-                <span className="truncate">{locale === 'ar' ? 'تمت الإضافة' : 'Added'}</span>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#435849]" />
+                <span className="truncate">{locale === 'ar' ? 'جارٍ الإضافة...' : 'Adding...'}</span>
               </>
             ) : (
               <>

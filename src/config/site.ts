@@ -50,7 +50,7 @@ export const siteConfig = {
   },
   features: {
     freeShippingThreshold: 250,
-    expressDeliveryFee: 35,
+    expressDeliveryFee: 30, // SAR 30 inside Jeddah delivery
     vatRate: 0.15, // 15% Saudi VAT
   },
 } as const;

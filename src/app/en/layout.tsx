@@ -7,6 +7,8 @@ import { Footer } from '@/components/footer/Footer';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { DynamicHead } from '@/components/common/DynamicHead';
+import { CookieConsentBanner } from '@/components/common/cookie-consent/CookieConsentBanner';
+import { WhatsAppFloatingButton } from '@/components/common/WhatsAppFloatingButton';
 import { seoConfig } from '@/config/seo';
 import { siteConfig } from '@/config/site';
 
@@ -52,6 +54,8 @@ export default function EnglishRootLayout({
           </main>
           <Footer locale="en" />
           <ToastContainer />
+          <CookieConsentBanner locale="en" />
+          <WhatsAppFloatingButton locale="en" />
         </StoreProvider>
       </body>
     </html>

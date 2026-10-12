@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { type Locale } from '@/config/site';
+import { siteConfig, type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { Button } from '@/components/ui/Button';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -13,12 +13,14 @@ import {
   removeItem,
   updateQuantity,
   applyCoupon,
+  setAppliedCoupon,
   removeCoupon,
   selectCartTotals,
 } from '@/store/slices/cartSlice';
 import { useCreateOrderMutation } from '@/store/api/ordersApi';
 import { useGetUserOrdersQuery, useGetUserProfileQuery } from '@/store/api/authApi';
 import {
+  useGetShippingMethodsQuery,
   useGetPaymentMethodsQuery,
   useGetDeliverySlotsQuery,
   useInitiatePaymentMutation,
@@ -26,9 +28,9 @@ import {
 } from '@/store/api/checkoutApi';
 import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
 import { useCurrency } from '@/hooks/useCurrency';
+import { useCartActions } from '@/hooks/useCartActions';
 import {
-  useRemoveCartItemMutation,
-  useUpdateCartQuantityMutation,
+  useApplyServerCouponMutation,
   getLocalizedProductName,
 } from '@/store/api/cartApi';
 import { formatPrice } from '@/lib/utils';
@@ -52,6 +54,7 @@ import {
   Gift,
   Sunrise,
   Sunset,
+  ChevronDown,
 } from 'lucide-react';
 
 import { CountryCodePicker, ALL_COUNTRY_CODES } from '@/components/checkout/CountryCodePicker';
@@ -140,16 +143,61 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
   const cartItems = useAppSelector((state) => state.cart.items);
   const couponCode = useAppSelector((state) => state.cart.couponCode);
-  const { subtotal, discount, shippingFee } = useAppSelector(selectCartTotals);
+  const { subtotal, discount, shippingFee: fallbackShippingFee } = useAppSelector(selectCartTotals);
   const user = useAppSelector((state) => state.auth.user);
 
-  // Dynamic VAT percentage and currency conversion from Global Settings
+  // Dynamic Shipping Methods and rates managed from Filament Admin
+  const { data: shippingMethodsData } = useGetShippingMethodsQuery();
+  const shippingMethods = useMemo(() => shippingMethodsData?.data || [], [shippingMethodsData]);
+  const activeShippingMethod = useMemo(
+    () => shippingMethods.find((m) => m.is_active) || shippingMethods[0],
+    [shippingMethods]
+  );
+
+  // Dynamic Settings and currency conversion from Global Settings
   const { data: globalSettings } = useGetGlobalSettingsQuery();
   const { currency: activeCurrency, isUSD, sarToUsdRate } = useCurrency(locale);
   const vatPercentage = Number(globalSettings?.tax?.vat_percentage ?? 15);
+  const isVatIncluded = Boolean(globalSettings?.tax?.is_vat_included);
+
   const discountedSubtotal = Math.max(0, subtotal - discount);
-  const vat = Math.round(discountedSubtotal * (vatPercentage / 100));
-  const total = discountedSubtotal + shippingFee;
+
+  const freeShippingThreshold = Number(
+    activeShippingMethod?.min_order_for_free_shipping ??
+      shippingMethodsData?.free_shipping_threshold ??
+      globalSettings?.shipping?.free_shipping_threshold ??
+      siteConfig.features.freeShippingThreshold ??
+      250
+  );
+
+  const isFreeShipping = Boolean(
+    activeShippingMethod?.is_free_shipping_eligible &&
+      discountedSubtotal >= freeShippingThreshold
+  );
+
+  const shippingFee = isFreeShipping
+    ? 0
+    : Number(
+        activeShippingMethod?.price ??
+          shippingMethodsData?.default_shipping_fee ??
+          globalSettings?.shipping?.inside_jeddah_fee ??
+          fallbackShippingFee ??
+          30
+      );
+
+  // If VAT is included in product prices (isVatIncluded):
+  // vat is extracted from the discounted subtotal: vat = discountedSubtotal - (discountedSubtotal / (1 + vatRate))
+  // total = discountedSubtotal + shippingFee
+  // If VAT is excluded (Default / Exclusive):
+  // vat is added on top of the subtotal: vat = Math.round(discountedSubtotal * (vatPercentage / 100))
+  // total = discountedSubtotal + vat + shippingFee
+  const vat = isVatIncluded
+    ? Number((discountedSubtotal - discountedSubtotal / (1 + vatPercentage / 100)).toFixed(2))
+    : Number((discountedSubtotal * (vatPercentage / 100)).toFixed(2));
+
+  const total = Number((isVatIncluded
+    ? discountedSubtotal + shippingFee
+    : discountedSubtotal + vat + shippingFee).toFixed(2));
 
   // Real-time USD conversions
   const subtotalUsd = Number((subtotal * sarToUsdRate).toFixed(2));
@@ -159,8 +207,14 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const totalUsd = Number((total * sarToUsdRate).toFixed(2));
 
   const [createOrder, { isLoading }] = useCreateOrderMutation();
-  const [removeServerCartItem] = useRemoveCartItemMutation();
-  const [updateServerCartQuantity] = useUpdateCartQuantityMutation();
+  const {
+    updateQuantity: updateCartActionQty,
+    removeItem: removeCartActionItem,
+    updatingItemIds,
+    removingItemIds,
+  } = useCartActions();
+  const [applyServerCoupon, { isLoading: isApplyingCoupon }] = useApplyServerCouponMutation();
+  const [couponErrorMessage, setCouponErrorMessage] = useState<string | null>(null);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
 
   // Saudi current date as minimum / default date
@@ -228,7 +282,10 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
   // --- RECEIVER INFORMATION STATE ---
   const [localAddresses, setLocalAddresses] = useState<SavedAddressOption[]>([]);
+  const [deletedAddressKeys, setDeletedAddressKeys] = useState<string[]>([]);
   const [selectedSavedAddress, setSelectedSavedAddress] = useState('');
+  const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
+  const addressDropdownRef = useRef<HTMLDivElement>(null);
   const [recipientName, setRecipientName] = useState('');
   const [recipientFirstName, setRecipientFirstName] = useState('');
   const [recipientLastName, setRecipientLastName] = useState('');
@@ -241,6 +298,20 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const [latitude, setLatitude] = useState<number | undefined>(undefined);
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
 
+  // Close custom address dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        addressDropdownRef.current &&
+        !addressDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsAddressDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Queries for user's past orders and profile
   const userId = user?.id;
   const { data: userOrders } = useGetUserOrdersQuery(userId, {
@@ -250,10 +321,11 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     skip: !userId,
   });
 
-  // Load localStorage saved addresses once when userId changes
+  // Load localStorage saved addresses & deleted keys once when userId changes
   useEffect(() => {
     if (!userId) {
       setLocalAddresses([]);
+      setDeletedAddressKeys([]);
       return;
     }
     try {
@@ -262,7 +334,15 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       if (raw) {
         const parsed: SavedAddressOption[] = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          setLocalAddresses(parsed);
+          setLocalAddresses(parsed.slice(0, 5));
+        }
+      }
+      const delKey = `grass_deleted_address_keys_${userId}`;
+      const rawDel = localStorage.getItem(delKey);
+      if (rawDel) {
+        const parsedDel = JSON.parse(rawDel);
+        if (Array.isArray(parsedDel)) {
+          setDeletedAddressKeys(parsedDel);
         }
       }
     } catch {
@@ -270,37 +350,41 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     }
   }, [userId]);
 
-  // Purely computed saved addresses: ZERO setState inside an effect, eliminates infinite loop
+  // Purely computed saved addresses: MAX 5 recent addresses, ignoring deleted ones
   const savedAddresses = useMemo<SavedAddressOption[]>(() => {
     if (!user) return [];
 
     const list: SavedAddressOption[] = [];
     const seenKeys = new Set<string>();
+    const deletedSet = new Set(deletedAddressKeys);
 
-    // 1. From LocalStorage
+    // 1. From LocalStorage (most recent first)
     localAddresses.forEach((addr) => {
       const key = `${addr.shippingAddress || ''}_${addr.recipientPhone || ''}`.trim().toLowerCase();
-      if (key && !seenKeys.has(key)) {
+      if (key && !seenKeys.has(key) && !deletedSet.has(key) && !deletedSet.has(addr.id)) {
         seenKeys.add(key);
         list.push(addr);
       }
     });
 
-    // 2. From User Past Orders
-    if (Array.isArray(userOrders) && userOrders.length > 0) {
-      userOrders.forEach((order, idx) => {
+    // 2. From User Past Orders (up to limit of 5 total)
+    if (list.length < 5 && Array.isArray(userOrders) && userOrders.length > 0) {
+      for (let idx = 0; idx < userOrders.length; idx++) {
+        if (list.length >= 5) break;
+        const order = userOrders[idx];
         const rec = order.recipient;
         if (rec && (rec.street || rec.city)) {
           const street = rec.street || '';
           const phone = rec.phone || '';
           const key = `${street}_${phone}`.trim().toLowerCase();
-          if (key && !seenKeys.has(key)) {
+          const orderId = `order_${order.orderNumber || idx}`;
+          if (key && !seenKeys.has(key) && !deletedSet.has(key) && !deletedSet.has(orderId)) {
             seenKeys.add(key);
             const nameParts = (rec.name || '').trim().split(' ');
             const fName = nameParts[0] || '';
             const lName = nameParts.slice(1).join(' ') || '';
             list.push({
-              id: `order_${order.orderNumber || idx}`,
+              id: orderId,
               label: `${rec.name || 'Recipient'} - ${street}${rec.district ? `, ${rec.district}` : ''} (${rec.city || 'Jeddah'})`,
               recipientFirstName: fName,
               recipientLastName: lName,
@@ -312,34 +396,37 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
             });
           }
         }
-      });
-    }
-
-    // 3. From User Profile
-    const activeProfile = profileUser || user;
-    if (activeProfile && (activeProfile.street || activeProfile.city)) {
-      const street = activeProfile.street || '';
-      const phone = activeProfile.phone || '';
-      const key = `${street}_${phone}`.trim().toLowerCase();
-      if (key && !seenKeys.has(key)) {
-        seenKeys.add(key);
-        const nameParts = (activeProfile.name || '').trim().split(' ');
-        list.unshift({
-          id: 'profile_address',
-          label: `${activeProfile.name || 'My Profile'} - ${street}${activeProfile.district ? `, ${activeProfile.district}` : ''} (${activeProfile.city || 'Jeddah'})`,
-          recipientFirstName: nameParts[0] || '',
-          recipientLastName: nameParts.slice(1).join(' ') || '',
-          recipientPhone: (activeProfile.phone || '').replace(/^\+966/, ''),
-          shippingAddress: street,
-          shippingAddressLink: '',
-          city: activeProfile.city || (locale === 'ar' ? 'جدة' : 'Jeddah'),
-          district: activeProfile.district || '',
-        });
       }
     }
 
-    return list;
-  }, [user, localAddresses, userOrders, profileUser, locale]);
+    // 3. From User Profile (if still under 5)
+    if (list.length < 5) {
+      const activeProfile = profileUser || user;
+      if (activeProfile && (activeProfile.street || activeProfile.city)) {
+        const street = activeProfile.street || '';
+        const phone = activeProfile.phone || '';
+        const key = `${street}_${phone}`.trim().toLowerCase();
+        if (key && !seenKeys.has(key) && !deletedSet.has(key) && !deletedSet.has('profile_address')) {
+          seenKeys.add(key);
+          const nameParts = (activeProfile.name || '').trim().split(' ');
+          list.push({
+            id: 'profile_address',
+            label: `${activeProfile.name || 'My Profile'} - ${street}${activeProfile.district ? `, ${activeProfile.district}` : ''} (${activeProfile.city || 'Jeddah'})`,
+            recipientFirstName: nameParts[0] || '',
+            recipientLastName: nameParts.slice(1).join(' ') || '',
+            recipientPhone: (activeProfile.phone || '').replace(/^\+966/, ''),
+            shippingAddress: street,
+            shippingAddressLink: '',
+            city: activeProfile.city || (locale === 'ar' ? 'جدة' : 'Jeddah'),
+            district: activeProfile.district || '',
+          });
+        }
+      }
+    }
+
+    // Keep MAX 5 most recent addresses
+    return list.slice(0, 5);
+  }, [user, localAddresses, userOrders, profileUser, deletedAddressKeys, locale]);
 
   // Handler for selecting an address from the saved addresses dropdown
   const handleSelectSavedAddress = (addressId: string) => {
@@ -365,7 +452,36 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     }
   };
 
-  // Helper to persist address into user saved list
+  // Handler to remove a saved address with the cross icon
+  const handleRemoveSavedAddress = (addrToRemove: SavedAddressOption) => {
+    if (!user) return;
+    const key = `${addrToRemove.shippingAddress || ''}_${addrToRemove.recipientPhone || ''}`.trim().toLowerCase();
+
+    // 1. Add to deleted keys
+    const newDeletedKeys = [...deletedAddressKeys, key, addrToRemove.id];
+    setDeletedAddressKeys(newDeletedKeys);
+    try {
+      localStorage.setItem(`grass_deleted_address_keys_${user.id}`, JSON.stringify(newDeletedKeys));
+    } catch {}
+
+    // 2. Filter out from localAddresses
+    const updatedLocal = localAddresses.filter(
+      (a) =>
+        a.id !== addrToRemove.id &&
+        `${a.shippingAddress || ''}_${a.recipientPhone || ''}`.trim().toLowerCase() !== key
+    );
+    setLocalAddresses(updatedLocal);
+    try {
+      localStorage.setItem(`grass_saved_addresses_${user.id}`, JSON.stringify(updatedLocal));
+    } catch {}
+
+    // 3. Clear selected if this one was selected
+    if (selectedSavedAddress === addrToRemove.id) {
+      setSelectedSavedAddress('');
+    }
+  };
+
+  // Helper to persist address into user saved list (MAX 5 RECENT: automatically drops the oldest)
   const saveAddressForUser = (addrData: {
     recipientFirstName: string;
     recipientLastName: string;
@@ -406,10 +522,11 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
           `${addrData.shippingAddress}_${addrData.recipientPhone}`.trim().toLowerCase()
       );
 
-      deduped.unshift(newOption);
-      localStorage.setItem(storageKey, JSON.stringify(deduped));
+      // Prepend newest and slice to MAX 5: 5 se zyada hote hi last wala delete ho jayega
+      const max5 = [newOption, ...deduped].slice(0, 5);
+      localStorage.setItem(storageKey, JSON.stringify(max5));
 
-      setLocalAddresses(deduped);
+      setLocalAddresses(max5);
     } catch {
       // Ignore errors
     }
@@ -417,7 +534,19 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
   // Delivery Scheduling
   const [deliveryDate, setDeliveryDate] = useState(saudiToday);
-  const [deliveryTimeSlot, setDeliveryTimeSlot] = useState<string>('afternoon');
+  const [deliveryTimeSlot, setDeliveryTimeSlot] = useState<string>('');
+
+  const handleDateChange = (newDate: string) => {
+    if (newDate === deliveryDate) return;
+    setDeliveryDate(newDate);
+    setDeliveryTimeSlot('');
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.deliveryDate;
+      delete next.deliveryTimeSlot;
+      return next;
+    });
+  };
 
   // Gift & Card Fields
   const [senderNameOnCard, setSenderNameOnCard] = useState('');
@@ -427,7 +556,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   // Order Options & Terms
   const [promoInput, setPromoInput] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'mada' | 'credit_card' | 'stc_pay' | 'tabby' | 'tamara' | 'paypal' | 'cod'>('mada');
-  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
   // Draft Order Session Persistence (reuses same order ID across switches & refreshes)
   const [draftOrderNumber, setDraftOrderNumber] = useState<string | null>(null);
@@ -445,6 +574,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     message: string;
   } | null>(null);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
+  const [redirectingGateway, setRedirectingGateway] = useState<string | null>(null);
 
   // Errors state
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -463,6 +594,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const blockedInfo = slotsResponse?.blocked_info;
   const [initiatePayment] = useInitiatePaymentMutation();
   const [verifyPayment] = useVerifyPaymentMutation();
+  const hasVerifiedPaymentRef = useRef(false);
 
   // 🔁 Detect gateway redirects / cancel / verification on page mount
   useEffect(() => {
@@ -473,6 +605,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     const isFailed = params.get('failed') === '1';
     const gateway = params.get('gateway') || 'hyperpay';
     const hyperpayId = params.get('id');
+    const token = params.get('token');
+    const isPaymentReturn = Boolean(hyperpayId || token || params.get('payment_success') === '1' || params.get('PayerID'));
 
     if (orderNum) {
       setDraftOrderNumber(orderNum);
@@ -481,6 +615,33 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       const savedDraft = sessionStorage.getItem('grass_draft_order_number');
       if (savedDraft) setDraftOrderNumber(savedDraft);
     }
+
+    try {
+      const savedFormRaw = sessionStorage.getItem('grass_checkout_form_state');
+      if (savedFormRaw) {
+        const savedForm = JSON.parse(savedFormRaw);
+        if (savedForm.senderFirstName) setSenderFirstName(savedForm.senderFirstName);
+        if (savedForm.senderLastName) setSenderLastName(savedForm.senderLastName);
+        if (savedForm.senderEmail) setSenderEmail(savedForm.senderEmail);
+        if (savedForm.senderPhone) setSenderPhone(savedForm.senderPhone);
+        if (savedForm.senderCountryCode) setSenderCountryCode(savedForm.senderCountryCode);
+        if (savedForm.recipientFirstName) setRecipientFirstName(savedForm.recipientFirstName);
+        if (savedForm.recipientLastName) setRecipientLastName(savedForm.recipientLastName);
+        if (savedForm.recipientPhone) setRecipientPhone(savedForm.recipientPhone);
+        if (savedForm.recipientCountryCode) setRecipientCountryCode(savedForm.recipientCountryCode);
+        if (savedForm.shippingAddress) setShippingAddress(savedForm.shippingAddress);
+        if (savedForm.shippingAddressLink) setShippingAddressLink(savedForm.shippingAddressLink);
+        if (savedForm.district) setDistrict(savedForm.district);
+        if (savedForm.latitude !== undefined) setLatitude(savedForm.latitude);
+        if (savedForm.longitude !== undefined) setLongitude(savedForm.longitude);
+        if (savedForm.deliveryDate) setDeliveryDate(savedForm.deliveryDate);
+        if (savedForm.deliveryTimeSlot) setDeliveryTimeSlot(savedForm.deliveryTimeSlot);
+        if (savedForm.senderNameOnCard) setSenderNameOnCard(savedForm.senderNameOnCard);
+        if (savedForm.cardMessage) setCardMessage(savedForm.cardMessage);
+        if (savedForm.songLink) setSongLink(savedForm.songLink);
+        if (savedForm.paymentMethod) setPaymentMethod(savedForm.paymentMethod);
+      }
+    } catch {}
 
     if (isCancelled) {
       setPaymentNotification({
@@ -502,56 +663,97 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       return;
     }
 
-    if (orderNum || hyperpayId) {
+    if ((orderNum || hyperpayId || token) && isPaymentReturn) {
+      if (hasVerifiedPaymentRef.current) return;
+      hasVerifiedPaymentRef.current = true;
+
       setIsVerifyingPayment(true);
+
+      // Safety timeout: 25 seconds safety guard
+      const verificationTimeout = setTimeout(() => {
+        setIsVerifyingPayment(false);
+      }, 25000);
+
+      const cleanReturnUrl = () => {
+        if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      };
+
+      const resourcePath = params.get('resourcePath') || undefined;
+      const brand = params.get('brand') || undefined;
+
       verifyPayment({
-        orderId: orderNum || hyperpayId!,
+        orderId: orderNum || hyperpayId || token!,
         gateway,
-        referenceId: hyperpayId || undefined,
+        referenceId: hyperpayId || token || undefined,
+        resourcePath,
+        brand,
       })
         .unwrap()
         .then((res: any) => {
+          clearTimeout(verificationTimeout);
           setIsVerifyingPayment(false);
+          cleanReturnUrl();
+
           const isPaid = Boolean(res?.verification?.is_paid || res?.payment_status === 'paid');
           if (isPaid) {
             dispatch(clearCart());
             sessionStorage.removeItem('grass_draft_order_number');
+            sessionStorage.removeItem('grass_checkout_form_state');
+            const o = res.order;
+            const sFirst = o?.first_name || (o?.sender_name ? o.sender_name.split(' ')[0] : '') || senderFirstName || user?.firstName || (user?.name ? user.name.split(' ')[0] : '');
+            const sLast = o?.last_name || (o?.sender_name ? o.sender_name.split(' ').slice(1).join(' ') : '') || senderLastName || user?.lastName || (user?.name ? user.name.split(' ').slice(1).join(' ') : '');
+            const rName = o?.recipient_name || recipientName || `${recipientFirstName} ${recipientLastName}`.trim() || `${sFirst} ${sLast}`.trim() || 'Valued Customer';
+            const rStreet = o?.address || shippingAddress || '';
+            const rCity = o?.city || city || 'Jeddah';
+            const rDistrict = o?.district || district || '';
+            const rPhone = o?.recipient_phone || (recipientPhone ? `${recipientCountryCode}${recipientPhone.replace(/^0+/, '')}` : (o?.customer_phone || ''));
+
             setConfirmedOrder({
-              orderNumber: res.order_number || orderNum || 'ORD-COMPLETED',
-              createdAt: new Date().toISOString(),
+              orderNumber: res.order_number || o?.order_number || orderNum || 'ORD-COMPLETED',
+              createdAt: o?.created_at || new Date().toISOString(),
               status: 'confirmed',
-              items: cartItems,
+              items: cartItems.length > 0 ? cartItems : (o?.items || []),
+              sender: {
+                firstName: sFirst,
+                lastName: sLast,
+                phone: o?.customer_phone || (senderPhone ? `${senderCountryCode}${senderPhone}` : ''),
+                email: o?.email || senderEmail || user?.email || '',
+              },
               recipient: {
                 type: 'gift',
-                name: (recipientName || `${recipientFirstName} ${recipientLastName}`.trim()) || 'Valued Customer',
-                firstName: recipientFirstName,
-                lastName: recipientLastName,
-                phone: `${recipientCountryCode}${recipientPhone.replace(/^0+/, '')}`,
-                city,
-                district,
-                street: shippingAddress,
+                name: rName,
+                firstName: recipientFirstName || (rName ? rName.split(' ')[0] : ''),
+                lastName: recipientLastName || (rName ? rName.split(' ').slice(1).join(' ') : ''),
+                phone: rPhone,
+                city: rCity,
+                district: rDistrict,
+                street: rStreet,
               },
               delivery: {
-                date: deliveryDate,
-                timeSlot: deliveryTimeSlot as any,
+                date: o?.delivery_date || deliveryDate,
+                timeSlot: (o?.delivery_time || deliveryTimeSlot) as any,
               },
-              paymentMethod: (gateway as any) || 'online',
-              subtotal,
-              vat,
-              shippingFee,
-              discount,
-              total: res?.verification?.amount || total,
+              paymentMethod: (o?.payment_method || gateway || 'online') as any,
+              subtotal: Number(o?.subtotal || subtotal),
+              vat: Number(o?.tax_amount || vat),
+              shippingFee: Number(o?.shipping_amount || shippingFee),
+              discount: Number(o?.discount_amount || discount),
+              total: Number(res?.sar_amount || res?.total_amount || o?.total_amount || total),
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else {
             setPaymentNotification({
               type: 'error',
-              message: res?.verification?.result_description || (locale === 'ar' ? 'لم تكتمل عملية الدفع بنجاح. يرجى المحاولة مرة أخرى.' : 'Payment was not completed. Please try again.'),
+              message: res?.verification?.result_description || res?.verification?.message || (locale === 'ar' ? 'لم تكتمل عملية الدفع بنجاح. يرجى المحاولة مرة أخرى.' : 'Payment was not completed. Please try again.'),
             });
           }
         })
         .catch((err: any) => {
+          clearTimeout(verificationTimeout);
           setIsVerifyingPayment(false);
+          cleanReturnUrl();
           setPaymentNotification({
             type: 'error',
             message: err?.data?.message || (locale === 'ar' ? 'تعذر التحقق من الدفع، يرجى المحاولة لاحقاً.' : 'Could not verify payment status. Please try again.'),
@@ -560,20 +762,72 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     }
   }, []);
 
-  // Ensure a valid slot is selected when slots data loads or changes
+  // Clear slot selection if selected slot becomes unavailable or date is blocked
   useEffect(() => {
-    if (rawSlots && rawSlots.length > 0) {
+    if (isDateBlocked) {
+      setDeliveryTimeSlot('');
+    } else if (rawSlots && rawSlots.length > 0 && deliveryTimeSlot) {
       const isCurrentSlotValid = rawSlots.some(
         (s) => String(s.code || s.start_time || s.id) === deliveryTimeSlot && s.is_available
       );
       if (!isCurrentSlotValid) {
-        const firstAvailable = rawSlots.find((s) => s.is_available);
-        if (firstAvailable) {
-          setDeliveryTimeSlot(String(firstAvailable.code || firstAvailable.start_time || firstAvailable.id));
-        }
+        setDeliveryTimeSlot('');
       }
     }
-  }, [rawSlots]);
+  }, [rawSlots, isDateBlocked, deliveryTimeSlot]);
+
+  // Autosave checkout form fields to sessionStorage so inputs are preserved on gateway redirect, refresh, or back navigation
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const formToSave = {
+      senderFirstName,
+      senderLastName,
+      senderEmail,
+      senderPhone,
+      senderCountryCode,
+      senderCountry,
+      recipientFirstName,
+      recipientLastName,
+      recipientPhone,
+      recipientCountryCode,
+      shippingAddress,
+      shippingAddressLink,
+      district,
+      latitude,
+      longitude,
+      deliveryDate,
+      deliveryTimeSlot,
+      senderNameOnCard,
+      cardMessage,
+      songLink,
+      paymentMethod,
+    };
+    try {
+      sessionStorage.setItem('grass_checkout_form_state', JSON.stringify(formToSave));
+    } catch {}
+  }, [
+    senderFirstName,
+    senderLastName,
+    senderEmail,
+    senderPhone,
+    senderCountryCode,
+    senderCountry,
+    recipientFirstName,
+    recipientLastName,
+    recipientPhone,
+    recipientCountryCode,
+    shippingAddress,
+    shippingAddressLink,
+    district,
+    latitude,
+    longitude,
+    deliveryDate,
+    deliveryTimeSlot,
+    senderNameOnCard,
+    cardMessage,
+    songLink,
+    paymentMethod,
+  ]);
 
   // Handle map selection
   const handleMapLocationSelect = (data: {
@@ -593,27 +847,38 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   };
 
   // Quantity helpers
-  const handleUpdateQty = (cartItemId: string, productId: string | number, newQty: number, currentQty: number) => {
-    if (newQty <= 0) {
-      handleRemoveItem(cartItemId, productId);
-      return;
-    }
-    dispatch(updateQuantity({ cartItemId, quantity: newQty }));
-    const quantityChange: 1 | -1 = newQty > currentQty ? 1 : -1;
-    updateServerCartQuantity({ productId, quantityChange }).unwrap().catch(() => { });
+  const handleUpdateQty = (cartItemId: string, productId: string | number, newQty: number, _currentQty: number) => {
+    if (newQty < 1) return;
+    updateCartActionQty(productId, newQty, cartItemId);
   };
 
   const handleRemoveItem = (cartItemId: string, productId: string | number) => {
-    dispatch(removeItem(cartItemId));
-    removeServerCartItem({ productId }).unwrap().catch(() => { });
+    removeCartActionItem(productId, cartItemId);
   };
 
   // Coupon helper
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!promoInput.trim()) return;
-    dispatch(applyCoupon(promoInput.trim()));
-    setPromoInput('');
+    const code = promoInput.trim();
+    if (!code) return;
+    setCouponErrorMessage(null);
+    try {
+      const res = await applyServerCoupon({ code, subtotal }).unwrap();
+      dispatch(
+        setAppliedCoupon({
+          code: res.code || code,
+          type: res.type,
+          value: Number(res.value),
+          maxDiscountAmount: Number(res.max_discount_amount || 0),
+        })
+      );
+      setPromoInput('');
+    } catch (err: any) {
+      setCouponErrorMessage(
+        err?.data?.message ||
+        (locale === 'ar' ? 'رمز القسيمة غير صالح أو منتهي الصلاحية' : 'Invalid or expired coupon code')
+      );
+    }
   };
 
   // Validate inputs
@@ -639,6 +904,10 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       errs.deliveryDate = locale === 'ar'
         ? 'عذراً، التوصيل غير متاح في هذا التاريخ. يرجى اختيار تاريخ آخر.'
         : 'Sorry, delivery is unavailable on this date. Please pick another date.';
+    } else if (!deliveryTimeSlot || !deliveryTimeSlot.trim()) {
+      errs.deliveryTimeSlot = locale === 'ar'
+        ? 'يرجى اختيار وقت التوصيل للمتابعة'
+        : 'Please select a delivery time slot to proceed';
     }
 
     if (!agreeTerms) {
@@ -655,9 +924,24 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
+      const hasDeliveryError = !deliveryTimeSlot || isDateBlocked;
+      const customerFieldsFilled = senderFirstName.trim() && senderLastName.trim() && senderPhone.trim() && shippingAddress.trim() && recipientFirstName.trim() && recipientLastName.trim() && recipientPhone.trim();
+      if (customerFieldsFilled && hasDeliveryError) {
+        const deliveryEl = document.getElementById('delivery-section');
+        if (deliveryEl) {
+          deliveryEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
       window.scrollTo({ top: 100, behavior: 'smooth' });
       return;
     }
+
+    if (isSubmittingOrder || Boolean(redirectingGateway)) {
+      return;
+    }
+
+    setIsSubmittingOrder(true);
 
     try {
       const recipientFullName = `${recipientFirstName} ${recipientLastName}`.trim();
@@ -701,6 +985,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
         subtotal,
         vat,
         shippingFee,
+        shipping_method: activeShippingMethod?.code || 'inside_jeddah',
+        shipping_amount: shippingFee,
         discount,
         total,
         couponCode: couponCode || undefined,
@@ -739,10 +1025,25 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
         });
       }
 
-      // If Cash on Delivery (COD), finalize order immediately
-      if (paymentMethod === 'cod') {
+      // 🛑 If backend indicates order was ALREADY PAID, immediately show confirmation screen
+      if (result.alreadyPaid || (result as any).already_paid || (result as any).payment_status === 'paid') {
+        setIsSubmittingOrder(false);
+        setRedirectingGateway(null);
         dispatch(clearCart());
         sessionStorage.removeItem('grass_draft_order_number');
+        sessionStorage.removeItem('grass_checkout_form_state');
+        setConfirmedOrder(result);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      // If Cash on Delivery (COD), finalize order immediately
+      if (paymentMethod === 'cod') {
+        setIsSubmittingOrder(false);
+        setRedirectingGateway(null);
+        dispatch(clearCart());
+        sessionStorage.removeItem('grass_draft_order_number');
+        sessionStorage.removeItem('grass_checkout_form_state');
         setConfirmedOrder(result);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
@@ -770,13 +1071,28 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
         payment_brand: brand,
       } as any).unwrap();
 
+      // 🛑 If initiate response indicates order was already paid
+      if (initRes.already_paid || (initRes as any).payment_status === 'paid') {
+        setIsSubmittingOrder(false);
+        setRedirectingGateway(null);
+        dispatch(clearCart());
+        sessionStorage.removeItem('grass_draft_order_number');
+        sessionStorage.removeItem('grass_checkout_form_state');
+        setConfirmedOrder(result);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
       if (initRes.redirect_url) {
-        // Tabby, Tamara, PayPal: redirect to gateway checkout page
-        window.location.href = initRes.redirect_url;
+        // Tabby, Tamara, PayPal: show redirecting state and navigate immediately
+        setRedirectingGateway(paymentMethod);
+        window.location.assign(initRes.redirect_url);
         return;
       }
 
       if (initRes.checkout_id && initRes.script_url) {
+        setIsSubmittingOrder(false);
+        setRedirectingGateway(null);
         // HyperPay: open interactive secure widget modal
         setHyperpayWidget({
           checkoutId: initRes.checkout_id,
@@ -787,6 +1103,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
         return;
       }
 
+      setIsSubmittingOrder(false);
+      setRedirectingGateway(null);
       if (initRes.success === false) {
         setPaymentNotification({
           type: 'error',
@@ -794,6 +1112,15 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
         });
       }
     } catch (err: any) {
+      setIsSubmittingOrder(false);
+      setRedirectingGateway(null);
+
+      // If draft order has expired or was cancelled, clear draft session so next submit creates fresh order
+      if (err?.data?.is_cancelled || err?.data?.message?.includes('expired') || err?.data?.message?.includes('cancelled')) {
+        setDraftOrderNumber(null);
+        sessionStorage.removeItem('grass_draft_order_number');
+      }
+
       setPaymentNotification({
         type: 'error',
         message:
@@ -831,17 +1158,23 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
             <div className="flex justify-between text-xs">
               <span className="text-gray-500">{locale === 'ar' ? 'المرسل:' : 'Sender:'}</span>
               <span className="font-semibold text-gray-900">
-                {confirmedOrder.sender?.firstName} {confirmedOrder.sender?.lastName}
+                {`${confirmedOrder.sender?.firstName || ''} ${confirmedOrder.sender?.lastName || ''}`.trim() ||
+                  (confirmedOrder as any).sender_name ||
+                  user?.name ||
+                  (locale === 'ar' ? 'عميل غراس' : 'Valued Customer')}
               </span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-gray-500">{locale === 'ar' ? 'المستلم:' : 'Recipient:'}</span>
-              <span className="font-semibold text-gray-900">{confirmedOrder.recipient.name}</span>
+              <span className="font-semibold text-gray-900">
+                {confirmedOrder.recipient.name || (locale === 'ar' ? 'عميل غراس' : 'Valued Customer')}
+              </span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-gray-500">{dict.checkout.deliveryCity}:</span>
               <span className="font-semibold text-gray-900">
-                {confirmedOrder.recipient.city} - {confirmedOrder.recipient.street}
+                {confirmedOrder.recipient.city}
+                {confirmedOrder.recipient.street ? ` - ${confirmedOrder.recipient.street}` : ''}
               </span>
             </div>
             <div className="flex justify-between text-xs">
@@ -891,15 +1224,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
           </nav>
         </div>
 
-        {/* Payment Verification / Notification Banners */}
-        {isVerifyingPayment && (
-          <div className="mb-6 p-4 rounded-xl border bg-blue-50 border-blue-200 text-blue-900 flex items-center gap-3 animate-pulse">
-            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0" />
-            <span className="text-xs font-bold">
-              {locale === 'ar' ? 'جارٍ التحقق من حالة الدفع وتأكيد طلبك...' : 'Verifying payment status and confirming your order...'}
-            </span>
-          </div>
-        )}
+
 
         {paymentNotification && (
           <div className={`mb-6 p-4 rounded-xl border flex items-start justify-between gap-3 ${paymentNotification.type === 'warning'
@@ -1057,28 +1382,117 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   </div>
                 </div>
 
-                {/* Previously Used Address Select Dropdown */}
-                {user && (
-                  <div>
-                    <label className="text-xs font-semibold text-gray-700 block mb-1.5">
-                      {locale === 'ar'
-                        ? 'يمكنك اختيار أحد العناوين المحفوظة مسبقاً:'
-                        : 'You can select one of the previously used addresses using the list below:'}
-                    </label>
-                    <select
-                      value={selectedSavedAddress}
-                      onChange={(e) => handleSelectSavedAddress(e.target.value)}
-                      className="w-full h-11 px-3 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#8fae2a] text-gray-700 font-medium"
+                {/* Previously Used Address Custom Dropdown */}
+                {user && savedAddresses.length > 0 && (
+                  <div ref={addressDropdownRef} className="relative">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-semibold text-gray-700">
+                        {locale === 'ar'
+                          ? 'يمكنك اختيار أحد العناوين المحفوظة مسبقاً:'
+                          : 'You can select one of the previously used addresses using the list below:'}
+                      </label>
+                      <span className="text-[10.5px] font-bold text-[#546e3a] bg-[#8fae2a]/15 px-2 py-0.5 rounded-full border border-[#8fae2a]/30">
+                        {savedAddresses.length}/5
+                      </span>
+                    </div>
+
+                    {/* Custom Dropdown Trigger */}
+                    <button
+                      type="button"
+                      onClick={() => setIsAddressDropdownOpen((prev) => !prev)}
+                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-xl flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-2xs ${
+                        isAddressDropdownOpen
+                          ? 'border-[#8fae2a] ring-2 ring-[#8fae2a]/20 text-gray-900 font-semibold'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700 font-medium'
+                      }`}
                     >
-                      <option value="">
-                        {locale === 'ar' ? 'اختر من العناوين المحفوظة...' : 'Select from Addresses...'}
-                      </option>
-                      {savedAddresses.map((addr) => (
-                        <option key={addr.id} value={addr.id}>
-                          {addr.label}
-                        </option>
-                      ))}
-                    </select>
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <MapPin className="w-4 h-4 text-[#546e3a] shrink-0" />
+                        <span className="truncate block text-start">
+                          {savedAddresses.find((a) => a.id === selectedSavedAddress)?.label ||
+                            (locale === 'ar'
+                              ? 'اختر من العناوين المحفوظة...'
+                              : 'Select from Addresses...')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0 text-gray-400">
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform duration-200 ${
+                            isAddressDropdownOpen ? 'rotate-180 text-[#546e3a]' : ''
+                          }`}
+                        />
+                      </div>
+                    </button>
+
+                    {/* Custom Dropdown Menu List */}
+                    {isAddressDropdownOpen && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden divide-y divide-gray-100 max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+                        {/* Clear / Default Option */}
+                        <div
+                          onClick={() => {
+                            handleSelectSavedAddress('');
+                            setIsAddressDropdownOpen(false);
+                          }}
+                          className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between transition-colors ${
+                            !selectedSavedAddress
+                              ? 'bg-[#8fae2a]/10 text-[#546e3a] font-bold'
+                              : 'hover:bg-gray-50 text-gray-500'
+                          }`}
+                        >
+                          <span className="italic">
+                            {locale === 'ar' ? 'اختر من العناوين المحفوظة...' : 'Select from Addresses...'}
+                          </span>
+                          {!selectedSavedAddress && <CheckCircle2 className="w-4 h-4 text-[#546e3a]" />}
+                        </div>
+
+                        {savedAddresses.map((addr) => {
+                          const isSelected = selectedSavedAddress === addr.id;
+                          return (
+                            <div
+                              key={addr.id}
+                              onClick={() => {
+                                handleSelectSavedAddress(addr.id);
+                                setIsAddressDropdownOpen(false);
+                              }}
+                              className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between gap-3 group transition-colors ${
+                                isSelected
+                                  ? 'bg-[#8fae2a]/10 text-gray-900 font-bold'
+                                  : 'hover:bg-gray-50 text-gray-700'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                <MapPin
+                                  className={`w-4 h-4 shrink-0 ${
+                                    isSelected ? 'text-[#546e3a]' : 'text-gray-400 group-hover:text-gray-600'
+                                  }`}
+                                />
+                                <span className="truncate block leading-snug">
+                                  {addr.label}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 shrink-0">
+                                {isSelected && (
+                                  <CheckCircle2 className="w-4 h-4 text-[#546e3a]" />
+                                )}
+                                {/* Delete / Cross Icon Button */}
+                                <button
+                                  type="button"
+                                  title={locale === 'ar' ? 'حذف العنوان' : 'Remove address'}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveSavedAddress(addr);
+                                  }}
+                                  className="w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 active:scale-95 transition-all cursor-pointer"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1231,7 +1645,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   </div>
 
                   {/* Delivery Date & Time (calculated by backend operating timezone) */}
-                  <div className="p-4 sm:p-5 bg-gray-50/90 rounded-2xl border border-gray-200/90 space-y-5 shadow-2xs">
+                  <div id="delivery-section" className="p-4 sm:p-5 bg-gray-50/90 rounded-2xl border border-gray-200/90 space-y-5 shadow-2xs">
                     {/* Improved Delivery Date Picker */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -1250,7 +1664,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                             <button
                               key={chip.dateStr}
                               type="button"
-                              onClick={() => setDeliveryDate(chip.dateStr)}
+                              onClick={() => handleDateChange(chip.dateStr)}
                               className={`py-2 px-2 rounded-xl border text-center transition-all cursor-pointer ${isSelected
                                 ? 'border-[#8fae2a] bg-[#8fae2a]/15 text-gray-900 shadow-xs font-bold ring-2 ring-[#8fae2a]/30'
                                 : 'border-gray-200 bg-white hover:bg-gray-50/80 hover:border-gray-300 text-gray-700'
@@ -1268,7 +1682,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       {/* Custom Delivery Date Picker (Full-row clickable with modern popup) */}
                       <DeliveryDatePicker
                         value={deliveryDate}
-                        onChange={(newDate) => setDeliveryDate(newDate)}
+                        onChange={(newDate) => handleDateChange(newDate)}
                         minDate={saudiToday}
                         locale={locale}
                         formatDisplayDate={formatDisplayDate}
@@ -1281,8 +1695,40 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       </div>
                     </div>
 
-                    {/* Blocked Date Alert */}
-                    {isDateBlocked && (
+                    {/* SKELETON LOADING STATE WHILE FETCHING SLOTS (Shows immediately on date change even if previous date was blocked) */}
+                    {isSlotsPending ? (
+                      <div className="space-y-2.5 pt-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                            <Clock className="w-4 h-4 text-[#546e3a]" />
+                            <span>{locale === 'ar' ? 'وقت التوصيل' : 'Delivery time'}</span>
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#546e3a] animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#546e3a] animate-ping" />
+                            <span>{locale === 'ar' ? 'جاري تحديث الفترات...' : 'Updating slots...'}</span>
+                          </span>
+                        </div>
+
+                        <div className="space-y-2.5 animate-pulse">
+                          {[1, 2].map((i) => (
+                            <div
+                              key={i}
+                              className="p-3.5 sm:p-4 rounded-xl border border-gray-200/90 bg-white/90 shadow-2xs flex items-center justify-between gap-3"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-gray-200 shrink-0" />
+                                <div className="w-40 h-4 bg-gray-200 rounded-md" />
+                              </div>
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-5 h-5 rounded-full bg-gray-200 shrink-0" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : isDateBlocked ? (
+                      /* Blocked Date Alert */
                       <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 space-y-1">
                         <div className="flex items-center gap-2 font-bold text-xs text-amber-800">
                           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
@@ -1298,10 +1744,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                             : (blockedInfo?.reason_en || blockedInfo?.reason || 'Deliveries unavailable on this selected date. Please pick another date.')}
                         </p>
                       </div>
-                    )}
-
-                    {/* Delivery Time Slot Section - only show when date is not full-day blocked */}
-                    {!isDateBlocked && (
+                    ) : (
+                      /* Delivery Time Slot Section */
                       <div className="space-y-2.5 pt-1">
                         <div className="flex items-center justify-between">
                           <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
@@ -1309,117 +1753,103 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                             <span>{locale === 'ar' ? 'وقت التوصيل' : 'Delivery time'}</span>
                             <span className="text-red-500">*</span>
                           </label>
-                          {isSlotsPending && (
-                            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#546e3a] animate-pulse">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#546e3a] animate-ping" />
-                              <span>{locale === 'ar' ? 'جاري تحديث الفترات...' : 'Updating slots...'}</span>
-                            </span>
-                          )}
                         </div>
 
-                        {/* SKELETON LOADING STATE WHILE FETCHING NEW DATE SLOTS */}
-                        {isSlotsPending ? (
-                          <div className="space-y-2.5 animate-pulse">
-                            {[1, 2].map((i) => (
+                        <div className="space-y-2.5">
+                          {(serverSlots && serverSlots.length > 0
+                            ? serverSlots.map((s) => {
+                              const key = String(s.code || s.start_time || s.id);
+                              const label = (
+                                locale === 'ar'
+                                  ? (s.title_ar || s.name_ar || s.start_time)
+                                  : (s.title_en || s.name_en || s.start_time)
+                              ) || 'Scheduled Delivery';
+                              return {
+                                code: key,
+                                label: String(label),
+                                isAvailable: Boolean(s.is_available),
+                                cutoffReason: s.cutoff_reason,
+                              };
+                            })
+                            : [
+                              { code: 'morning', label: '11:00 am to 06:00 pm', isAvailable: true, cutoffReason: null },
+                              { code: 'evening', label: '06:00 pm to 10:00 pm', isAvailable: true, cutoffReason: null },
+                            ]
+                          ).map((slot) => {
+                            const isSelected = deliveryTimeSlot === slot.code;
+                            const isAvailable = slot.isAvailable;
+                            const slotLabelLower = (slot.label || '').toLowerCase();
+                            const isMorning = slot.code.toLowerCase().includes('morning') || slotLabelLower.includes('11:00');
+                            const isEvening = slot.code.toLowerCase().includes('evening') || slotLabelLower.includes('06:00') || slotLabelLower.includes('18:00');
+                            const SlotIcon = isMorning ? Sunrise : isEvening ? Sunset : Clock;
+
+                            return (
                               <div
-                                key={i}
-                                className="p-3.5 sm:p-4 rounded-xl border border-gray-200/90 bg-white/90 shadow-2xs flex items-center justify-between gap-3"
+                                key={slot.code}
+                                onClick={() => {
+                                  if (isAvailable) {
+                                    setDeliveryTimeSlot(slot.code);
+                                    setErrors((prev) => {
+                                      const next = { ...prev };
+                                      delete next.deliveryTimeSlot;
+                                      return next;
+                                    });
+                                  }
+                                }}
+                                className={`p-3.5 sm:p-4 rounded-xl border text-xs transition-all duration-200 cursor-pointer select-none flex items-center justify-between gap-3 ${!isAvailable
+                                  ? 'opacity-40 cursor-not-allowed bg-gray-100/70 border-gray-200 text-gray-400'
+                                  : isSelected
+                                    ? 'bg-[#8fae2a]/10 border-[#8fae2a] shadow-xs ring-2 ring-[#8fae2a]/30 text-gray-900'
+                                    : 'bg-white hover:bg-gray-50/80 border-gray-200 hover:border-[#8fae2a]/50 text-gray-800'
+                                  }`}
                               >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-xl bg-gray-200 shrink-0" />
-                                  <div className="w-40 h-4 bg-gray-200 rounded-md" />
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div
+                                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${!isAvailable
+                                      ? 'bg-gray-200 text-gray-400'
+                                      : isSelected
+                                        ? 'bg-[#8fae2a] text-white shadow-xs'
+                                        : 'bg-gray-100 text-gray-600'
+                                      }`}
+                                  >
+                                    <SlotIcon className="w-4 h-4" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <span className={`block font-extrabold text-xs sm:text-sm tracking-tight truncate ${isSelected ? 'text-gray-900' : 'text-gray-800'}`}>
+                                      {slot.label}
+                                    </span>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2.5">
-                                  <div className="w-5 h-5 rounded-full bg-gray-200 shrink-0" />
+
+                                <div className="flex items-center gap-2.5 shrink-0">
+                                  {!isAvailable && (
+                                    <span className="inline-flex items-center gap-1 font-semibold text-[11px] text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200/60">
+                                      <Lock className="w-3 h-3" />
+                                      <span>{slot.cutoffReason || (locale === 'ar' ? 'انتهت فترة الحجز' : 'Closed')}</span>
+                                    </span>
+                                  )}
+
+                                  <div
+                                    className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${!isAvailable
+                                      ? 'border-gray-300 bg-gray-200'
+                                      : isSelected
+                                        ? 'border-[#8fae2a] bg-[#8fae2a] text-white shadow-xs'
+                                        : 'border-gray-300 bg-white'
+                                      }`}
+                                  >
+                                    {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                                  </div>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="space-y-2.5">
-                            {(serverSlots && serverSlots.length > 0
-                              ? serverSlots.map((s) => {
-                                const key = String(s.code || s.start_time || s.id);
-                                const label = (
-                                  locale === 'ar'
-                                    ? (s.title_ar || s.name_ar || s.start_time)
-                                    : (s.title_en || s.name_en || s.start_time)
-                                ) || 'Scheduled Delivery';
-                                return {
-                                  code: key,
-                                  label: String(label),
-                                  isAvailable: Boolean(s.is_available),
-                                  cutoffReason: s.cutoff_reason,
-                                };
-                              })
-                              : [
-                                { code: 'morning', label: '11:00 am to 06:00 pm', isAvailable: true, cutoffReason: null },
-                                { code: 'evening', label: '06:00 pm to 10:00 pm', isAvailable: true, cutoffReason: null },
-                              ]
-                            ).map((slot) => {
-                              const isSelected = deliveryTimeSlot === slot.code;
-                              const isAvailable = slot.isAvailable;
-                              const slotLabelLower = (slot.label || '').toLowerCase();
-                              const isMorning = slot.code.toLowerCase().includes('morning') || slotLabelLower.includes('11:00');
-                              const isEvening = slot.code.toLowerCase().includes('evening') || slotLabelLower.includes('06:00') || slotLabelLower.includes('18:00');
-                              const SlotIcon = isMorning ? Sunrise : isEvening ? Sunset : Clock;
+                            );
+                          })}
+                        </div>
 
-                              return (
-                                <div
-                                  key={slot.code}
-                                  onClick={() => {
-                                    if (isAvailable) {
-                                      setDeliveryTimeSlot(slot.code);
-                                    }
-                                  }}
-                                  className={`p-3.5 sm:p-4 rounded-xl border text-xs transition-all duration-200 cursor-pointer select-none flex items-center justify-between gap-3 ${!isAvailable
-                                    ? 'opacity-40 cursor-not-allowed bg-gray-100/70 border-gray-200 text-gray-400'
-                                    : isSelected
-                                      ? 'bg-[#8fae2a]/10 border-[#8fae2a] shadow-xs ring-2 ring-[#8fae2a]/30 text-gray-900'
-                                      : 'bg-white hover:bg-gray-50/80 border-gray-200 hover:border-[#8fae2a]/50 text-gray-800'
-                                    }`}
-                                >
-                                  <div className="flex items-center gap-3 min-w-0">
-                                    <div
-                                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${!isAvailable
-                                        ? 'bg-gray-200 text-gray-400'
-                                        : isSelected
-                                          ? 'bg-[#8fae2a] text-white shadow-xs'
-                                          : 'bg-gray-100 text-gray-600'
-                                        }`}
-                                    >
-                                      <SlotIcon className="w-4 h-4" />
-                                    </div>
-                                    <div className="min-w-0">
-                                      <span className={`block font-extrabold text-xs sm:text-sm tracking-tight truncate ${isSelected ? 'text-gray-900' : 'text-gray-800'}`}>
-                                        {slot.label}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center gap-2.5 shrink-0">
-                                    {!isAvailable && (
-                                      <span className="inline-flex items-center gap-1 font-semibold text-[11px] text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200/60">
-                                        <Lock className="w-3 h-3" />
-                                        <span>{slot.cutoffReason || (locale === 'ar' ? 'انتهت فترة الحجز' : 'Closed')}</span>
-                                      </span>
-                                    )}
-
-                                    <div
-                                      className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${!isAvailable
-                                        ? 'border-gray-300 bg-gray-200'
-                                        : isSelected
-                                          ? 'border-[#8fae2a] bg-[#8fae2a] text-white shadow-xs'
-                                          : 'border-gray-300 bg-white'
-                                        }`}
-                                    >
-                                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
+                        {errors.deliveryTimeSlot && (
+                          <p className="text-xs text-red-500 font-semibold pt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>{errors.deliveryTimeSlot}</span>
+                          </p>
                         )}
                       </div>
                     )}
@@ -1507,70 +1937,114 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                 </div>
 
                 {/* Cart Items List */}
-                <div className="divide-y divide-gray-100 max-h-72 overflow-y-auto pe-1">
-                  {cartItems.map((item) => (
-                    <div key={item.cartItemId} className="py-3 flex items-center gap-3">
-                      {/* Image */}
-                      <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-gray-200 bg-gray-50">
-                        <Image
-                          src={formatStorageUrl(item.product.thumbnail)}
-                          alt={getLocalizedProductName(item.product.name, locale)}
-                          fill
-                          sizes="56px"
-                          className="object-cover"
-                        />
-                      </div>
+                <div className="divide-y divide-gray-100 max-h-72 overflow-y-auto custom-scrollbar pe-1">
+                  {cartItems.map((item) => {
+                    const isRemoving = Boolean(removingItemIds?.[item.cartItemId] || removingItemIds?.[String(item.productId)]);
+                    const isUpdating = Boolean(updatingItemIds?.[item.cartItemId] || updatingItemIds?.[String(item.productId)]);
 
-                      {/* Details & Qty */}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-bold text-gray-800 truncate">
-                          {getLocalizedProductName(item.product.name, locale)}
-                        </h4>
+                    if (isRemoving) {
+                      return (
+                        <div key={item.cartItemId} className="py-3 flex items-center gap-3 opacity-60 animate-pulse select-none">
+                          <div className="w-14 h-14 rounded-lg bg-gray-200 shrink-0" />
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <span className="text-xs font-bold text-gray-400 line-through truncate block">
+                              {getLocalizedProductName(item.product.name, locale)}
+                            </span>
+                            <span className="text-[10px] font-bold text-rose-500">
+                              {locale === 'ar' ? 'جارٍ الحذف...' : 'Removing...'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
 
-                        <div className="flex items-center gap-2 mt-1.5">
-                          {/* Qty changer */}
-                          <div className="inline-flex items-center border border-gray-200 rounded-md bg-white">
+                    return (
+                      <div key={item.cartItemId} className={`py-3 flex items-center gap-3 transition-colors ${isUpdating ? 'opacity-80' : ''}`}>
+                        {/* Image */}
+                        <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-gray-200 bg-gray-50">
+                          <Image
+                            src={formatStorageUrl(item.product.thumbnail)}
+                            alt={getLocalizedProductName(item.product.name, locale)}
+                            fill
+                            sizes="56px"
+                            className="object-cover"
+                          />
+                        </div>
+
+                        {/* Details & Qty */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-bold text-gray-800 truncate">
+                            {getLocalizedProductName(item.product.name, locale)}
+                          </h4>
+
+                          <div className="flex items-center gap-2 mt-1.5">
+                            {/* Qty changer */}
+                            {(() => {
+                              const itemStock = item.product?.stock !== undefined ? item.product.stock : 99;
+                              const isMaxStockReached = itemStock > 0 && item.quantity >= itemStock;
+                              const isMinReached = item.quantity <= 1;
+
+                              return (
+                                <div className="inline-flex items-center border border-gray-200 rounded-md bg-white">
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating || isMinReached}
+                                    onClick={() => handleUpdateQty(item.cartItemId, item.productId, item.quantity - 1, item.quantity)}
+                                    className="px-1.5 py-0.5 text-gray-500 hover:text-black hover:bg-gray-100 text-xs disabled:opacity-25 disabled:pointer-events-none disabled:cursor-not-allowed transition-opacity"
+                                    aria-label="Decrease quantity"
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </button>
+                                  <span className="px-2 text-xs font-bold text-gray-800 tabular-nums select-none min-w-[20px] text-center">
+                                    {isUpdating ? (
+                                      <div className="w-2.5 h-2.5 border-2 border-[#435849] border-t-transparent rounded-full animate-spin inline-block align-middle" />
+                                    ) : (
+                                      item.quantity
+                                    )}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating || isMaxStockReached}
+                                    onClick={() => handleUpdateQty(item.cartItemId, item.productId, item.quantity + 1, item.quantity)}
+                                    className="px-1.5 py-0.5 text-gray-500 hover:text-black hover:bg-gray-100 text-xs disabled:opacity-25 disabled:pointer-events-none disabled:cursor-not-allowed transition-opacity"
+                                    aria-label="Increase quantity"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Delete X */}
                             <button
                               type="button"
-                              onClick={() => handleUpdateQty(item.cartItemId, item.productId, item.quantity - 1, item.quantity)}
-                              className="px-1.5 py-0.5 text-gray-500 hover:text-black hover:bg-gray-100 text-xs"
+                              disabled={isUpdating}
+                              onClick={() => handleRemoveItem(item.cartItemId, item.productId)}
+                              className="text-gray-400 hover:text-red-500 p-1 disabled:opacity-30 disabled:pointer-events-none"
+                              title="Remove"
                             >
-                              <Minus className="w-3 h-3" />
-                            </button>
-                            <span className="px-2 text-xs font-bold text-gray-800">{item.quantity}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateQty(item.cartItemId, item.productId, item.quantity + 1, item.quantity)}
-                              className="px-1.5 py-0.5 text-gray-500 hover:text-black hover:bg-gray-100 text-xs"
-                            >
-                              <Plus className="w-3 h-3" />
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
+                        </div>
 
-                          {/* Delete X */}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveItem(item.cartItemId, item.productId)}
-                            className="text-gray-400 hover:text-red-500 p-1"
-                            title="Remove"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                        {/* Item Total (both SAR & USD) */}
+                        <div dir="ltr" className="text-xs font-bold text-gray-900 shrink-0 text-end">
+                          {isUpdating ? (
+                            <div className="h-4 w-12 bg-gray-200 rounded animate-pulse ms-auto" />
+                          ) : (
+                            <div className="flex items-center gap-1 justify-end">
+                              <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
+                              <span>{item.itemTotal} SAR</span>
+                            </div>
+                          )}
+                          <div className="text-[10px] text-gray-500 font-medium">
+                            ${(item.itemTotal * sarToUsdRate).toFixed(2)} USD
+                          </div>
                         </div>
                       </div>
-
-                      {/* Item Total (both SAR & USD) */}
-                      <div dir="ltr" className="text-xs font-bold text-gray-900 shrink-0 text-end">
-                        <div className="flex items-center gap-1 justify-end">
-                          <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
-                          <span>{item.itemTotal} SAR</span>
-                        </div>
-                        <div className="text-[10px] text-gray-500 font-medium">
-                          ${(item.itemTotal * sarToUsdRate).toFixed(2)} USD
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Subtotals & Taxes */}
@@ -1605,7 +2079,13 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   )}
 
                   <div className="flex justify-between items-center">
-                    <span>{locale === 'ar' ? 'الشحن' : 'Shipment'}</span>
+                    <span>
+                      {activeShippingMethod
+                        ? (locale === 'ar'
+                          ? (activeShippingMethod.name_ar || activeShippingMethod.name)
+                          : (activeShippingMethod.name_en || activeShippingMethod.name))
+                        : (locale === 'ar' ? 'التوصيل داخل جدة' : 'Delivery Inside Jeddah')}
+                    </span>
                     <span className="font-semibold text-emerald-600">
                       {shippingFee === 0 ? (
                         locale === 'ar' ? 'توصيل مجاني' : 'Free Delivery'
@@ -1626,13 +2106,13 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   <div className="flex justify-between items-center">
                     <span>
                       {locale === 'ar'
-                        ? `ضريبة القيمة المضافة (${vatPercentage}%)`
-                        : `Saudi Arabia VAT (${vatPercentage}%)`}
+                        ? `ضريبة القيمة المضافة (${vatPercentage}%)${isVatIncluded ? ' (مشمولة بالأسعار)' : ''}`
+                        : `Saudi Arabia VAT (${vatPercentage}%)${isVatIncluded ? ' (Included in prices)' : ''}`}
                     </span>
                     <div dir="ltr" className="text-end">
                       <span className="font-semibold text-gray-900 flex items-center justify-end gap-1">
                         <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
-                        <span>{vat} SAR</span>
+                        <span>{Number(vat).toFixed(2)} SAR</span>
                       </span>
                       <span className="text-[10.5px] text-gray-500 block">
                         ${vatUsd} USD
@@ -1646,7 +2126,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       <span>{dict.cart.total} (SAR)</span>
                       <span dir="ltr" className="text-[#8fae2a] flex items-center gap-1 text-lg">
                         <CurrencySymbol className="w-4 h-4" forcedCurrency="SAR" />
-                        <span>{total} SAR</span>
+                        <span>{Number(total).toFixed(2)} SAR</span>
                       </span>
                     </div>
 
@@ -1665,24 +2145,39 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                     <input
                       type="text"
                       value={promoInput}
-                      onChange={(e) => setPromoInput(e.target.value)}
+                      onChange={(e) => {
+                        setPromoInput(e.target.value);
+                        if (couponErrorMessage) setCouponErrorMessage(null);
+                      }}
                       placeholder={locale === 'ar' ? 'رمز القسيمة' : 'Enter promo code'}
                       className="flex-1 h-10 px-3 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#8fae2a]"
                     />
                     <button
                       type="button"
+                      disabled={isApplyingCoupon}
                       onClick={handleApplyCoupon}
-                      className="px-4 h-10 bg-[#8fae2a] text-white text-xs font-bold rounded-lg hover:bg-[#7d9b23] transition-colors uppercase tracking-wider shrink-0 cursor-pointer"
+                      className="px-4 h-10 bg-[#8fae2a] text-white text-xs font-bold rounded-lg hover:bg-[#7d9b23] transition-colors uppercase tracking-wider shrink-0 cursor-pointer disabled:opacity-50"
                     >
-                      {locale === 'ar' ? 'تطبيق الكوبون' : 'APPLY COUPON'}
+                      {isApplyingCoupon
+                        ? (locale === 'ar' ? 'جاري التحقق...' : 'Checking...')
+                        : (locale === 'ar' ? 'تطبيق الكوبون' : 'APPLY COUPON')}
                     </button>
                   </div>
+                  {couponErrorMessage && (
+                    <p className="text-[11px] text-red-600 font-medium mt-1.5 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 inline shrink-0" />
+                      <span>{couponErrorMessage}</span>
+                    </p>
+                  )}
                   {couponCode && (
                     <div className="flex items-center justify-between text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg mt-2">
                       <span>✓ {couponCode} {locale === 'ar' ? 'مطبق' : 'applied'}</span>
                       <button
                         type="button"
-                        onClick={() => dispatch(removeCoupon())}
+                        onClick={() => {
+                          dispatch(removeCoupon());
+                          setCouponErrorMessage(null);
+                        }}
                         className="text-red-500 hover:underline font-bold"
                       >
                         {dict.cart.remove}
@@ -1903,14 +2398,47 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                     <input
                       type="checkbox"
                       checked={agreeTerms}
-                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      onChange={(e) => {
+                        setAgreeTerms(e.target.checked);
+                        if (e.target.checked) {
+                          setErrors((prev) => {
+                            const next = { ...prev };
+                            delete next.agreeTerms;
+                            return next;
+                          });
+                        }
+                      }}
                       className="mt-0.5 w-4 h-4 text-[#8fae2a] rounded border-gray-300 focus:ring-[#8fae2a]"
                     />
-                    <span className="leading-snug">
-                      {locale === 'ar'
-                        ? 'لقد قرأت ووافقت على الشروط والأحكام الخاصة بالموقع '
-                        : 'I have read and agree to the website terms and conditions '}
-                      <span className="text-red-500">*</span>
+                    <span className="leading-snug select-none">
+                      {locale === 'ar' ? (
+                        <>
+                          <span>لقد قرأت ووافقت على </span>
+                          <Link
+                            href="/terms-conditions"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-bold text-[#546e3a] underline underline-offset-2 hover:text-[#3d5128]"
+                          >
+                            الشروط والأحكام الخاصة بالموقع
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <span>I have read and agree to the website </span>
+                          <Link
+                            href="/en/terms-conditions"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-bold text-[#546e3a] underline underline-offset-2 hover:text-[#3d5128]"
+                          >
+                            terms and conditions
+                          </Link>
+                        </>
+                      )}
+                      <span className="text-red-500 font-bold ms-1">*</span>
                     </span>
                   </label>
                   {errors.agreeTerms && (
@@ -1921,17 +2449,31 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                 {/* Big Place Order Button matching WordPress style */}
                 <button
                   type="submit"
-                  disabled={isLoading || isDateBlocked}
-                  className={`w-full py-3.5 px-6 rounded-lg text-sm font-black uppercase tracking-wider text-white shadow-md transition-all cursor-pointer ${isLoading || isDateBlocked
-                    ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                  disabled={isLoading || isSubmittingOrder || Boolean(redirectingGateway) || isDateBlocked || isSlotsPending}
+                  className={`w-full py-3.5 px-6 rounded-lg text-sm font-black uppercase tracking-wider text-white shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 ${isLoading || isSubmittingOrder || Boolean(redirectingGateway) || isDateBlocked || isSlotsPending
+                    ? 'bg-gray-400 cursor-not-allowed opacity-75'
                     : 'bg-[#8fae2a] hover:bg-[#7d9b23] active:scale-[0.99]'
                     }`}
                 >
-                  {isLoading
-                    ? (locale === 'ar' ? 'جارٍ إتمام الطلب...' : 'PROCESSING ORDER...')
-                    : isDateBlocked
-                      ? (locale === 'ar' ? 'التوصيل غير متاح في هذا التاريخ' : 'DELIVERY UNAVAILABLE ON THIS DATE')
-                      : (locale === 'ar' ? 'إتمام الطلب' : 'PLACE ORDER')}
+                  {(isLoading || isSubmittingOrder || redirectingGateway) ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                      </svg>
+                      <span>
+                        {redirectingGateway
+                          ? (locale === 'ar' ? 'جارٍ التحويل إلى بوابة الدفع...' : 'REDIRECTING TO PAYMENT...')
+                          : (locale === 'ar' ? 'جارٍ إتمام الطلب...' : 'PROCESSING ORDER...')}
+                      </span>
+                    </>
+                  ) : isSlotsPending ? (
+                    locale === 'ar' ? 'جاري تحديث الفترات...' : 'UPDATING SLOTS...'
+                  ) : isDateBlocked ? (
+                    locale === 'ar' ? 'التوصيل غير متاح في هذا التاريخ' : 'DELIVERY UNAVAILABLE ON THIS DATE'
+                  ) : (
+                    locale === 'ar' ? 'إتمام الطلب' : 'PLACE ORDER'
+                  )}
                 </button>
               </div>
             </div>
@@ -1959,6 +2501,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
             brands={hyperpayWidget.brands}
             orderNumber={hyperpayWidget.orderNumber}
             amount={activeCurrency === 'USD' ? totalUsd : total}
+            sarAmount={total}
             currency={activeCurrency}
             locale={locale}
           />
@@ -1972,6 +2515,114 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
           currency={activeCurrency}
           locale={locale}
         />
+
+        {/* Smooth Processing & Payment Redirection Overlay */}
+        {(isSubmittingOrder || Boolean(redirectingGateway)) && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 rounded-2xl bg-[#8fae2a]/15 text-[#546e3a] flex items-center justify-center mx-auto mb-4 ring-8 ring-[#8fae2a]/10">
+                <svg
+                  className="animate-spin h-8 w-8 text-[#546e3a]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  />
+                </svg>
+              </div>
+
+              <h3 className="text-base sm:text-lg font-black text-gray-900 mb-2">
+                {redirectingGateway === 'paypal'
+                  ? (locale === 'ar' ? 'جارٍ تحويلك إلى PayPal...' : 'Redirecting to PayPal...')
+                  : redirectingGateway === 'tabby'
+                    ? (locale === 'ar' ? 'جارٍ تحويلك إلى تابي (Tabby)...' : 'Redirecting to Tabby...')
+                    : redirectingGateway === 'tamara'
+                      ? (locale === 'ar' ? 'جارٍ تحويلك إلى تمارا (Tamara)...' : 'Redirecting to Tamara...')
+                      : redirectingGateway
+                        ? (locale === 'ar' ? 'جارٍ تحويلك إلى بوابة الدفع...' : 'Redirecting to Payment Gateway...')
+                        : (locale === 'ar' ? 'جارٍ معالجة وتأكيد طلبك...' : 'Processing Your Order...')}
+              </h3>
+
+              <p className="text-xs text-gray-500 leading-relaxed">
+                {locale === 'ar'
+                  ? 'يرجى الانتظار بضع ثوانٍ، لا تقم بإغلاق الصفحة أو تحديثها لضمان إتمام العملية بنجاح.'
+                  : 'Please wait a moment, do not refresh or close this page to ensure your order completes securely.'}
+              </p>
+
+              <div className="mt-5 w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-[#8fae2a] h-full rounded-full animate-[pulse_1s_infinite] w-full" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 💳 Fullscreen Payment Verification Overlay (Blocks form interactions during gateway callback) */}
+        {isVerifyingPayment && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
+              <div className="w-20 h-20 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-5 ring-8 ring-emerald-500/10">
+                <ShieldCheck className="w-10 h-10 animate-pulse text-[#546e3a]" />
+              </div>
+
+              {(draftOrderNumber || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('order_number'))) && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-[11px] font-mono font-bold text-gray-700 mb-3">
+                  <span>{locale === 'ar' ? 'طلب رقم:' : 'Order:'}</span>
+                  <span className="text-[#546e3a]">
+                    {draftOrderNumber || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('order_number') : '')}
+                  </span>
+                </div>
+              )}
+
+              <h3 className="text-lg sm:text-xl font-black text-gray-900 mb-2">
+                {locale === 'ar'
+                  ? 'جارٍ التحقق من حالة الدفع وتأكيد طلبك...'
+                  : 'Verifying Payment & Confirming Order...'}
+              </h3>
+
+              <p className="text-xs sm:text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">
+                {locale === 'ar'
+                  ? 'يرجى الانتظار بضع ثوانٍ بينما نتحقق من استلام الدفعة من بوابة الدفع وتأكيد طلبك. لا تقم بإغلاق الصفحة.'
+                  : 'Please wait a moment while we securely verify your transaction with the payment gateway and confirm your order. Do not close this page.'}
+              </p>
+
+              <div className="mt-6 flex items-center justify-center gap-2 text-xs font-semibold text-[#546e3a]">
+                <div className="w-3.5 h-3.5 border-2 border-[#546e3a] border-t-transparent rounded-full animate-spin" />
+                <span>{locale === 'ar' ? 'تأكيد آمن ومشفر 256-Bit SSL' : '256-Bit SSL Encrypted Verification'}</span>
+              </div>
+
+              <div className="mt-5 w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-[#8fae2a] h-full rounded-full animate-[pulse_1s_infinite] w-full" />
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-gray-100 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsVerifyingPayment(false);
+                    if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+                      window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                  }}
+                  className="text-xs text-gray-400 hover:text-gray-700 underline cursor-pointer transition-colors"
+                >
+                  {locale === 'ar' ? 'إلغاء والعودة لصفحة الدفع' : 'Dismiss / Back to checkout'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

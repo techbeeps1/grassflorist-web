@@ -12,8 +12,7 @@ import { QuantitySelector } from '@/components/common/QuantitySelector';
 import { Product } from '@/types/product';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useGetProductBySlugQuery } from '@/store/api/productsApi';
-import { useAddToCartMutation } from '@/store/api/cartApi';
-import { addItem } from '@/store/slices/cartSlice';
+import { useCartActions } from '@/hooks/useCartActions';
 import { toggleWishlist, selectIsInWishlist } from '@/store/slices/wishlistSlice';
 import { setCartDrawerOpen } from '@/store/slices/uiSlice';
 import { formatPrice, calculateDiscount } from '@/lib/utils';
@@ -87,15 +86,15 @@ export function ProductDetailPageView({
   const displayName =
     locale === 'en'
       ? (!product.name?.en || /[\u0600-\u06FF]/.test(product.name.en)
-          ? translateArabicProductName(product.name?.ar || product.name?.en || '', product.slug?.en || slug)
-          : product.name.en)
+        ? translateArabicProductName(product.name?.ar || product.name?.en || '', product.slug?.en || slug)
+        : product.name.en)
       : (product.name?.ar || product.name?.en || '');
 
   const displayCategory =
     locale === 'en'
       ? (!product.category?.en || /[\u0600-\u06FF]/.test(product.category.en)
-          ? translateArabicCategoryName(product.category?.ar || product.category?.en || '', product.categorySlug)
-          : product.category.en)
+        ? translateArabicCategoryName(product.category?.ar || product.category?.en || '', product.categorySlug)
+        : product.category.en)
       : (product.category?.ar || product.category?.en || '');
 
   const rawShortDescription =
@@ -148,34 +147,21 @@ export function ProductDetailPageView({
     { label: displayName },
   ];
 
-  const [addServerCart] = useAddToCartMutation();
+  const { addToCart } = useCartActions();
 
-  const handleAddToCart = (directToCheckout = false) => {
+  const handleAddToCart = async (directToCheckout = false) => {
     if (directToCheckout) {
       setIsBuyingNow(true);
     } else {
       setIsAdding(true);
     }
-    const cartItemId = product.id;
 
-    dispatch(
-      addItem({
-        cartItemId,
-        productId: product.id,
-        product,
-        quantity,
-        itemTotal: totalItemPrice,
-      })
-    );
-
-    addServerCart({ productId: product.id, quantity }).unwrap().catch(() => {});
+    const success = await addToCart(product, quantity, { openDrawer: !directToCheckout });
 
     setIsAdding(false);
     setIsBuyingNow(false);
-    if (directToCheckout) {
+    if (directToCheckout && success) {
       router.push(locale === 'ar' ? '/checkout' : '/en/checkout');
-    } else {
-      dispatch(setCartDrawerOpen(true));
     }
   };
 
@@ -232,9 +218,7 @@ export function ProductDetailPageView({
                       symbolClassName="w-5 h-5 sm:w-6 sm:h-6"
                     />
                   </div>
-                  <span className="text-[11px] text-text-muted mt-0.5 block">
-                    {locale === 'ar' ? 'شامل ضريبة القيمة المضافة (15%)' : 'Inclusive of 15% VAT'}
-                  </span>
+
                 </div>
 
                 {discount && discount > 0 && (
@@ -310,11 +294,10 @@ export function ProductDetailPageView({
                   <button
                     type="button"
                     onClick={() => dispatch(toggleWishlist(product))}
-                    className={`min-h-[48px] sm:min-h-[52px] min-w-[48px] sm:min-w-[52px] p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center justify-center shrink-0 ${
-                      isInWishlist
+                    className={`min-h-[48px] sm:min-h-[52px] min-w-[48px] sm:min-w-[52px] p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center justify-center shrink-0 ${isInWishlist
                         ? 'border-rose-300 bg-rose-50 text-rose-600'
                         : 'border-[#DDD3C4] bg-white text-[#6B5E55] hover:text-rose-600 hover:border-rose-300 shadow-xs'
-                    }`}
+                      }`}
                     aria-label="Toggle wishlist"
                   >
                     <Heart className={`w-5 h-5 ${isInWishlist ? 'fill-rose-600' : ''}`} />

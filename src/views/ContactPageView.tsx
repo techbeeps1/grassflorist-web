@@ -72,7 +72,7 @@ export function ContactPageView({ locale, contactData }: ContactPageViewProps) {
   const mapLink = contactData?.map_link;
   const embedMapUrl = getEmbedMapUrl(
     mapLink ||
-      'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3710.4146632686343!2d39.1654242!3d21.5697313!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x15c3d06e1b07c1bf%3A0xc39c5f758fcadf2c!2zR1JBU1Mg2LrYsdin2LM!5e0!3m2!1sen!2sin!4v1791459138205!5m2!1sen!2sin'
+    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3710.4146632686343!2d39.1654242!3d21.5697313!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x15c3d06e1b07c1bf%3A0xc39c5f758fcadf2c!2zR1JBU1Mg2LrYsdin2LM!5e0!3m2!1sen!2sin!4v1791459138205!5m2!1sen!2sin'
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -306,16 +306,7 @@ export function ContactPageView({ locale, contactData }: ContactPageViewProps) {
                     <MapPin className="w-3.5 h-3.5 text-primary" />
                     <span>{cityName}</span>
                   </div>
-                  {mapLink && (
-                    <a
-                      href={mapLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] text-primary hover:underline font-semibold"
-                    >
-                      {locale === 'ar' ? 'عرض على الخريطة' : 'View on Map'}
-                    </a>
-                  )}
+
                 </div>
                 <p className="text-[11px] text-text-muted mt-1 ps-5.5">
                   {addressText}

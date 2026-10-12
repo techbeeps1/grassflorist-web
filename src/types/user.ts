@@ -1,6 +1,8 @@
 export interface User {
   id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   phone?: string;
   country?: string;
@@ -8,6 +10,8 @@ export interface User {
   city?: string;
   district?: string;
   street?: string;
+  emailVerified?: boolean;
+  emailVerifiedAt?: string | null;
   createdAt: string;
 }
 
@@ -44,6 +48,8 @@ export interface RegisterData {
 
 export interface UpdateProfileData {
   name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   phone?: string;
   country?: string;

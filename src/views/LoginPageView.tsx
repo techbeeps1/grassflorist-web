@@ -55,6 +55,7 @@ function LoginPageContent({ locale }: LoginPageViewProps) {
   const dispatch = useAppDispatch();
   const rawRedirect = searchParams.get('redirect');
   const redirectUrl = getLocalizedRedirectUrl(rawRedirect, locale);
+  const isSessionExpired = searchParams.get('session_expired') === '1';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -173,6 +174,23 @@ function LoginPageContent({ locale }: LoginPageViewProps) {
               : 'Welcome back to Grass Luxury Floral Boutique'}
           </p>
         </div>
+
+        {/* Session Expired Banner */}
+        {isSessionExpired && !errorMsg && (
+          <div className="p-3.5 sm:p-4 mb-6 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 text-xs sm:text-sm flex items-start gap-3 shadow-xs animate-in fade-in">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="font-bold">
+                {locale === 'ar' ? 'انتهت صلاحية الجلسة' : 'Session Expired'}
+              </p>
+              <p className="text-amber-800 text-xs sm:text-sm leading-relaxed">
+                {locale === 'ar'
+                  ? 'انتهت صلاحية جلستك لأسباب أمنية. يرجى تسجيل الدخول مجدداً للمتابعة.'
+                  : 'Your session has expired. Please log in again to continue.'}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Error Banner */}
         {errorMsg && (

@@ -90,20 +90,33 @@ export function CategoryFilters({
 
   const allProductsUrl = locale === 'ar' ? '/products' : '/en/products';
 
+  const hasPriceFilter = Boolean(
+    (typeof filters?.minPrice === 'number' && !isNaN(filters.minPrice)) ||
+    (typeof filters?.maxPrice === 'number' && !isNaN(filters.maxPrice))
+  );
+
+  const handleResetFilters = () => {
+    handlePriceChange(undefined, undefined);
+    onReset();
+  };
+
   return (
     <aside aria-label="Catalog Filters" className={cn('space-y-4 text-start select-none', className)}>
       {/* Header & Reset */}
-      <div className="flex items-center justify-between pb-3 border-b border-border">
+      <div className="flex items-center justify-between min-h-[1.75rem] pb-3 border-b border-border">
         <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">
           {dict.category.filters}
         </h3>
-        <button
-          onClick={onReset}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-primary transition-colors cursor-pointer"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>{dict.category.clearAll}</span>
-        </button>
+        {hasPriceFilter && (
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-primary transition-colors cursor-pointer animate-in fade-in duration-150"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>{dict.category.clearAll}</span>
+          </button>
+        )}
       </div>
 
       {/* Categories Filter / Quick Category Switcher */}

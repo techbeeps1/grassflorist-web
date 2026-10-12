@@ -5,22 +5,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setCartDrawerOpen } from '@/store/slices/uiSlice';
-import {
-  removeItem,
-  updateQuantity,
-  selectCartTotals,
-} from '@/store/slices/cartSlice';
-import {
-  useUpdateCartQuantityMutation,
-  useRemoveCartItemMutation,
-  getLocalizedProductName,
-} from '@/store/api/cartApi';
+import { selectCartTotals } from '@/store/slices/cartSlice';
+import { getLocalizedProductName } from '@/store/api/cartApi';
+import { useCartActions } from '@/hooks/useCartActions';
 import { Drawer } from '@/components/ui/Drawer';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
-import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, ShieldCheck, Plus, Minus } from 'lucide-react';
+import { CartDrawerItemSkeleton } from '@/components/ui/Skeleton';
+import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, ShieldCheck, Plus, Minus, Loader2 } from 'lucide-react';
 
 interface CartDrawerProps {
   locale: Locale;
@@ -33,9 +27,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
   const dict = getDictionary(locale);
 
   const { total } = useAppSelector(selectCartTotals);
-
-  const [updateServerQty] = useUpdateCartQuantityMutation();
-  const [removeServerItem] = useRemoveCartItemMutation();
+  const { updateQuantity, removeItem, pendingAddItem, updatingItemIds, removingItemIds } = useCartActions();
 
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
@@ -45,7 +37,8 @@ export function CartDrawer({ locale }: CartDrawerProps) {
 
   const handleClose = () => dispatch(setCartDrawerOpen(false));
 
-  const totalItemCount = cartItems.reduce((acc, it) => acc + it.quantity, 0);
+  const totalItemCount = cartItems.reduce((acc, it) => acc + it.quantity, 0) + (pendingAddItem ? (pendingAddItem.quantity || 1) : 0);
+  const hasItemsOrPending = cartItems.length > 0 || Boolean(pendingAddItem);
 
   return (
     <Drawer
@@ -75,7 +68,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
         </div>
       }
       footer={
-        cartItems.length > 0 ? (
+        hasItemsOrPending ? (
           <div className="space-y-4">
             {/* Total Row */}
             <div className="flex justify-between items-baseline text-base">
@@ -111,9 +104,53 @@ export function CartDrawer({ locale }: CartDrawerProps) {
         ) : undefined
       }
     >
-      {cartItems.length > 0 ? (
+      {hasItemsOrPending ? (
         <div className="space-y-3">
+          {/* 🌟 1. Skeleton Loading for newly added item while API responds */}
+          {pendingAddItem && (
+            <div className="relative">
+              <div className="absolute top-2 end-2 z-10">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#435849] text-white text-[10px] font-bold shadow-xs">
+                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  <span>{locale === 'ar' ? 'جارٍ الإضافة...' : 'Adding...'}</span>
+                </span>
+              </div>
+              <CartDrawerItemSkeleton
+                title={
+                  pendingAddItem.product
+                    ? getLocalizedProductName(pendingAddItem.product.name, locale)
+                    : undefined
+                }
+              />
+            </div>
+          )}
           {cartItems.map((item) => {
+            const isRemoving = Boolean(removingItemIds[item.cartItemId] || removingItemIds[String(item.productId)]);
+            const isUpdating = Boolean(updatingItemIds[item.cartItemId] || updatingItemIds[String(item.productId)]);
+
+            if (isRemoving) {
+              return (
+                <div
+                  key={item.cartItemId}
+                  className="p-3.5 rounded-2xl bg-[#FAF8F5]/80 border border-rose-200/60 flex gap-3.5 items-center animate-pulse transition-all select-none"
+                >
+                  <div className="w-20 h-20 rounded-xl bg-[#E8E2D8] shrink-0" />
+                  <div className="flex-1 min-w-0 space-y-2 py-0.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[13px] font-bold text-gray-400 line-through truncate block">
+                        {getLocalizedProductName(item.product.name, locale)}
+                      </span>
+                      <Loader2 className="w-4 h-4 animate-spin text-rose-500 shrink-0" />
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-[10px] font-bold">
+                      <span>{locale === 'ar' ? 'جارٍ حذف المنتج...' : 'Removing item...'}</span>
+                    </div>
+                    <div className="h-3 w-1/3 rounded-md bg-[#EAE4DA]" />
+                  </div>
+                </div>
+              );
+            }
+
             const slug = getLocalizedProductName(item.product.slug, locale) || item.productId;
             const productUrl =
               locale === 'ar'
@@ -123,7 +160,11 @@ export function CartDrawer({ locale }: CartDrawerProps) {
             return (
               <div
                 key={item.cartItemId}
-                className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EFE8DE] hover:border-[#DDD3C4] transition-all duration-200 flex gap-3.5 items-center group"
+                className={`p-3.5 rounded-2xl bg-[#FAF8F5] border transition-all duration-200 flex gap-3.5 items-center group ${
+                  isUpdating
+                    ? 'border-[#435849]/50 ring-1 ring-[#435849]/20'
+                    : 'border-[#EFE8DE] hover:border-[#DDD3C4]'
+                }`}
               >
                 {/* Thumbnail */}
                 <Link
@@ -153,11 +194,9 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                     </Link>
 
                     <button
-                      onClick={() => {
-                        dispatch(removeItem(item.cartItemId));
-                        removeServerItem({ productId: item.productId }).unwrap().catch(() => {});
-                      }}
-                      className="text-[#9E9285] hover:text-red-600 p-1 -mt-1 -me-1 rounded-full hover:bg-red-50/80 transition-colors cursor-pointer shrink-0"
+                      disabled={isUpdating}
+                      onClick={() => removeItem(item.productId, item.cartItemId)}
+                      className="text-[#9E9285] hover:text-red-600 p-1 -mt-1 -me-1 rounded-full hover:bg-red-50/80 transition-colors cursor-pointer shrink-0 disabled:opacity-30 disabled:pointer-events-none"
                       title={locale === 'ar' ? 'حذف المنتج' : 'Remove item'}
                       aria-label={locale === 'ar' ? 'حذف المنتج' : 'Remove item'}
                     >
@@ -205,19 +244,11 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                         ) : null}
 
                         <div className="flex items-center justify-between">
-                          <div className="inline-flex items-center h-7 rounded-lg bg-white border border-[#E2DAD0] shadow-2xs">
+                          <div className={`inline-flex items-center h-7 rounded-lg bg-white border border-[#E2DAD0] shadow-2xs ${isUpdating ? 'opacity-70' : ''}`}>
                             <button
                               type="button"
-                              disabled={item.quantity <= 1}
-                              onClick={() => {
-                                dispatch(
-                                  updateQuantity({
-                                    cartItemId: item.cartItemId,
-                                    quantity: item.quantity - 1,
-                                  })
-                                );
-                                updateServerQty({ productId: item.productId, quantityChange: -1 }).unwrap().catch(() => {});
-                              }}
+                              disabled={isUpdating || item.quantity <= 1}
+                              onClick={() => updateQuantity(item.productId, item.quantity - 1, item.cartItemId)}
                               aria-label="Decrease quantity"
                               className="w-7 h-full flex items-center justify-center text-[#6B5E52] hover:text-[#1E1915] hover:bg-[#F5EFE6] transition-colors disabled:opacity-25 disabled:pointer-events-none cursor-pointer rounded-s-lg"
                             >
@@ -225,21 +256,17 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                             </button>
 
                             <span className="min-w-[26px] text-center text-xs font-bold text-[#1E1915] tabular-nums select-none px-0.5">
-                              {item.quantity}
+                              {isUpdating ? (
+                                <Loader2 className="w-3 h-3 animate-spin text-[#435849] mx-auto" />
+                              ) : (
+                                item.quantity
+                              )}
                             </span>
 
                             <button
                               type="button"
-                              disabled={isOutOfStock || isMaxStockReached}
-                              onClick={() => {
-                                dispatch(
-                                  updateQuantity({
-                                    cartItemId: item.cartItemId,
-                                    quantity: item.quantity + 1,
-                                  })
-                                );
-                                updateServerQty({ productId: item.productId, quantityChange: 1 }).unwrap().catch(() => {});
-                              }}
+                              disabled={isUpdating || isOutOfStock || isMaxStockReached}
+                              onClick={() => updateQuantity(item.productId, item.quantity + 1, item.cartItemId)}
                               aria-label="Increase quantity"
                               className="w-7 h-full flex items-center justify-center text-[#6B5E52] hover:text-[#1E1915] hover:bg-[#F5EFE6] transition-colors disabled:opacity-25 disabled:pointer-events-none cursor-pointer rounded-e-lg"
                             >
@@ -248,7 +275,11 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                           </div>
 
                           <div dir="ltr" className="text-[14px] sm:text-[15px] font-extrabold text-[#1E1915] tracking-tight">
-                            <PriceDisplay amount={item.itemTotal} />
+                            {isUpdating ? (
+                              <div className="h-4 w-16 bg-[#E8E2D8] rounded-md animate-pulse" />
+                            ) : (
+                              <PriceDisplay amount={item.itemTotal} />
+                            )}
                           </div>
                         </div>
                       </div>

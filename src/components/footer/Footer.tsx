@@ -16,8 +16,12 @@ import {
   CheckCircle2,
   Sparkles,
   ArrowUp,
+  Loader2,
+  Copy,
+  Check,
 } from 'lucide-react';
-import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
+import { useGetGlobalSettingsQuery, useSubscribeNewsletterMutation } from '@/store/api/cmsApi';
+import { openCookiePreferencesModal } from '@/components/common/cookie-consent/cookie-storage';
 
 interface FooterProps {
   locale: Locale;
@@ -28,9 +32,14 @@ export function Footer({ locale }: FooterProps) {
   const isRtl = locale === 'ar';
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [couponCode, setCouponCode] = useState('SAVE10');
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [copiedCoupon, setCopiedCoupon] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [footerData, setFooterData] = useState<DynamicFooterData | null>(null);
   const { data: globalSettings } = useGetGlobalSettingsQuery();
+  const [subscribeNewsletter, { isLoading: isSubscribing }] = useSubscribeNewsletterMutation();
 
   useEffect(() => {
     let isMounted = true;
@@ -122,11 +131,27 @@ export function Footer({ locale }: FooterProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) {
+    if (!email.trim() || isSubscribing) return;
+    setErrorMessage(null);
+    try {
+      const res = await subscribeNewsletter({ email: email.trim(), locale }).unwrap();
       setSubscribed(true);
+      if (res.coupon_code) setCouponCode(res.coupon_code);
+      if (res.message) setFeedbackMessage(res.message);
       setEmail('');
+    } catch (err: any) {
+      const msg = err?.data?.message || (locale === 'ar' ? 'حدث خطأ أثناء الاشتراك، يرجى المحاولة لاحقاً' : 'Failed to subscribe, please try again.');
+      setErrorMessage(msg);
+    }
+  };
+
+  const copyCouponCode = () => {
+    if (typeof navigator !== 'undefined') {
+      navigator.clipboard.writeText(couponCode);
+      setCopiedCoupon(true);
+      setTimeout(() => setCopiedCoupon(false), 2200);
     }
   };
 
@@ -166,39 +191,95 @@ export function Footer({ locale }: FooterProps) {
             {/* Newsletter Input Form */}
             <div className="w-full max-w-xl">
               {subscribed ? (
-                <div className="flex items-center justify-center gap-3 p-4 bg-[#F2F7F3] border border-[#435849]/30 rounded-full text-xs sm:text-sm font-semibold text-[#435849] shadow-xs animate-fade-in">
-                  <div className="w-8 h-8 rounded-full bg-[#435849] text-white flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-4.5 h-4.5" />
+                <div className="p-5 sm:p-6 bg-[#F4F8F4] border border-[#435849]/25 rounded-2xl shadow-xs text-center flex flex-col items-center gap-3 animate-fade-in">
+                  <div className="w-10 h-10 rounded-full bg-[#435849] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <CheckCircle2 className="w-6 h-6 text-[#A3E635]" />
                   </div>
-                  <span>{dict.home.newsletterSuccess}</span>
+                  <div>
+                    <h4 className="font-bold text-[#1E1915] text-base sm:text-lg">
+                      {locale === 'ar' ? 'مرحباً بك في نادي غراس للزهور!' : 'Welcome to Grass VIP Club!'}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-[#435849] font-medium mt-1">
+                      {feedbackMessage || dict.home.newsletterSuccess}
+                    </p>
+                  </div>
+                  {couponCode && (
+                    <div className="mt-2 flex items-center justify-center gap-2 bg-white px-4 py-2 rounded-xl border border-[#435849]/20 shadow-xs">
+                      <span className="text-xs text-[#7A6E61] font-medium">
+                        {locale === 'ar' ? 'كود الخصم الترحيبي:' : 'Welcome Coupon:'}
+                      </span>
+                      <span className="font-mono font-extrabold text-[#435849] text-sm tracking-wider">
+                        {couponCode}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={copyCouponCode}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8CA841] hover:text-[#435849] ps-2 border-s border-gray-200 transition-colors cursor-pointer"
+                        title={locale === 'ar' ? 'نسخ الكود' : 'Copy Code'}
+                      >
+                        {copiedCoupon ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-green-600" />
+                            <span className="text-green-600">{locale === 'ar' ? 'تم النسخ!' : 'Copied!'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>{locale === 'ar' ? 'نسخ' : 'Copy'}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <form
-                  onSubmit={handleSubscribe}
-                  className="relative flex items-center bg-[#FAF8F5] rounded-full p-1 sm:p-1.5 border border-[#D5C6B5] shadow-xs hover:border-[#435849]/50 focus-within:border-[#435849] focus-within:ring-3 focus-within:ring-[#435849]/15 transition-all w-full"
-                >
-                  <div className="flex items-center flex-1 min-w-0 ps-3 sm:ps-4 pe-1">
-                    <Mail className="w-4 h-4 text-[#8C7A6B] shrink-0 me-2 opacity-80" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={locale === 'ar' ? 'أدخل بريدك الإلكتروني...' : 'Enter your email...'}
-                      className="w-full h-10 sm:h-11 text-xs sm:text-sm bg-transparent !border-0 !border-none !outline-none text-[#1E1915] placeholder:text-[#91857A] !shadow-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none"
-                      style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="group shrink-0 inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#435849] hover:bg-[#2D3F33] text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 whitespace-nowrap cursor-pointer"
+                <div className="w-full">
+                  <form
+                    onSubmit={handleSubscribe}
+                    className="relative flex items-center bg-[#FAF8F5] rounded-full p-1 sm:p-1.5 border border-[#D5C6B5] shadow-xs hover:border-[#435849]/50 focus-within:border-[#435849] focus-within:ring-3 focus-within:ring-[#435849]/15 transition-all w-full"
                   >
-                    <span>{dict.home.newsletterButton}</span>
-                    <span className="w-5 h-5 rounded-full bg-white/20 group-hover:bg-white/30 flex items-center justify-center shrink-0 transition-colors">
-                      <Send className="w-2.5 h-2.5 rtl:rotate-180" />
-                    </span>
-                  </button>
-                </form>
+                    <div className="flex items-center flex-1 min-w-0 ps-3 sm:ps-4 pe-1">
+                      <Mail className="w-4 h-4 text-[#8C7A6B] shrink-0 me-2 opacity-80" />
+                      <input
+                        type="email"
+                        required
+                        disabled={isSubscribing}
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (errorMessage) setErrorMessage(null);
+                        }}
+                        placeholder={locale === 'ar' ? 'أدخل بريدك الإلكتروني...' : 'Enter your email...'}
+                        className="w-full h-10 sm:h-11 text-xs sm:text-sm bg-transparent !border-0 !border-none !outline-none text-[#1E1915] placeholder:text-[#91857A] !shadow-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none disabled:opacity-50"
+                        style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isSubscribing || !email.trim()}
+                      className="group shrink-0 inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#435849] hover:bg-[#2D3F33] disabled:opacity-60 text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 whitespace-nowrap cursor-pointer"
+                    >
+                      {isSubscribing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-white" />
+                          <span>{locale === 'ar' ? 'جاري الاشتراك...' : 'Subscribing...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>{dict.home.newsletterButton}</span>
+                          <span className="w-5 h-5 rounded-full bg-white/20 group-hover:bg-white/30 flex items-center justify-center shrink-0 transition-colors">
+                            <Send className="w-2.5 h-2.5 rtl:rotate-180" />
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+                  {errorMessage && (
+                    <p className="text-xs text-red-600 font-medium mt-2 animate-fade-in text-center">
+                      {errorMessage}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
 
@@ -597,9 +678,17 @@ export function Footer({ locale }: FooterProps) {
 
           {/* 3. BOTTOM BAR (Copyright, Terms Links, Payment Icons & Back to top) */}
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-5 text-sm text-white">
-            {/* Copyright info */}
-            <div className="text-center md:text-start">
+            {/* Copyright info & Cookie Settings */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center md:text-start">
               <p>{globalSettings?.footer?.copyright?.[locale] || dict.footer.allRightsReserved}</p>
+              <span className="hidden sm:inline text-white/30">•</span>
+              <button
+                type="button"
+                onClick={() => openCookiePreferencesModal()}
+                className="text-xs text-white/70 hover:text-[#99C552] underline underline-offset-4 cursor-pointer transition-colors"
+              >
+                {locale === 'ar' ? 'إعدادات ملفات تعريف الارتباط' : 'Cookie Settings'}
+              </button>
             </div>
 
 
@@ -641,7 +730,7 @@ export function Footer({ locale }: FooterProps) {
         type="button"
         onClick={scrollToTop}
         aria-label={locale === 'ar' ? 'الرجوع للأعلى' : 'Back to top'}
-        className={`fixed bottom-5 end-4 sm:bottom-7 sm:end-7 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#1E2E23]/95 hover:bg-[#99C552] text-white hover:text-[#121B14] border border-white/20 flex items-center justify-center transition-all duration-300 shadow-2xl cursor-pointer hover:scale-110 active:scale-95 backdrop-blur-md ${showScrollTop
+        className={`fixed bottom-17 end-4 sm:bottom-20 sm:end-6 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#1E2E23]/95 hover:bg-[#99C552] text-white hover:text-[#121B14] border border-white/20 flex items-center justify-center transition-all duration-300 shadow-2xl cursor-pointer hover:scale-110 active:scale-95 backdrop-blur-md ${showScrollTop
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'opacity-0 translate-y-4 pointer-events-none'
           }`}

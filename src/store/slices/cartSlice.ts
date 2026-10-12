@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CartItem, CartState } from '@/types/cart';
+import { Product } from '@/types/product';
 import { siteConfig } from '@/config/site';
 
 const CART_STORAGE_KEY = 'grass_florist_cart_v1';
@@ -35,6 +36,10 @@ function loadInitialState(): CartState {
             discountAmount: parsed.discountAmount || 0,
             couponCode: parsed.couponCode,
             selectedCity: parsed.selectedCity || 'riyadh',
+            isAdding: false,
+            pendingAddItem: null,
+            updatingItemIds: {},
+            removingItemIds: {},
           };
         }
       }
@@ -46,6 +51,10 @@ function loadInitialState(): CartState {
     items: [],
     discountAmount: 0,
     selectedCity: 'riyadh',
+    isAdding: false,
+    pendingAddItem: null,
+    updatingItemIds: {},
+    removingItemIds: {},
   };
 }
 
@@ -61,12 +70,15 @@ function persistState(state: CartState) {
       }
       const sessionId = localStorage.getItem('grass_session_id') || 'guest';
 
+      // Clean transient loading flags before saving to storage
+      const { isAdding, pendingAddItem, updatingItemIds, removingItemIds, ...persisted } = state;
+
       // Always save to base storage
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(persisted));
 
       // Save to isolated key for cross-tab storage-event sync
       const scopedKey = userId ? `grass_cart_user_${userId}` : `grass_cart_guest_${sessionId}`;
-      localStorage.setItem(scopedKey, JSON.stringify(state));
+      localStorage.setItem(scopedKey, JSON.stringify(persisted));
 
       // Broadcast instantly to all other open tabs / windows in this browser with strict identity tags
       if (typeof BroadcastChannel !== 'undefined') {
@@ -96,7 +108,9 @@ export const cartSlice = createSlice({
       if (maxStock <= 0) return; // Out of stock
 
       const existingIndex = state.items.findIndex(
-        (item) => item.cartItemId === action.payload.cartItemId
+        (item) =>
+          item.cartItemId === action.payload.cartItemId ||
+          String(item.productId) === String(action.payload.productId)
       );
 
       if (existingIndex >= 0) {
@@ -111,6 +125,7 @@ export const cartSlice = createSlice({
         const safeQty = Math.min(maxStock, action.payload.quantity);
         state.items.push({
           ...action.payload,
+          cartItemId: action.payload.cartItemId || String(action.payload.productId),
           quantity: safeQty,
           itemTotal: action.payload.product.price * safeQty,
         });
@@ -162,6 +177,7 @@ export const cartSlice = createSlice({
         const safeQty = maxStock > 0 ? Math.min(maxStock, it.quantity) : it.quantity;
         return {
           ...it,
+          cartItemId: it.cartItemId || String(it.productId),
           quantity: safeQty,
           itemTotal: it.product.price * safeQty,
         };
@@ -176,22 +192,43 @@ export const cartSlice = createSlice({
       state.selectedCity = action.payload.selectedCity || 'riyadh';
     },
 
-    removeItem: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter((item) => item.cartItemId !== action.payload);
+    removeItem: (
+      state,
+      action: PayloadAction<string | { productId?: string | number; cartItemId?: string }>
+    ) => {
+      const payload = action.payload;
+      const targetId = typeof payload === 'string' ? payload : payload.cartItemId;
+      const targetPid = typeof payload === 'object' && payload.productId ? String(payload.productId) : null;
+
+      state.items = state.items.filter((item) => {
+        if (targetId && item.cartItemId === targetId) return false;
+        if (targetPid && String(item.productId) === targetPid) return false;
+        if (typeof payload === 'string' && String(item.productId) === payload) return false;
+        return true;
+      });
       persistState(state);
     },
 
     updateQuantity: (
       state,
-      action: PayloadAction<{ cartItemId: string; quantity: number }>
+      action: PayloadAction<{ productId?: string | number; cartItemId?: string; quantity: number }>
     ) => {
-      const item = state.items.find((i) => i.cartItemId === action.payload.cartItemId);
+      const { productId, cartItemId, quantity } = action.payload;
+      const item = state.items.find(
+        (i) =>
+          (cartItemId && i.cartItemId === cartItemId) ||
+          (productId && String(i.productId) === String(productId))
+      );
       if (item) {
-        if (action.payload.quantity <= 0) {
-          state.items = state.items.filter((i) => i.cartItemId !== action.payload.cartItemId);
+        if (quantity <= 0) {
+          state.items = state.items.filter(
+            (i) =>
+              (!cartItemId || i.cartItemId !== cartItemId) &&
+              (!productId || String(i.productId) !== String(productId))
+          );
         } else {
           const maxStock = item.product.stock ?? 99;
-          const safeQty = Math.min(maxStock, action.payload.quantity);
+          const safeQty = Math.min(maxStock, quantity);
           item.quantity = safeQty;
           item.itemTotal =
             item.product.price * item.quantity +
@@ -202,6 +239,31 @@ export const cartSlice = createSlice({
       persistState(state);
     },
 
+    setAppliedCoupon: (
+      state,
+      action: PayloadAction<{
+        code: string;
+        type?: 'percent' | 'fixed' | string;
+        value: number;
+        maxDiscountAmount?: number;
+      }>
+    ) => {
+      const { code, type, value, maxDiscountAmount } = action.payload;
+      state.couponCode = code.toUpperCase().trim();
+      const subtotal = state.items.reduce((acc, item) => acc + item.itemTotal, 0);
+      let disc = 0;
+      if (type === 'percent') {
+        disc = (subtotal * value) / 100;
+        if (maxDiscountAmount && maxDiscountAmount > 0) {
+          disc = Math.min(disc, maxDiscountAmount);
+        }
+      } else {
+        disc = value;
+      }
+      state.discountAmount = Math.min(Math.round(disc * 100) / 100, subtotal);
+      persistState(state);
+    },
+
     applyCoupon: (state, action: PayloadAction<string>) => {
       const code = action.payload.toUpperCase().trim();
       if (code === 'GRASS10' || code === 'WELCOME10') {
@@ -209,8 +271,7 @@ export const cartSlice = createSlice({
         const subtotal = state.items.reduce((acc, item) => acc + item.itemTotal, 0);
         state.discountAmount = Math.round(subtotal * 0.1);
       } else {
-        state.discountAmount = 0;
-        state.couponCode = undefined;
+        state.couponCode = code;
       }
       persistState(state);
     },
@@ -238,7 +299,42 @@ export const cartSlice = createSlice({
       state.items = [];
       state.couponCode = undefined;
       state.discountAmount = 0;
+      state.isAdding = false;
+      state.pendingAddItem = null;
+      state.updatingItemIds = {};
+      state.removingItemIds = {};
       persistState(state);
+    },
+
+    setPendingAdd: (
+      state,
+      action: PayloadAction<{ productId: string; product: Product; quantity: number } | null>
+    ) => {
+      state.isAdding = Boolean(action.payload);
+      state.pendingAddItem = action.payload;
+    },
+
+    setItemLoading: (
+      state,
+      action: PayloadAction<{ id: string; type: 'updating' | 'removing'; isLoading: boolean }>
+    ) => {
+      if (!state.updatingItemIds) state.updatingItemIds = {};
+      if (!state.removingItemIds) state.removingItemIds = {};
+
+      const { id, type, isLoading } = action.payload;
+      if (type === 'updating') {
+        if (isLoading) {
+          state.updatingItemIds[id] = true;
+        } else {
+          delete state.updatingItemIds[id];
+        }
+      } else if (type === 'removing') {
+        if (isLoading) {
+          state.removingItemIds[id] = true;
+        } else {
+          delete state.removingItemIds[id];
+        }
+      }
     },
   },
 });
@@ -251,10 +347,13 @@ export const {
   removeItem,
   updateQuantity,
   applyCoupon,
+  setAppliedCoupon,
   removeCoupon,
   setSelectedCity,
   setDeliverySlot,
   clearCart,
+  setPendingAdd,
+  setItemLoading,
 } = cartSlice.actions;
 
 // Helper selectors
@@ -280,8 +379,8 @@ export const selectCartTotals = (state: { cart: CartState }) => {
   const shippingFee = isFree ? 0 : siteConfig.features.expressDeliveryFee;
   const discount = state.cart.discountAmount;
   const discountedSubtotal = Math.max(0, subtotal - discount);
-  const vat = Math.round(discountedSubtotal * siteConfig.features.vatRate);
-  const total = discountedSubtotal + shippingFee;
+  const vat = Number((discountedSubtotal * siteConfig.features.vatRate).toFixed(2));
+  const total = Number((discountedSubtotal + vat + shippingFee).toFixed(2));
 
   return { subtotal, discount, vat, shippingFee, total };
 };

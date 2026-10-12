@@ -127,7 +127,7 @@ export const cartApi = baseApi.injectEndpoints({
     }),
 
     addToCart: builder.mutation<
-      { message: string; cart: any; total_products_count: number },
+      { message: string; cart?: LaravelCartResponse; total_products_count?: number; success?: boolean },
       { productId: string | number; quantity: number }
     >({
       query: ({ productId, quantity }) => ({
@@ -143,15 +143,16 @@ export const cartApi = baseApi.injectEndpoints({
     }),
 
     updateCartQuantity: builder.mutation<
-      { success: boolean; message: string },
-      { productId: string | number; quantityChange: 1 | -1 }
+      { success: boolean; message: string; cart?: LaravelCartResponse; new_quantity?: number },
+      { productId: string | number; quantity?: number; quantityChange?: 1 | -1 }
     >({
-      query: ({ productId, quantityChange }) => ({
+      query: ({ productId, quantity, quantityChange }) => ({
         url: '/cart/cartupdate',
         method: 'POST',
         body: {
           product_id: Number(productId),
-          quantity_change: quantityChange,
+          ...(quantity !== undefined ? { quantity } : {}),
+          ...(quantityChange !== undefined ? { quantity_change: quantityChange } : {}),
           session_id: getCartSessionId(),
         },
       }),
@@ -159,7 +160,7 @@ export const cartApi = baseApi.injectEndpoints({
     }),
 
     removeCartItem: builder.mutation<
-      { success: boolean; message: string },
+      { success: boolean; message: string; cart?: LaravelCartResponse },
       { productId: string | number }
     >({
       query: ({ productId }) => ({
@@ -218,16 +219,22 @@ export const cartApi = baseApi.injectEndpoints({
     }),
 
     applyServerCoupon: builder.mutation<
-      { success?: boolean; discount?: number; message?: string },
-      string
+      any,
+      string | { code: string; subtotal?: number }
     >({
-      query: (couponCode) => ({
-        url: `/cart/coupon/${encodeURIComponent(couponCode)}`,
-        method: 'POST',
-        body: {
-          session_id: getCartSessionId(),
-        },
-      }),
+      query: (arg) => {
+        const couponCode = typeof arg === 'string' ? arg : arg.code;
+        const subtotal = typeof arg === 'object' ? arg.subtotal : undefined;
+        return {
+          url: `/cart/coupon/${encodeURIComponent(couponCode)}`,
+          method: 'POST',
+          body: {
+            session_id: getCartSessionId(),
+            coupon_code: couponCode,
+            subtotal,
+          },
+        };
+      },
       invalidatesTags: ['Cart'],
     }),
   }),

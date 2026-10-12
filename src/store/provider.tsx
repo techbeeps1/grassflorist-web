@@ -19,10 +19,9 @@ function CartSyncManager() {
   const isInitialMergeDoneRef = useRef(false);
   const prevTokenRef = useRef(token);
 
-  // Background sync for logged-in user (lightweight 4s poll + focus refetch across profiles/devices)
+  // Sync for logged-in user: refetch on focus / reconnect and on mutation invalidation
   const { data: serverCart, refetch } = useViewCartQuery(undefined, {
     skip: !token,
-    pollingInterval: 4000,
     refetchOnFocus: true,
     refetchOnReconnect: true,
   });

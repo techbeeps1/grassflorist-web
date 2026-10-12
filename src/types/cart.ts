@@ -35,4 +35,12 @@ export interface CartState {
     slot: 'morning' | 'afternoon' | 'evening';
   };
   selectedCity: string;
+  isAdding?: boolean;
+  pendingAddItem?: {
+    productId: string;
+    product: Product;
+    quantity: number;
+  } | null;
+  updatingItemIds?: Record<string, boolean>;
+  removingItemIds?: Record<string, boolean>;
 }

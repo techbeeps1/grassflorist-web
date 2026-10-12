@@ -16,7 +16,13 @@ const getStoredAuth = (): { user: User | null; token: string | null } => {
   try {
     const token = localStorage.getItem('grass_auth_token');
     const storedUser = localStorage.getItem('grass_auth_user');
-    const user = storedUser ? JSON.parse(storedUser) : null;
+    let user = storedUser ? JSON.parse(storedUser) : null;
+    if (user && (user.phone === '9876543210' || user.phone === '0500000000')) {
+      user.phone = '';
+      try {
+        localStorage.setItem('grass_auth_user', JSON.stringify(user));
+      } catch {}
+    }
     return { user, token };
   } catch {
     return { user: null, token: null };
@@ -41,7 +47,11 @@ export const authSlice = createSlice({
       state,
       action: PayloadAction<{ user: User; token: string; rememberMe?: boolean }>
     ) => {
-      state.user = action.payload.user;
+      const u = { ...action.payload.user };
+      if (u.phone === '9876543210' || u.phone === '0500000000') {
+        u.phone = '';
+      }
+      state.user = u;
       state.token = action.payload.token;
       state.isAuthenticated = true;
       state.error = null;
@@ -50,9 +60,20 @@ export const authSlice = createSlice({
       if (typeof window !== 'undefined') {
         try {
           localStorage.setItem('grass_auth_token', action.payload.token);
-          localStorage.setItem('grass_auth_user', JSON.stringify(action.payload.user));
+          localStorage.setItem('grass_auth_user', JSON.stringify(u));
         } catch {
           // Ignore localStorage errors
+        }
+      }
+    },
+    setToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload;
+      state.isAuthenticated = Boolean(action.payload && state.user);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('grass_auth_token', action.payload);
+        } catch {
+          // Ignore
         }
       }
     },
@@ -97,7 +118,7 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, updateUser, logout, setAuthLoading, setAuthError } =
+export const { setCredentials, setToken, updateUser, logout, setAuthLoading, setAuthError } =
   authSlice.actions;
 
 export default authSlice.reducer;

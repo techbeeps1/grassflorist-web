@@ -48,8 +48,54 @@ export interface DeliverySlotsResponse {
   slots: DeliverySlotItem[];
 }
 
+export interface ShippingMethodItem {
+  id: number;
+  code: string;
+  name: string;
+  name_en?: string;
+  name_ar?: string;
+  delivery_time?: string;
+  delivery_time_en?: string;
+  delivery_time_ar?: string;
+  description?: string;
+  description_en?: string;
+  description_ar?: string;
+  city?: string;
+  price: number;
+  is_free_shipping_eligible?: boolean;
+  min_order_for_free_shipping?: number | null;
+  is_active?: boolean;
+}
+
+export interface ShippingMethodsResponse {
+  success: boolean;
+  default_city: string;
+  free_shipping_threshold: number;
+  default_shipping_fee: number;
+  data: ShippingMethodItem[];
+}
+
 export const checkoutApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getShippingMethods: builder.query<ShippingMethodsResponse, void>({
+      query: () => '/shipping-methods',
+      transformResponse: (res: any): ShippingMethodsResponse => {
+        const methods: ShippingMethodItem[] = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res)
+          ? res
+          : [];
+        return {
+          success: Boolean(res?.success ?? true),
+          default_city: res?.default_city || 'Jeddah',
+          free_shipping_threshold: Number(res?.free_shipping_threshold ?? 250),
+          default_shipping_fee: Number(res?.default_shipping_fee ?? 30),
+          data: methods,
+        };
+      },
+      providesTags: ['ShippingMethods' as any],
+    }),
+
     getPaymentMethods: builder.query<PaymentGatewayMethod[], void>({
       query: () => '/v1/payment-methods',
       transformResponse: (res: any) => {
@@ -83,7 +129,13 @@ export const checkoutApi = baseApi.injectEndpoints({
 
     initiatePayment: builder.mutation<
       any,
-      { orderId: string | number; gateway: string }
+      {
+        orderId: string | number;
+        gateway: string;
+        payment_brand?: string;
+        return_url?: string;
+        cancel_url?: string;
+      }
     >({
       query: (data) => ({
         url: '/v1/payments/initiate',
@@ -91,13 +143,22 @@ export const checkoutApi = baseApi.injectEndpoints({
         body: {
           order_id: data.orderId,
           payment_gateway: data.gateway,
+          payment_brand: data.payment_brand,
+          return_url: data.return_url,
+          cancel_url: data.cancel_url,
         },
       }),
     }),
 
     verifyPayment: builder.mutation<
       any,
-      { orderId: string | number; gateway?: string; referenceId?: string }
+      {
+        orderId: string | number;
+        gateway?: string;
+        referenceId?: string;
+        resourcePath?: string;
+        brand?: string;
+      }
     >({
       query: (data) => ({
         url: '/v1/payments/verify',
@@ -107,6 +168,10 @@ export const checkoutApi = baseApi.injectEndpoints({
           gateway: data.gateway || 'hyperpay',
           payment_gateway: data.gateway || 'hyperpay',
           reference_id: data.referenceId,
+          resource_path: data.resourcePath,
+          resourcePath: data.resourcePath,
+          brand: data.brand,
+          payment_brand: data.brand,
         },
       }),
     }),
@@ -114,6 +179,7 @@ export const checkoutApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetShippingMethodsQuery,
   useGetPaymentMethodsQuery,
   useGetDeliverySlotsQuery,
   useInitiatePaymentMutation,

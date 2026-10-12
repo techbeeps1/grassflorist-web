@@ -18,6 +18,12 @@ export interface GlobalSettings {
   tax?: {
     vat_percentage: number;
     vat_registration_number?: string;
+    is_vat_included?: boolean;
+  };
+  shipping?: {
+    inside_jeddah_fee?: number;
+    default_delivery_fee?: number;
+    free_shipping_threshold?: number;
   };
   branding?: {
     site_name: { en: string; ar: string };
@@ -40,7 +46,7 @@ export interface GlobalSettings {
     phone: string;
     whatsapp: string;
     address: { en: string; ar: string };
-    business_hours: string;
+    business_hours?: string;
   };
   social?: {
     facebook?: string;
@@ -145,7 +151,7 @@ export const cmsApi = baseApi.injectEndpoints({
       }),
     }),
 
-    subscribeNewsletter: builder.mutation<{ message: string }, { email: string }>({
+    subscribeNewsletter: builder.mutation<{ message?: string; coupon_code?: string; already_subscribed?: boolean; success?: boolean }, { email: string; locale?: string }>({
       query: (data) => ({
         url: '/newsletter',
         method: 'POST',

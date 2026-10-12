@@ -37,6 +37,7 @@ export interface GiftCardDetails {
 
 export interface Order {
   orderNumber: string;
+  orderKey?: string;
   createdAt: string;
   items: CartItem[];
   sender?: SenderDetails;
@@ -52,5 +53,24 @@ export interface Order {
   discount: number;
   couponCode?: string;
   total: number;
-  status: 'confirmed' | 'preparing' | 'on_delivery' | 'delivered';
+  status: 'confirmed' | 'preparing' | 'on_delivery' | 'delivered' | 'cancelled' | 'pending' | string;
+  payment_status?: 'pending' | 'paid' | 'failed' | 'refunded' | string;
+  paymentStatus?: string;
+  alreadyPaid?: boolean;
+  shipping_method?: string;
+  shippingMethodTitle?: string;
+  currency?: 'SAR' | 'USD' | string;
+  currencyAmount?: number;
+  exchangeRate?: number;
+  sarAmount?: number;
+  sarTotal?: number;
+  sarSubtotal?: number;
+  sarShippingFee?: number;
+  sarVat?: number;
+  sarDiscount?: number;
+  usdTotal?: number;
+  usdSubtotal?: number;
+  usdShippingFee?: number;
+  usdVat?: number;
+  usdDiscount?: number;
 }

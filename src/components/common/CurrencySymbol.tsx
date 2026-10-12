@@ -19,7 +19,7 @@ export function CurrencySymbol({ className, size = 14, forcedCurrency }: Currenc
     return (
       <span
         className={cn(
-          'inline-flex items-center justify-center font-black text-[#a2c03e] align-middle shrink-0 select-none text-[1.1em] leading-none',
+          'inline-flex items-center justify-center font-black text-[#8fae2a] align-middle shrink-0 select-none text-[1.15em] leading-none',
           className
         )}
       >
