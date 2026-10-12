@@ -1110,6 +1110,7 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
                                           src={formatStorageUrl(item.product.thumbnail)}
                                           alt={item.product.name[locale]}
                                           fill
+                                          unoptimized
                                           className="object-cover"
                                         />
                                       ) : (
@@ -1735,6 +1736,7 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
                                   src={formatStorageUrl(item.product.thumbnail)}
                                   alt={item.product.name[locale]}
                                   fill
+                                  unoptimized
                                   className="object-cover"
                                 />
                               ) : (

@@ -1967,6 +1967,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                             alt={getLocalizedProductName(item.product.name, locale)}
                             fill
                             sizes="56px"
+                            unoptimized
                             className="object-cover"
                           />
                         </div>

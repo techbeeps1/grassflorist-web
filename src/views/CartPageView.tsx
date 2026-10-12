@@ -205,6 +205,7 @@ export function CartPageView({ locale }: CartPageViewProps) {
                             alt={getLocalizedProductName(item.product.name, locale)}
                             fill
                             sizes="96px"
+                            unoptimized
                             className="object-cover"
                           />
                         </Link>

@@ -21,12 +21,27 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       {
+        protocol: "http",
+        hostname: "staging.grassflorist.com",
+        pathname: "/**",
+      },
+      {
         protocol: "https",
         hostname: "api.grassflorist.com",
         pathname: "/**",
       },
       {
+        protocol: "http",
+        hostname: "api.grassflorist.com",
+        pathname: "/**",
+      },
+      {
         protocol: "https",
+        hostname: "grassflorist.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
         hostname: "grassflorist.com",
         pathname: "/**",
       },
@@ -55,6 +70,11 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
+    const backendUrl = (
+      process.env.NEXT_PUBLIC_BACKEND_URL || 
+      (process.env.NODE_ENV === 'production' ? 'https://api.grassflorist.com' : 'http://127.0.0.1:8000')
+    ).replace(/\/+$/, '');
+
     return [
       { source: '/عن-غراس', destination: '/about' },
       { source: '/%D8%B9%D9%86-%D8%BA%D8%B1%D8%A7%D8%B3', destination: '/about' },
@@ -82,7 +102,7 @@ const nextConfig: NextConfig = {
       { source: '/%D8%A7%D9%84%D8%B4%D8%B1%D9%88%D8%B7-%D9%88%D8%A7%D9%84%D8%A3%D8%AD%D9%83%D8%A7%D9%85', destination: '/terms-conditions' },
       { source: '/الشحن-والتوصيل', destination: '/policies/shipping' },
       { source: '/%D8%A7%D9%84%D8%B4%D8%AD%D9%86-%D9%88%D8%A7%D9%84%D8%AA%D9%88%D8%B5%D9%8A%D9%84', destination: '/policies/shipping' },
-      { source: '/storage/:path*', destination: 'http://127.0.0.1:8000/storage/:path*' },
+      { source: '/storage/:path*', destination: `${backendUrl}/storage/:path*` },
     ];
   },
 };

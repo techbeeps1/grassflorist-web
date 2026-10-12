@@ -690,6 +690,7 @@ export const OrderPayView: React.FC<OrderPayViewProps> = ({ orderNumber, locale 
                             src={formatStorageUrl(item.product.thumbnail)}
                             alt={item.product.name[locale] || 'Product'}
                             fill
+                            unoptimized
                             className="object-cover"
                           />
                         ) : (

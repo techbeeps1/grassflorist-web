@@ -177,6 +177,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                     alt={getLocalizedProductName(item.product.name, locale)}
                     fill
                     sizes="80px"
+                    unoptimized
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </Link>

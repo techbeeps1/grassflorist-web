@@ -739,17 +739,32 @@ export function formatStorageUrl(path?: string | null): string {
   if (!path) return 'https://grassflorist.com/wp-content/uploads/2025/02/placeholder.png';
   const str = String(path).trim();
   if (!str) return 'https://grassflorist.com/wp-content/uploads/2025/02/placeholder.png';
-  if (str.startsWith('http://127.0.0.1:8000/storage/') || str.startsWith('http://localhost:8000/storage/')) {
-    return str.replace(/^http:\/\/(127\.0\.0\.1|localhost):8000/, '');
-  }
+
+  const isBrowser = typeof window !== 'undefined';
+  const isLocalhost = isBrowser
+    ? (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    : (process.env.NODE_ENV !== 'production');
+
+  const backendOrigin = (
+    process.env.NEXT_PUBLIC_BACKEND_URL || 
+    (isLocalhost ? 'http://127.0.0.1:8000' : 'https://api.grassflorist.com')
+  ).replace(/\/+$/, '');
+
   if (str.startsWith('http://') || str.startsWith('https://')) {
+    // If it's a localhost URL rendered on a live staging/production site, remap to the actual live backend
+    if (!isLocalhost && (str.includes('127.0.0.1:8000') || str.includes('localhost:8000'))) {
+      const clean = str.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000\/?/, '');
+      return `${backendOrigin}/${clean.replace(/^\/+/, '')}`;
+    }
     return str;
   }
+
   if (str.startsWith('/images/') || str.startsWith('/assets/') || str.startsWith('/icons/') || str.startsWith('/placeholder')) {
     return str;
   }
+
   const cleanPath = str.replace(/^\/?storage\/?/, '').replace(/^\/+/, '');
-  return `/storage/${cleanPath}`;
+  return `${backendOrigin}/storage/${cleanPath}`;
 }
 
 /**
