@@ -19,7 +19,7 @@
     "reviewsCount": "reviews"
   },
   "header": {
-    "announcement": "Express Same-Day Delivery in 2 Hours | Free Delivery on Orders Over 250 ر.س",
+    "announcement": "Express Same-Day Delivery in 2 Hours",
     "searchPlaceholder": "Search flowers, cakes, luxury gifts, or chocolates...",
     "deliveryTo": "Deliver to",
     "chooseCity": "Select City",
@@ -204,7 +204,7 @@
     "trackOrder": "Track Order Progress"
   },
   "contact": {
-    "title": "Connect with Our Concierge",
+    "title": "Contact the Grass Florist Team",
     "subtitle": "We are at your service for bespoke floral requests, event styling, and delivery inquiries.",
     "getInTouch": "Direct Inquiries",
     "sendMessage": "Send an Inquiry",
@@ -219,14 +219,27 @@
     "workingHours": "Operating Hours"
   },
   "about": {
-    "title": "The Grass Florist Story | Artistry in Bloom",
-    "subtitle": "Where uncompromising luxury meets exquisite natural botanicals",
-    "ourStory": "Our Heritage & Philosophy",
-    "storyP1": "Grass Florist was founded with a singular ambition: to elevate the gift of flowers into a profound sensory expression of devotion, celebration, and gratitude across Saudi Arabia.",
-    "storyP2": "We source direct from premier high-altitude growers in Ecuador and sustainable Dutch glasshouses. Handled through our proprietary climate-monitored cold chain, our master florists arrange each stem by hand with architectural precision and timeless grace.",
-    "artisanValues": "Artisan Values",
-    "coldChainTitle": "Unbroken Cold Chain",
-    "coldChainDesc": "From greenhouse harvest to refrigerated transport and doorstep presentation, optimal temperature control preserves vibrant color and full fragrance for over a week."
+    "title": "About Grass Florist",
+    "subtitle": "We plant emotions, and deliver them to you",
+    "badge": "ABOUT GRASS FLORIST",
+    "section1Title": "About Grass Florist",
+    "section1P1": "At Grass Florist, we don't just sell flowers; we craft heartfelt experiences that linger in memory. Grass Florist is a Saudi online flower boutique specialized in selling and delivering fresh flowers in Jeddah, offering a diverse collection of floral bouquets, bespoke arrangements, and gifts curated for personal, seasonal, and corporate occasions.",
+    "section1P2": "From everyday floral bouquets to gifts for special milestones, at Grass we ensure every arrangement is thoughtfully designed to express your feelings exactly as you desire. Whether you are looking for natural fresh flowers, an elegant bouquet, a thoughtful gift for someone you love, or flower delivery in Jeddah, we provide an effortless, distinguished experience starting from your choice to the pristine arrival of your gift.",
+    "section1P3": "We strive to be the bridge connecting you with your loved ones, making flower delivery in Jeddah a simple and beautiful way to express love, gratitude, joy, and care.",
+    "section1P4": "Through our partnerships with trusted local and international growers, we hand-select our flowers with utmost care, delivering premium quality and innovative arrangements that unite beauty, creativity, quality, and professionalism—making every experience with Grass truly unique.",
+    "visionTitle": "Our Vision",
+    "visionP1": "To be the leading name in the world of flowers and bouquets across Saudi Arabia, and for Grass Florist to become a brand that inspires love, spreads joy, and conveys emotions through the language of colors and fragrance.",
+    "visionP2": "We aspire to be the first choice when searching for a flower shop in Jeddah or an online florist in Saudi Arabia, offering an experience that combines the ease of online shopping, floral freshness, design excellence, and dependable delivery.",
+    "visionP3": "We aim to make every occasion unforgettable, adding a touch of elegance, simplicity, and natural beauty to your daily moments and special celebrations.",
+    "missionTitle": "Our Mission",
+    "missionP1": "At Grass Florist, we believe that small details make the biggest difference. Our journey begins with understanding your occasion and the sentiment you wish to convey, then carefully selecting and styling the finest stems in a manner that balances luxury and simplicity.",
+    "missionP2": "We offer bouquets and floral designs tailored for every occasion—whether you are looking for romantic blooms, birthday gifts, congratulatory flowers, special milestone arrangements, or gifts expressing genuine gratitude and appreciation.",
+    "missionP3": "We package every bouquet with care and sophistication, ensuring on-time flower delivery in Jeddah so your gift arrives carrying your warmest emotions.",
+    "promiseTitle": "Our Promise to You",
+    "promiseP1": "We don't just deliver flowers; we deliver sincere emotions. Every arrangement from Grass is more than just a gift—it is a message of love, a touch of happiness, and a lasting memory. That is why we attend to every single detail, from stem selection to artisan arrangement, elegant packaging, and doorstep arrival.",
+    "promiseP2": "Our goal is simple: to help you express what words may fall short of saying, through the honest beauty of nature.",
+    "promiseP3": "Whether you are looking for flower bouquets in Jeddah, flower delivery in Jeddah, an online flower store, floral gifts, flower arrangement, or a special gift for someone you cherish, you will find bespoke options at Grass Florist crafted to make your moment unforgettable.",
+    "slogan": "Grass Florist — We plant emotions, and deliver them to you"
   },
   "faq": {
     "title": "Help & Frequently Asked Questions",

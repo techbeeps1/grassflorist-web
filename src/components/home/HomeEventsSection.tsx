@@ -125,19 +125,19 @@ export function HomeEventsSection({ locale, benefits, events }: HomeEventsSectio
   // 1. Resolve Slides
   const dynamicSlides = Array.isArray(events?.slides) && events.slides.length > 0
     ? events.slides.map((s, idx) => ({
-        src: s.image || DEFAULT_EVENT_SLIDES[idx % DEFAULT_EVENT_SLIDES.length].src,
-        alt: s.title || 'Grass Florist Event Service',
-        title: s.title || '',
-        serviceTag: s.service_tag || s.serviceTag || (isRtl ? 'باقة المناسبات' : 'EVENT SERVICE'),
-        url: s.url || eventBookingUrl,
-      }))
+      src: s.image || DEFAULT_EVENT_SLIDES[idx % DEFAULT_EVENT_SLIDES.length].src,
+      alt: s.title || 'Grass Florist Event Service',
+      title: s.title || '',
+      serviceTag: s.service_tag || s.serviceTag || (isRtl ? 'باقة المناسبات' : 'EVENT SERVICE'),
+      url: s.url || eventBookingUrl,
+    }))
     : DEFAULT_EVENT_SLIDES.map((s) => ({
-        src: s.src,
-        alt: s.alt,
-        title: s.title[locale],
-        serviceTag: isRtl ? 'باقة المناسبات' : 'EVENT SERVICE',
-        url: eventBookingUrl,
-      }));
+      src: s.src,
+      alt: s.alt,
+      title: s.title[locale],
+      serviceTag: isRtl ? 'باقة المناسبات' : 'EVENT SERVICE',
+      url: eventBookingUrl,
+    }));
 
   const total = dynamicSlides.length;
 
@@ -218,33 +218,33 @@ export function HomeEventsSection({ locale, benefits, events }: HomeEventsSectio
 
   const displayBenefits = Array.isArray(benefits) && benefits.length > 0
     ? benefits.map((item, idx) => ({
-        id: item.id || `benefit-${idx}`,
-        icon: getBenefitIcon(item.icon),
-        title: item.title,
-        desc: item.description,
-      }))
+      id: item.id || `benefit-${idx}`,
+      icon: getBenefitIcon(item.icon),
+      title: item.title,
+      desc: item.description,
+    }))
     : defaultBenefits;
 
   // 3. Resolve Event Texts
-  const displayBadge = events?.badge || (isRtl ? 'المناسبات' : 'EVENTS');
-  const displayTitleMain = events?.title_main || events?.titleMain || (isRtl ? 'أضف لمسة من السحر\nلمناسباتك مع' : 'Blossom your\nevents with our');
-  const displayTitleHighlight = events?.title_highlight || events?.titleHighlight || (isRtl ? 'لمستنا الاحترافية!' : 'expert touch!');
+  const displayBadge = events?.badge || (isRtl ? 'المناسبات والفعاليات' : 'EVENTS');
+  const displayTitleMain = events?.title_main || events?.titleMain || (isRtl ? 'ننسق مناسباتكم بلمسات من الورد والفخامة' : 'Blossom your\nevents with our');
+  const displayTitleHighlight = events?.title_highlight || events?.titleHighlight || (isRtl ? 'تفاصيل تصنع ذكريات لا تُنسى.' : 'expert touch!');
   const displayDesc = events?.description || (isRtl
-    ? 'اكتشف التناغم المثالي بين أناقة الزهور وخبرة تنظيم المناسبات مع بوتيك غراس. دعنا ننبض الحياة في مناسباتكم بعناية فائقة بأدق التفاصيل وتنسيقات زهور مذهلة. من حفلات الزفاف إلى الفعاليات الرسمية، سيبتكر فريقنا من المحترفين أجواءً ساحرة تفوق توقعاتكم.'
+    ? 'في غراس فلوريست، نقدم خدمات تنسيق المناسبات في جدة بتصاميم أنيقة وتفاصيل مدروسة تناسب مناسباتكم الخاصة والفعاليات التجارية. من تنسيق حفلات الزفاف والملكة إلى حفلات الافتتاح ومناسبات الشركات، نصمم أجواءً تعكس ذوقكم وتمنح كل مناسبة طابعًا مميزًا.'
     : 'Discover the perfect harmony of floral elegance and event planning expertise with our flower shop. Let us bring your events to life with our meticulous attention to detail and stunning floral arrangements. From weddings to corporate gatherings, our team of professionals will create a captivating ambiance that exceeds your expectations.');
-  const displayButtonText = events?.button_text || events?.buttonText || (isRtl ? 'احجز الآن' : 'BOOK NOW');
+  const displayButtonText = events?.button_text || events?.buttonText || (isRtl ? 'احجز مناسبتك الآن' : 'BOOK NOW');
 
   const defaultFeatures = [
-    { icon: Flower2, label: isRtl ? 'حفلات الزفاف' : 'Weddings' },
+    { icon: Flower2, label: isRtl ? 'حفلات الزفاف والملكة' : 'Weddings & Engagements' },
     { icon: CalendarDays, label: isRtl ? 'فعاليات الشركات' : 'Corporate Events' },
-    { icon: Star, label: isRtl ? 'مناسبات خاصة' : 'Special Occasions' },
+    { icon: Star, label: isRtl ? 'المناسبات الخاصة' : 'Special Occasions' },
   ];
 
   const displayFeatures = Array.isArray(events?.tags) && events.tags.length > 0
     ? events.tags.map((t, idx) => ({
-        icon: getFeatureIcon(t.icon, idx),
-        label: t.label,
-      }))
+      icon: getFeatureIcon(t.icon, idx),
+      label: t.label,
+    }))
     : defaultFeatures;
 
   const titleLines = displayTitleMain.split('\n');
@@ -396,10 +396,10 @@ export function HomeEventsSection({ locale, benefits, events }: HomeEventsSectio
                       <Image
                         src={slide.src}
                         alt={slide.alt}
-                        fill
+                        height={448}
+                        width={362}
                         unoptimized
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
-                        className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                        className="object-cover w-full h-full object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                         draggable={false}
                       />
                       {/* Gradient overlay for contrast and typography readability */}

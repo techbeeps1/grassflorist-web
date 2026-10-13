@@ -28,8 +28,14 @@ export function AnnouncementBar({ locale }: AnnouncementBarProps) {
     siteConfig.locations.find((l) => l.id === activeCity)?.name[locale] ||
     siteConfig.locations[0].name[locale];
 
-  const announcementText =
+  const rawAnnouncementText =
     settings?.topbar?.text?.[locale] || dict.header.announcement;
+
+  const announcementText = rawAnnouncementText
+    ? rawAnnouncementText
+        .replace(/\s*\|\s*(شحن مجاني للطلبات فوق 250(\s*ر\.س)?|Free Delivery on Orders Over 250(\s*ر\.س)?)/gi, '')
+        .trim()
+    : '';
 
   const supportPhone =
     settings?.contact?.phone ||

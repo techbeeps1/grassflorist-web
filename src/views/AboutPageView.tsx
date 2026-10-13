@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
-import { Heart, Leaf, Truck } from 'lucide-react';
+import { Sparkles, Heart, Eye, CheckCircle2 } from 'lucide-react';
 
 interface AboutPageViewProps {
   locale: Locale;
@@ -18,72 +18,114 @@ export function AboutPageView({ locale }: AboutPageViewProps) {
   ];
 
   return (
-    <div className="py-6 bg-surface min-h-[80vh]">
-      <div className="max-w-[1280px] mx-auto px-4">
+    <div className="py-6 sm:py-10 bg-[#FAF8F5] min-h-[80vh]">
+      <div className="site-container">
         <Breadcrumbs items={breadcrumbItems} locale={locale} />
 
-        {/* Hero Banner */}
-        <div className="text-center max-w-3xl mx-auto my-8">
-          <span className="text-xs font-bold uppercase tracking-widest text-secondary block mb-1">
-            {locale === 'ar' ? 'أصالة وفخامة' : 'HERITAGE & CRAFTSMANSHIP'}
+        {/* Hero Header */}
+        <div className="text-center max-w-3xl mx-auto my-8 sm:my-12">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#FAF5EE] text-[#435849] border border-[#DDD3C6] text-xs font-bold uppercase tracking-widest mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-[#8CA841]" />
+            <span>{dict.about.badge}</span>
           </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-text-main leading-tight mb-3">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#201B18] leading-tight mb-4 tracking-tight">
             {dict.about.title}
           </h1>
-          <p className="text-sm sm:text-base text-text-muted leading-relaxed">
+          <p className="text-base sm:text-lg text-[#685D54] font-medium leading-relaxed">
             {dict.about.subtitle}
           </p>
         </div>
 
-        {/* Story Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center my-12">
-          <div className="lg:col-span-6 space-y-4 text-start">
-            <h2 className="text-xl sm:text-2xl font-bold text-text-main">
-              {dict.about.ourStory}
+        {/* Section 1: About Grass Florist */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center my-10 sm:my-16">
+          <div className="lg:col-span-7 space-y-4 text-start">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#201B18] tracking-tight mb-2">
+              {dict.about.section1Title}
             </h2>
-            <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-              {dict.about.storyP1}
+            <p className="text-sm sm:text-base text-[#5A5049] leading-relaxed">
+              {dict.about.section1P1}
             </p>
-            <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-              {dict.about.storyP2}
+            <p className="text-sm sm:text-base text-[#5A5049] leading-relaxed">
+              {dict.about.section1P2}
             </p>
-
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-              <div className="flex items-center gap-2.5">
-                <Leaf className="w-5 h-5 text-primary" />
-                <span className="text-xs font-bold text-text-main">
-                  {locale === 'ar' ? 'مزارع هولندية مستدامة' : 'Dutch Sustainable Farms'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <Heart className="w-5 h-5 text-secondary" />
-                <span className="text-xs font-bold text-text-main">
-                  {locale === 'ar' ? 'تنسيق يدوي بأيدي محترفين' : 'Hand-Tied Masterpieces'}
-                </span>
-              </div>
-            </div>
+            <p className="text-sm sm:text-base text-[#5A5049] leading-relaxed">
+              {dict.about.section1P3}
+            </p>
+            <p className="text-sm sm:text-base text-[#5A5049] leading-relaxed font-medium text-[#201B18]">
+              {dict.about.section1P4}
+            </p>
           </div>
 
-          <div className="lg:col-span-6 relative aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-border">
+          <div className="lg:col-span-5 relative aspect-[4/3] sm:aspect-[4/3] lg:aspect-[5/4] rounded-3xl overflow-hidden shadow-lg border border-[#EBE3D5]">
             <Image
-              src="/editorial-flowers-sharp.webp"
+              src="/about-img.png"
               alt={dict.about.title}
               fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
+              sizes="(max-width: 1024px) 100vw, 40vw"
               className="object-cover"
+              priority
             />
           </div>
         </div>
 
-        {/* Cold Chain Feature */}
-        <div className="my-16 p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-[#F4ECE2] via-[#EFE7DC] to-[#EAE0D3] text-text-main shadow-md border border-border text-center max-w-4xl mx-auto">
-          <Truck className="w-12 h-12 mx-auto mb-4 text-primary" />
-          <h3 className="text-xl sm:text-2xl font-bold text-[#25211E] mb-2">
-            {dict.about.coldChainTitle}
-          </h3>
-          <p className="text-xs sm:text-sm text-[#5C524B] leading-relaxed max-w-2xl mx-auto">
-            {dict.about.coldChainDesc}
-          </p>
+        {/* Section 2 & 3: Vision & Mission */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 my-10 sm:my-16">
+          {/* Vision Card */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border border-[#EBE3D5] shadow-xs flex flex-col justify-start text-start hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 rounded-2xl bg-[#FAF5EE] text-[#435849] flex items-center justify-center mb-5 shrink-0 border border-[#DDD3C6]">
+              <Eye className="w-6 h-6 text-[#8CA841]" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-[#201B18] tracking-tight mb-4">
+              {dict.about.visionTitle}
+            </h2>
+            <div className="space-y-3.5 text-sm sm:text-base text-[#5A5049] leading-relaxed">
+              <p>{dict.about.visionP1}</p>
+              <p>{dict.about.visionP2}</p>
+              <p>{dict.about.visionP3}</p>
+            </div>
+          </div>
+
+          {/* Mission Card */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border border-[#EBE3D5] shadow-xs flex flex-col justify-start text-start hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 rounded-2xl bg-[#FAF5EE] text-[#435849] flex items-center justify-center mb-5 shrink-0 border border-[#DDD3C6]">
+              <Heart className="w-6 h-6 text-[#8CA841]" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-[#201B18] tracking-tight mb-4">
+              {dict.about.missionTitle}
+            </h2>
+            <div className="space-y-3.5 text-sm sm:text-base text-[#5A5049] leading-relaxed">
+              <p>{dict.about.missionP1}</p>
+              <p>{dict.about.missionP2}</p>
+              <p>{dict.about.missionP3}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4: Our Promise to You */}
+        <div className="my-10 sm:my-16 p-8 sm:p-12 lg:p-14 rounded-3xl bg-gradient-to-br from-[#FAF5EE] via-[#F4ECE2] to-[#EFE7DC] text-[#201B18] shadow-sm border border-[#DDD3C6] text-center max-w-4xl mx-auto relative overflow-hidden">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/70 text-[#435849] border border-[#DDD3C6] text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-4 shadow-2xs">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#8CA841]" />
+            <span>{locale === 'ar' ? 'عهدنا معكم' : 'OUR COMMITMENT'}</span>
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#201B18] tracking-tight mb-5">
+            {dict.about.promiseTitle}
+          </h2>
+
+          <div className="space-y-4 text-sm sm:text-base text-[#5A5049] leading-relaxed max-w-2xl mx-auto">
+            <p className="font-semibold text-[#201B18]">{dict.about.promiseP1}</p>
+            <p>{dict.about.promiseP2}</p>
+            <p>{dict.about.promiseP3}</p>
+          </div>
+
+          {/* Slogan Badge */}
+          <div className="mt-8 pt-6 border-t border-[#DDD3C6]/60">
+            <div className="inline-block bg-white/90 backdrop-blur-xs py-3 px-6 sm:px-8 rounded-full border border-[#DDD3C6] shadow-xs">
+              <span className="text-base sm:text-lg font-extrabold text-[#201B18]">
+                {dict.about.slogan}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

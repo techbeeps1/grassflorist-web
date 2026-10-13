@@ -41,6 +41,16 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
 
   const discount = calculateDiscount(product.price, product.originalPrice);
 
+  const categoryName =
+    ((typeof product.category === 'object' && product.category !== null
+      ? product.category[locale] || product.category.ar || product.category.en
+      : typeof product.category === 'string'
+      ? product.category
+      : '') ||
+    (Array.isArray(product.categoriesList) && product.categoriesList.length > 0
+      ? (locale === 'ar' ? product.categoriesList[0].slug_ar : product.categoriesList[0].slug_en) || product.categoriesList[0].name
+      : ''))?.replace(/&amp;/g, '&');
+
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const [addWishlistServer] = useAddToWishlistMutation();
   const [removeWishlistServer] = useRemoveFromWishlistServerMutation();
@@ -123,15 +133,15 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
           />
         </Link>
 
-        {/* Express / Status Badge (top-right / end-2.5) */}
+        {/* Category / Status Badge (top-right / end-2.5) */}
         <div className="absolute top-2.5 end-2.5 z-10 pointer-events-none">
           {isOutOfStock ? (
             <span className="inline-block bg-neutral-800/80 text-white text-[10px] sm:text-[11px] font-medium px-2 py-0.5 rounded-[4px] tracking-wide shadow-xs">
               {locale === 'ar' ? 'نفدت الكمية' : 'Out of Stock'}
             </span>
           ) : (
-            <span className="inline-block bg-[#435849] text-white text-[10px] sm:text-[11px] font-medium px-2.5 py-0.5 rounded-[4px] tracking-wide shadow-xs">
-              {locale === 'ar' ? 'إكسبرس' : 'Express'}
+            <span className="inline-block bg-[#435849] text-white text-[10px] sm:text-[11px] font-medium px-2.5 py-0.5 rounded-[4px] tracking-wide shadow-xs max-w-[120px] sm:max-w-[140px] truncate">
+              {categoryName || (locale === 'ar' ? 'إكسبرس' : 'Express')}
             </span>
           )}
         </div>

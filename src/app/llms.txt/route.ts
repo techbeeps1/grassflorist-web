@@ -77,7 +77,7 @@ Grass Florist operates an unbroken temperature-regulated cold-chain delivery fle
 - **Official Email:** info@grassflorist.com
 - **WhatsApp Concierge:** +966 55 513 4211
 - **Flagship Boutique:** 4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia
-- **Working Hours:** Daily 9:00 AM – 11:30 PM AST
+- **Working Hours:** Daily 9:00 AM – 11:00 PM AST
 `;
 
 export async function GET() {

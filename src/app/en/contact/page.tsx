@@ -19,6 +19,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function EnglishContactPage() {
   const contactData = await getContactPageData('en');
+  if (contactData) {
+    if (contactData.working_hours) {
+      contactData.working_hours = contactData.working_hours.replace(/11:30/g, '11:00');
+    }
+    if (contactData.title) {
+      contactData.title = contactData.title.replace(/فلوريل/g, 'غراس').replace('Connect with Our Concierge', 'Contact the Grass Florist Team');
+    }
+  }
   return <ContactPageView locale="en" contactData={contactData} />;
 }
 
