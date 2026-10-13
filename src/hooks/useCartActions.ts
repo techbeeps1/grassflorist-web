@@ -100,7 +100,13 @@ export function useCartActions() {
     async (
       product: Product,
       qty: number = 1,
-      options?: { openDrawer?: boolean; addons?: CartItem['addons'] }
+      options?: {
+        openDrawer?: boolean;
+        addons?: CartItem['addons'];
+        isSubscription?: boolean;
+        subscriptionConfig?: CartItem['subscriptionConfig'];
+        discountedPrice?: number;
+      }
     ) => {
       const locale = getLocale();
       const availableStock = product.stock !== undefined ? product.stock : 99;
@@ -115,8 +121,15 @@ export function useCartActions() {
         return false;
       }
 
+      const isSub = Boolean(options?.isSubscription);
+      const subFreq = options?.subscriptionConfig?.frequency || 'weekly';
+      const effectiveUnitPrice = isSub && options?.discountedPrice ? options.discountedPrice : product.price;
+      const cartItemId = isSub ? `${product.id}-sub-${subFreq}` : String(product.id);
+
       // Check current quantity in cart
-      const currentItem = items.find((i) => String(i.productId) === String(product.id));
+      const currentItem = items.find(
+        (i) => i.cartItemId === cartItemId || (String(i.productId) === String(product.id) && Boolean(i.isSubscription) === isSub)
+      );
       const currentQty = currentItem ? currentItem.quantity : 0;
       const targetQty = currentQty + qty;
 
@@ -132,8 +145,6 @@ export function useCartActions() {
         );
         return false;
       }
-
-      const cartItemId = String(product.id);
 
       // 1. Show skeleton placeholder at top of cart & open drawer
       dispatch(
@@ -153,6 +164,17 @@ export function useCartActions() {
         const res = await addServerCart({
           productId: product.id,
           quantity: qty,
+          isSubscription: isSub,
+          metaData: isSub
+            ? {
+                is_subscription: true,
+                frequency: options?.subscriptionConfig?.frequency,
+                duration_type: options?.subscriptionConfig?.durationType,
+                start_date: options?.subscriptionConfig?.startDate,
+                time_slot: options?.subscriptionConfig?.timeSlot,
+                discount_percentage: options?.subscriptionConfig?.discountPercent,
+              }
+            : undefined,
         }).unwrap();
 
         if (res?.cart?.items && Array.isArray(res.cart.items)) {
@@ -162,11 +184,13 @@ export function useCartActions() {
           dispatch(
             addItem({
               cartItemId,
-              productId: product.id,
+              productId: String(product.id),
               product,
               quantity: qty,
-              itemTotal: product.price * qty,
+              itemTotal: effectiveUnitPrice * qty,
               addons: options?.addons,
+              isSubscription: isSub,
+              subscriptionConfig: options?.subscriptionConfig,
             })
           );
         }

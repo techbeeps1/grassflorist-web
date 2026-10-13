@@ -31,6 +31,7 @@ import { useCurrency } from '@/hooks/useCurrency';
 import { useCartActions } from '@/hooks/useCartActions';
 import {
   useApplyServerCouponMutation,
+  useEmptyCartMutation,
   getLocalizedProductName,
 } from '@/store/api/cartApi';
 import { formatPrice } from '@/lib/utils';
@@ -55,6 +56,7 @@ import {
   Sunrise,
   Sunset,
   ChevronDown,
+  RotateCw,
 } from 'lucide-react';
 
 import { CountryCodePicker, ALL_COUNTRY_CODES } from '@/components/checkout/CountryCodePicker';
@@ -142,6 +144,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const isRtl = locale === 'ar';
 
   const cartItems = useAppSelector((state) => state.cart.items);
+  const hasSubscription = useMemo(() => cartItems.some((i) => i.isSubscription), [cartItems]);
   const couponCode = useAppSelector((state) => state.cart.couponCode);
   const { subtotal, discount, shippingFee: fallbackShippingFee } = useAppSelector(selectCartTotals);
   const user = useAppSelector((state) => state.auth.user);
@@ -164,26 +167,26 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
   const freeShippingThreshold = Number(
     activeShippingMethod?.min_order_for_free_shipping ??
-      shippingMethodsData?.free_shipping_threshold ??
-      globalSettings?.shipping?.free_shipping_threshold ??
-      siteConfig.features.freeShippingThreshold ??
-      250
+    shippingMethodsData?.free_shipping_threshold ??
+    globalSettings?.shipping?.free_shipping_threshold ??
+    siteConfig.features.freeShippingThreshold ??
+    250
   );
 
   const isFreeShipping = Boolean(
     activeShippingMethod?.is_free_shipping_eligible &&
-      discountedSubtotal >= freeShippingThreshold
+    discountedSubtotal >= freeShippingThreshold
   );
 
   const shippingFee = isFreeShipping
     ? 0
     : Number(
-        activeShippingMethod?.price ??
-          shippingMethodsData?.default_shipping_fee ??
-          globalSettings?.shipping?.inside_jeddah_fee ??
-          fallbackShippingFee ??
-          30
-      );
+      activeShippingMethod?.price ??
+      shippingMethodsData?.default_shipping_fee ??
+      globalSettings?.shipping?.inside_jeddah_fee ??
+      fallbackShippingFee ??
+      30
+    );
 
   // If VAT is included in product prices (isVatIncluded):
   // vat is extracted from the discounted subtotal: vat = discountedSubtotal - (discountedSubtotal / (1 + vatRate))
@@ -214,8 +217,14 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     removingItemIds,
   } = useCartActions();
   const [applyServerCoupon, { isLoading: isApplyingCoupon }] = useApplyServerCouponMutation();
+  const [emptyCart] = useEmptyCartMutation();
   const [couponErrorMessage, setCouponErrorMessage] = useState<string | null>(null);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
+
+  const clearCartCompletely = React.useCallback(() => {
+    dispatch(clearCart());
+    emptyCart().unwrap().catch(() => {});
+  }, [dispatch, emptyCart]);
 
   // Saudi current date as minimum / default date
   const saudiToday = getSaudiTodayDate();
@@ -462,7 +471,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     setDeletedAddressKeys(newDeletedKeys);
     try {
       localStorage.setItem(`grass_deleted_address_keys_${user.id}`, JSON.stringify(newDeletedKeys));
-    } catch {}
+    } catch { }
 
     // 2. Filter out from localAddresses
     const updatedLocal = localAddresses.filter(
@@ -473,7 +482,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     setLocalAddresses(updatedLocal);
     try {
       localStorage.setItem(`grass_saved_addresses_${user.id}`, JSON.stringify(updatedLocal));
-    } catch {}
+    } catch { }
 
     // 3. Clear selected if this one was selected
     if (selectedSavedAddress === addrToRemove.id) {
@@ -558,6 +567,13 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const [paymentMethod, setPaymentMethod] = useState<'mada' | 'credit_card' | 'stc_pay' | 'tabby' | 'tamara' | 'paypal' | 'cod'>('mada');
   const [agreeTerms, setAgreeTerms] = useState(false);
 
+  // Auto-switch away from Tabby/Tamara if cart contains subscription items
+  useEffect(() => {
+    if (hasSubscription && (paymentMethod === 'tabby' || paymentMethod === 'tamara')) {
+      setPaymentMethod('mada');
+    }
+  }, [hasSubscription, paymentMethod]);
+
   // Draft Order Session Persistence (reuses same order ID across switches & refreshes)
   const [draftOrderNumber, setDraftOrderNumber] = useState<string | null>(null);
 
@@ -611,9 +627,12 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     if (orderNum) {
       setDraftOrderNumber(orderNum);
       sessionStorage.setItem('grass_draft_order_number', orderNum);
-    } else {
+    } else if (isPaymentReturn) {
       const savedDraft = sessionStorage.getItem('grass_draft_order_number');
       if (savedDraft) setDraftOrderNumber(savedDraft);
+    } else {
+      setDraftOrderNumber(null);
+      sessionStorage.removeItem('grass_draft_order_number');
     }
 
     try {
@@ -641,7 +660,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
         if (savedForm.songLink) setSongLink(savedForm.songLink);
         if (savedForm.paymentMethod) setPaymentMethod(savedForm.paymentMethod);
       }
-    } catch {}
+    } catch { }
 
     if (isCancelled) {
       setPaymentNotification({
@@ -698,7 +717,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
           const isPaid = Boolean(res?.verification?.is_paid || res?.payment_status === 'paid');
           if (isPaid) {
-            dispatch(clearCart());
+            clearCartCompletely();
             sessionStorage.removeItem('grass_draft_order_number');
             sessionStorage.removeItem('grass_checkout_form_state');
             const o = res.order;
@@ -804,7 +823,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     };
     try {
       sessionStorage.setItem('grass_checkout_form_state', JSON.stringify(formToSave));
-    } catch {}
+    } catch { }
   }, [
     senderFirstName,
     senderLastName,
@@ -1029,7 +1048,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       if (result.alreadyPaid || (result as any).already_paid || (result as any).payment_status === 'paid') {
         setIsSubmittingOrder(false);
         setRedirectingGateway(null);
-        dispatch(clearCart());
+        clearCartCompletely();
         sessionStorage.removeItem('grass_draft_order_number');
         sessionStorage.removeItem('grass_checkout_form_state');
         setConfirmedOrder(result);
@@ -1041,7 +1060,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       if (paymentMethod === 'cod') {
         setIsSubmittingOrder(false);
         setRedirectingGateway(null);
-        dispatch(clearCart());
+        clearCartCompletely();
         sessionStorage.removeItem('grass_draft_order_number');
         sessionStorage.removeItem('grass_checkout_form_state');
         setConfirmedOrder(result);
@@ -1075,7 +1094,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       if (initRes.already_paid || (initRes as any).payment_status === 'paid') {
         setIsSubmittingOrder(false);
         setRedirectingGateway(null);
-        dispatch(clearCart());
+        clearCartCompletely();
         sessionStorage.removeItem('grass_draft_order_number');
         sessionStorage.removeItem('grass_checkout_form_state');
         setConfirmedOrder(result);
@@ -1228,8 +1247,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
         {paymentNotification && (
           <div className={`mb-6 p-4 rounded-xl border flex items-start justify-between gap-3 ${paymentNotification.type === 'warning'
-              ? 'bg-amber-50 border-amber-200 text-amber-800'
-              : 'bg-red-50 border-red-200 text-red-800'
+            ? 'bg-amber-50 border-amber-200 text-amber-800'
+            : 'bg-red-50 border-red-200 text-red-800'
             }`}>
             <div className="flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
@@ -1400,11 +1419,10 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                     <button
                       type="button"
                       onClick={() => setIsAddressDropdownOpen((prev) => !prev)}
-                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-xl flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-2xs ${
-                        isAddressDropdownOpen
+                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-xl flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-2xs ${isAddressDropdownOpen
                           ? 'border-[#8fae2a] ring-2 ring-[#8fae2a]/20 text-gray-900 font-semibold'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700 font-medium'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         <MapPin className="w-4 h-4 text-[#546e3a] shrink-0" />
@@ -1417,9 +1435,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 text-gray-400">
                         <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-200 ${
-                            isAddressDropdownOpen ? 'rotate-180 text-[#546e3a]' : ''
-                          }`}
+                          className={`w-4 h-4 transition-transform duration-200 ${isAddressDropdownOpen ? 'rotate-180 text-[#546e3a]' : ''
+                            }`}
                         />
                       </div>
                     </button>
@@ -1433,11 +1450,10 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                             handleSelectSavedAddress('');
                             setIsAddressDropdownOpen(false);
                           }}
-                          className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between transition-colors ${
-                            !selectedSavedAddress
+                          className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between transition-colors ${!selectedSavedAddress
                               ? 'bg-[#8fae2a]/10 text-[#546e3a] font-bold'
                               : 'hover:bg-gray-50 text-gray-500'
-                          }`}
+                            }`}
                         >
                           <span className="italic">
                             {locale === 'ar' ? 'اختر من العناوين المحفوظة...' : 'Select from Addresses...'}
@@ -1454,17 +1470,15 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                                 handleSelectSavedAddress(addr.id);
                                 setIsAddressDropdownOpen(false);
                               }}
-                              className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between gap-3 group transition-colors ${
-                                isSelected
+                              className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between gap-3 group transition-colors ${isSelected
                                   ? 'bg-[#8fae2a]/10 text-gray-900 font-bold'
                                   : 'hover:bg-gray-50 text-gray-700'
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2.5 min-w-0 flex-1">
                                 <MapPin
-                                  className={`w-4 h-4 shrink-0 ${
-                                    isSelected ? 'text-[#546e3a]' : 'text-gray-400 group-hover:text-gray-600'
-                                  }`}
+                                  className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#546e3a]' : 'text-gray-400 group-hover:text-gray-600'
+                                    }`}
                                 />
                                 <span className="truncate block leading-snug">
                                   {addr.label}
@@ -1978,6 +1992,14 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                             {getLocalizedProductName(item.product.name, locale)}
                           </h4>
 
+                          {/* ⚡ Subscription Badge */}
+                          {item.isSubscription && (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#435849] bg-[#EBF3E8] px-2 py-0.5 rounded-md mt-1 w-fit">
+                              <RotateCw className="w-3 h-3 text-[#546e3a]" />
+                              <span>{locale === 'ar' ? 'اشتراك' : 'Subscription'}</span>
+                            </span>
+                          )}
+
                           <div className="flex items-center gap-2 mt-1.5">
                             {/* Qty changer */}
                             {(() => {
@@ -2200,8 +2222,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   {/* 1. Mada Debit Card */}
                   <label
                     className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'mada'
-                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
-                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                      : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -2220,8 +2242,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   {/* 2. Credit Cards Payment */}
                   <label
                     className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'credit_card'
-                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
-                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                      : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -2244,8 +2266,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   {/* 3. STCPay */}
                   <label
                     className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'stc_pay'
-                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
-                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                      : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -2261,95 +2283,99 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                     <img src="/payments/stcpay.svg" alt="STCPay" className="h-4.5 object-contain shrink-0" />
                   </label>
 
-                  {/* 4. Pay later with Tabby */}
-                  <div>
-                    <label
-                      className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'tabby'
+                  {/* 4. Pay later with Tabby (Hidden for subscriptions) */}
+                  {!hasSubscription && (
+                    <div>
+                      <label
+                        className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'tabby'
                           ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
                           : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                          }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name="payment_choice"
+                            checked={paymentMethod === 'tabby'}
+                            onChange={() => setPaymentMethod('tabby')}
+                            className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
+                          />
+                          <span>{locale === 'ar' ? 'الدفع لاحقاً عبر تابي' : 'Pay later with Tabby'}</span>
+                        </div>
+                        <img src="/payments/tabby.svg" alt="Tabby" className="h-5.5 object-contain shrink-0" />
+                      </label>
+
+                      {/* Expandable Tabby Installment Box */}
+                      {paymentMethod === 'tabby' && (
+                        <div className="mt-2.5 p-4 bg-white border border-gray-200/90 rounded-xl shadow-xs text-start animate-in fade-in slide-in-from-top-1 duration-200">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                            <div className="space-y-1">
+                              <span className="text-[11px] text-gray-500 font-medium block">
+                                {locale === 'ar' ? 'بدءاً من' : 'As low as'}
+                              </span>
+                              <div dir="ltr" className="text-lg font-black text-gray-900 flex items-center gap-1">
+                                <CurrencySymbol className="w-4 h-4" forcedCurrency="SAR" />
+                                <span>{(total / 4).toFixed(2)}/mo</span>
+                              </div>
+                              <span className="text-xs text-gray-500 block">
+                                {locale === 'ar' ? '4 دفعات شهرية ميسرة' : '4 monthly payments'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setShowTabbyModal(true)}
+                                className="mt-1 text-[11px] font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors cursor-pointer inline-block"
+                              >
+                                {locale === 'ar' ? 'عرض الخيارات' : 'View options'}
+                              </button>
+                            </div>
+
+                            <div className="space-y-2 text-xs text-gray-700 border-t sm:border-t-0 sm:border-s border-gray-100 pt-3 sm:pt-0 sm:ps-4">
+                              <div className="flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs shrink-0">✨</span>
+                                <span className="font-medium">{locale === 'ar' ? 'بدون رسوم تأخير' : 'No late fees'}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs shrink-0">🌙</span>
+                                <span className="font-medium">{locale === 'ar' ? 'متوافق مع الشريعة' : 'Shariah compliant'}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs shrink-0">🛡️</span>
+                                <span className="font-medium">{locale === 'ar' ? 'حماية المشتري' : 'Buyer protection'}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 5. Tamara (Hidden for subscriptions) */}
+                  {!hasSubscription && (
+                    <label
+                      className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'tamara'
+                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                         }`}
                     >
                       <div className="flex items-center gap-3">
                         <input
                           type="radio"
                           name="payment_choice"
-                          checked={paymentMethod === 'tabby'}
-                          onChange={() => setPaymentMethod('tabby')}
+                          checked={paymentMethod === 'tamara'}
+                          onChange={() => setPaymentMethod('tamara')}
                           className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
                         />
-                        <span>{locale === 'ar' ? 'الدفع لاحقاً عبر تابي' : 'Pay later with Tabby'}</span>
+                        <span>{locale === 'ar' ? 'تمارا' : 'Tamara'}</span>
                       </div>
-                      <img src="/payments/tabby.svg" alt="Tabby" className="h-5.5 object-contain shrink-0" />
+                      <img src="/payments/tamara.svg" alt="Tamara" className="h-5.5 object-contain shrink-0" />
                     </label>
-
-                    {/* Expandable Tabby Installment Box */}
-                    {paymentMethod === 'tabby' && (
-                      <div className="mt-2.5 p-4 bg-white border border-gray-200/90 rounded-xl shadow-xs text-start animate-in fade-in slide-in-from-top-1 duration-200">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-                          <div className="space-y-1">
-                            <span className="text-[11px] text-gray-500 font-medium block">
-                              {locale === 'ar' ? 'بدءاً من' : 'As low as'}
-                            </span>
-                            <div dir="ltr" className="text-lg font-black text-gray-900 flex items-center gap-1">
-                              <CurrencySymbol className="w-4 h-4" forcedCurrency="SAR" />
-                              <span>{(total / 4).toFixed(2)}/mo</span>
-                            </div>
-                            <span className="text-xs text-gray-500 block">
-                              {locale === 'ar' ? '4 دفعات شهرية ميسرة' : '4 monthly payments'}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setShowTabbyModal(true)}
-                              className="mt-1 text-[11px] font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors cursor-pointer inline-block"
-                            >
-                              {locale === 'ar' ? 'عرض الخيارات' : 'View options'}
-                            </button>
-                          </div>
-
-                          <div className="space-y-2 text-xs text-gray-700 border-t sm:border-t-0 sm:border-s border-gray-100 pt-3 sm:pt-0 sm:ps-4">
-                            <div className="flex items-center gap-2">
-                              <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs shrink-0">✨</span>
-                              <span className="font-medium">{locale === 'ar' ? 'بدون رسوم تأخير' : 'No late fees'}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs shrink-0">🌙</span>
-                              <span className="font-medium">{locale === 'ar' ? 'متوافق مع الشريعة' : 'Shariah compliant'}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs shrink-0">🛡️</span>
-                              <span className="font-medium">{locale === 'ar' ? 'حماية المشتري' : 'Buyer protection'}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 5. Tamara */}
-                  <label
-                    className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'tamara'
-                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
-                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
-                      }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="payment_choice"
-                        checked={paymentMethod === 'tamara'}
-                        onChange={() => setPaymentMethod('tamara')}
-                        className="w-4 h-4 text-[#8fae2a] focus:ring-[#8fae2a]"
-                      />
-                      <span>{locale === 'ar' ? 'تمارا' : 'Tamara'}</span>
-                    </div>
-                    <img src="/payments/tamara.svg" alt="Tamara" className="h-5.5 object-contain shrink-0" />
-                  </label>
+                  )}
 
                   {/* 6. PayPal Express */}
                   <label
                     className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'paypal'
-                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
-                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                      : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -2368,8 +2394,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   {/* 7. Cash on Delivery (COD) */}
                   <label
                     className={`flex items-center justify-between p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${paymentMethod === 'cod'
-                        ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
-                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                      ? 'border-[#8fae2a] bg-[#8fae2a]/5 font-bold text-gray-900 shadow-2xs ring-1 ring-[#8fae2a]'
+                      : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -2607,20 +2633,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                 <div className="bg-[#8fae2a] h-full rounded-full animate-[pulse_1s_infinite] w-full" />
               </div>
 
-              <div className="mt-4 pt-3 border-t border-gray-100 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsVerifyingPayment(false);
-                    if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
-                      window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                  }}
-                  className="text-xs text-gray-400 hover:text-gray-700 underline cursor-pointer transition-colors"
-                >
-                  {locale === 'ar' ? 'إلغاء والعودة لصفحة الدفع' : 'Dismiss / Back to checkout'}
-                </button>
-              </div>
+
             </div>
           </div>
         )}

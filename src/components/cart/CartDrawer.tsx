@@ -14,7 +14,7 @@ import { getDictionary } from '@/i18n/get-dictionary';
 import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
 import { CartDrawerItemSkeleton } from '@/components/ui/Skeleton';
-import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, ShieldCheck, Plus, Minus, Loader2 } from 'lucide-react';
+import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, ShieldCheck, Plus, Minus, Loader2, RotateCw } from 'lucide-react';
 
 interface CartDrawerProps {
   locale: Locale;
@@ -204,6 +204,14 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
+
+                  {/* ⚡ Subscription Badge */}
+                  {item.isSubscription && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#435849] bg-[#EBF3E8] px-2 py-0.5 rounded-md mt-1 w-fit">
+                      <RotateCw className="w-3 h-3 text-[#546e3a]" />
+                      <span>{locale === 'ar' ? 'اشتراك' : 'Subscription'}</span>
+                    </span>
+                  )}
 
                   {/* Addons (if selected) */}
                   {(item.addons?.vase || item.addons?.chocolates || item.addons?.greetingCard?.message) && (

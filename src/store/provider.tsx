@@ -108,6 +108,15 @@ function CartSyncManager() {
         const payloadItems = currentLocal.map((it) => ({
           productId: it.productId,
           quantity: it.quantity,
+          is_subscription: Boolean(it.isSubscription),
+          meta_data: it.subscriptionConfig ? {
+            is_subscription: true,
+            frequency: it.subscriptionConfig.frequency,
+            duration_type: it.subscriptionConfig.durationType,
+            start_date: it.subscriptionConfig.startDate,
+            time_slot: it.subscriptionConfig.timeSlot,
+            discount_percentage: it.subscriptionConfig.discountPercent,
+          } : undefined,
         }));
 
         mergeCart({

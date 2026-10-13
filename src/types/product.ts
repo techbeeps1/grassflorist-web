@@ -57,6 +57,11 @@ export interface Product {
     flowerTypes?: LocalizedString;
   };
   reviewsList?: ProductReview[];
+  is_subscription_enabled?: boolean;
+  subscription_discount_percentage?: number;
+  subscription_frequencies?: string[];
+  subscription_durations?: string[];
+  subscription_min_duration?: string;
 }
 
 export interface ProductFilterState {

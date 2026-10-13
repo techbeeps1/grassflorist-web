@@ -54,13 +54,15 @@ import {
   ShieldCheck,
   Eye,
   EyeOff,
+  RotateCw,
 } from 'lucide-react';
+import { CustomerSubscriptionsDashboard } from '@/components/subscription/CustomerSubscriptionsDashboard';
 
 interface AccountPageViewProps {
   locale: Locale;
 }
 
-type AccountTab = 'profile' | 'orders' | 'addresses' | 'security';
+type AccountTab = 'profile' | 'orders' | 'subscriptions' | 'addresses' | 'security';
 
 function AccountPageContent({ locale }: AccountPageViewProps) {
   const dict = getDictionary(locale);
@@ -75,6 +77,7 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
   const tabParam = searchParams.get('tab');
   const getInitialTab = (): AccountTab => {
     if (tabParam === 'orders') return 'orders';
+    if (tabParam === 'subscriptions') return 'subscriptions';
     if (tabParam === 'addresses') return 'addresses';
     if (tabParam === 'security' || tabParam === 'password') return 'security';
     return 'profile';
@@ -86,7 +89,7 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
   // Sync tab from URL query params (e.g. when navigated via header dropdown or links)
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab === 'orders' || tab === 'addresses' || tab === 'security' || tab === 'password' || tab === 'profile') {
+    if (tab === 'orders' || tab === 'subscriptions' || tab === 'addresses' || tab === 'security' || tab === 'password' || tab === 'profile') {
       setActiveTab((tab === 'password' ? 'security' : tab) as AccountTab);
     }
   }, [searchParams]);
@@ -96,7 +99,7 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
-      if (tab === 'orders' || tab === 'addresses' || tab === 'security' || tab === 'password' || tab === 'profile') {
+      if (tab === 'orders' || tab === 'subscriptions' || tab === 'addresses' || tab === 'security' || tab === 'password' || tab === 'profile') {
         setActiveTab((tab === 'password' ? 'security' : tab) as AccountTab);
       } else {
         setActiveTab('profile');
@@ -643,6 +646,22 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
                 )}
                 <ArrowIcon className="w-4 h-4 opacity-70" />
               </div>
+            </button>
+
+            {/* Subscriptions Tab */}
+            <button
+              onClick={() => handleTabChange('subscriptions')}
+              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                activeTab === 'subscriptions'
+                  ? 'bg-[#435849] text-white shadow-xs'
+                  : 'text-[#4A4036] hover:bg-[#FAF7F2]'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <RotateCw className="w-4 h-4" />
+                <span>{locale === 'ar' ? 'اشتراكاتي الدورية' : 'My Subscriptions'}</span>
+              </div>
+              <ArrowIcon className="w-4 h-4 opacity-70" />
             </button>
 
             <button
@@ -1230,6 +1249,11 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* TAB: SUBSCRIPTIONS */}
+            {activeTab === 'subscriptions' && (
+              <CustomerSubscriptionsDashboard locale={locale} />
             )}
 
             {/* TAB 3: SAVED ADDRESSES */}

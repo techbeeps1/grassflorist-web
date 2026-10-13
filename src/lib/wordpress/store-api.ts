@@ -78,6 +78,11 @@ export interface WCStoreProduct {
     maximum: number;
     multiple_of: number;
   };
+  is_subscription_enabled?: boolean;
+  subscription_discount_percentage?: number;
+  subscription_frequencies?: string[];
+  subscription_durations?: string[];
+  subscription_min_duration?: string;
 }
 
 export interface WCStoreCategory {
@@ -788,6 +793,11 @@ export function mapWCProductToProduct(wc: WCStoreProduct): Product {
     bestseller: true,
     newArrival: true,
     availability: wc.is_in_stock ? 'in_stock' : 'out_of_stock',
+    is_subscription_enabled: Boolean(wc.is_subscription_enabled),
+    subscription_discount_percentage: Number(wc.subscription_discount_percentage || 10),
+    subscription_frequencies: Array.isArray(wc.subscription_frequencies) ? wc.subscription_frequencies : ['weekly', 'biweekly', 'monthly'],
+    subscription_durations: Array.isArray(wc.subscription_durations) ? wc.subscription_durations : ['3_months', '6_months', '12_months', 'until_cancelled'],
+    subscription_min_duration: wc.subscription_min_duration || '3_months',
     seoTitle: {
       ar: `${cleanProductName} | غراس فلوريست للورود والهدايا`,
       en: `${englishProductName} | Grass Florist Saudi Arabia`,
@@ -1086,6 +1096,11 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
     bestseller: true,
     newArrival: true,
     availability: (item.quantity === undefined || item.quantity > 0) ? 'in_stock' : 'out_of_stock',
+    is_subscription_enabled: Boolean(item.is_subscription_enabled),
+    subscription_discount_percentage: Number(item.subscription_discount_percentage || 10),
+    subscription_frequencies: Array.isArray(item.subscription_frequencies) ? item.subscription_frequencies : ['weekly', 'biweekly', 'monthly'],
+    subscription_durations: Array.isArray(item.subscription_durations) ? item.subscription_durations : ['3_months', '6_months', '12_months', 'until_cancelled'],
+    subscription_min_duration: item.subscription_min_duration || '3_months',
     seoTitle: {
       ar: `${nameAr} | غراس فلوريست للورود والهدايا`,
       en: `${nameEn} | Grass Florist Saudi Arabia`,

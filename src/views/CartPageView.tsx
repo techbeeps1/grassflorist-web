@@ -28,7 +28,7 @@ import { formatPrice } from '@/lib/utils';
 import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
 import { CartPageItemSkeleton } from '@/components/ui/Skeleton';
-import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft, Loader2, RotateCw } from 'lucide-react';
 
 interface CartPageViewProps {
   locale: Locale;
@@ -117,24 +117,6 @@ export function CartPageView({ locale }: CartPageViewProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Items Column */}
             <div className="lg:col-span-8 space-y-6">
-              {/* Free Shipping Progress Indicator */}
-              <div className="p-4 bg-secondary-light/60 rounded-2xl border border-secondary/30">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#8C6D45] mb-2">
-                  <Sparkles className="w-4 h-4 shrink-0" />
-                  <span>
-                    {isFree
-                      ? dict.cart.freeShippingUnlocked
-                      : dict.cart.freeShippingRemaining.replace('{amount}', remaining.toString())}
-                  </span>
-                </div>
-                <div className="w-full h-2.5 bg-white rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-500 rounded-full"
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-              </div>
-
               {/* Items Card List */}
               <div className="bg-surface rounded-2xl border border-border divide-y divide-border overflow-hidden shadow-xs">
                 {/* 🌟 1. Skeleton Loading for newly added item while API responds */}
@@ -191,9 +173,8 @@ export function CartPageView({ locale }: CartPageViewProps) {
                   return (
                     <div
                       key={item.cartItemId}
-                      className={`p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center justify-between text-start transition-colors ${
-                        isUpdating ? 'bg-primary/5' : ''
-                      }`}
+                      className={`p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center justify-between text-start transition-colors ${isUpdating ? 'bg-primary/5' : ''
+                        }`}
                     >
                       <div className="flex items-center gap-4">
                         <Link
@@ -219,6 +200,14 @@ export function CartPageView({ locale }: CartPageViewProps) {
                           >
                             {getLocalizedProductName(item.product.name, locale)}
                           </Link>
+
+                          {/* ⚡ Subscription Badge */}
+                          {item.isSubscription && (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#435849] bg-[#EBF3E8] px-2 py-0.5 rounded-md mt-1 w-fit">
+                              <RotateCw className="w-3 h-3 text-[#546e3a]" />
+                              <span>{locale === 'ar' ? 'اشتراك' : 'Subscription'}</span>
+                            </span>
+                          )}
 
                           {/* Addon details */}
                           {item.addons?.vase && (

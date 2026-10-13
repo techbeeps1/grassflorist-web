@@ -24,6 +24,14 @@ export interface CartItem {
   quantity: number;
   addons?: CartItemAddons;
   itemTotal: number;
+  isSubscription?: boolean;
+  subscriptionConfig?: {
+    frequency?: 'weekly' | 'biweekly' | 'monthly' | 'custom';
+    durationType?: '3_months' | '6_months' | '12_months' | 'until_cancelled' | 'custom';
+    startDate?: string;
+    timeSlot?: string;
+    discountPercent?: number;
+  };
 }
 
 export interface CartState {

@@ -24,6 +24,7 @@ export interface LaravelCartItem {
   image?: string;
   product_weight?: number | string;
   subtotal: number | string;
+  meta_data?: any;
 }
 
 export interface LaravelCartResponse {
@@ -83,11 +84,25 @@ export function convertServerCartItemToClient(item: LaravelCartItem): CartItem {
   const localizedName = parseLocalizedField(item.product_name);
   const localizedSlug = parseLocalizedField(item.product_slug);
 
+  const meta = typeof item.meta_data === 'string'
+    ? (() => { try { return JSON.parse(item.meta_data); } catch { return {}; } })()
+    : (item.meta_data || {});
+  const isSub = Boolean(meta?.is_subscription);
+  const subFreq = meta?.frequency;
+
   return {
-    cartItemId: `${productId}-standard`,
+    cartItemId: isSub ? `${productId}-sub-${subFreq || 'weekly'}` : `${productId}-standard`,
     productId,
     quantity: qty,
     itemTotal: price * qty,
+    isSubscription: isSub,
+    subscriptionConfig: isSub ? {
+      frequency: meta.frequency || 'weekly',
+      durationType: meta.duration_type || 'until_cancelled',
+      startDate: meta.start_date || '',
+      timeSlot: meta.time_slot || '',
+      discountPercent: Number(meta.discount_percentage) || 10,
+    } : undefined,
     product: {
       id: productId,
       name: localizedName,
@@ -128,14 +143,16 @@ export const cartApi = baseApi.injectEndpoints({
 
     addToCart: builder.mutation<
       { message: string; cart?: LaravelCartResponse; total_products_count?: number; success?: boolean },
-      { productId: string | number; quantity: number }
+      { productId: string | number; quantity: number; isSubscription?: boolean; metaData?: any }
     >({
-      query: ({ productId, quantity }) => ({
+      query: ({ productId, quantity, isSubscription, metaData }) => ({
         url: '/cart/add',
         method: 'POST',
         body: {
           product_id: Number(productId),
           quantity,
+          is_subscription: Boolean(isSubscription),
+          meta_data: metaData,
           session_id: getCartSessionId(),
         },
       }),

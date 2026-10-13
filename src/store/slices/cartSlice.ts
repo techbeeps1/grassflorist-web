@@ -80,6 +80,11 @@ function persistState(state: CartState) {
       const scopedKey = userId ? `grass_cart_user_${userId}` : `grass_cart_guest_${sessionId}`;
       localStorage.setItem(scopedKey, JSON.stringify(persisted));
 
+      // Whenever cart is updated (items added, removed, changed), clear any stale checkout draft order
+      try {
+        sessionStorage.removeItem('grass_draft_order_number');
+      } catch {}
+
       // Broadcast instantly to all other open tabs / windows in this browser with strict identity tags
       if (typeof BroadcastChannel !== 'undefined') {
         const bc = new BroadcastChannel('grass_cart_channel');
@@ -107,27 +112,37 @@ export const cartSlice = createSlice({
       const maxStock = action.payload.product.stock ?? 99;
       if (maxStock <= 0) return; // Out of stock
 
+      const isSub = Boolean(action.payload.isSubscription);
+      const subFreq = action.payload.subscriptionConfig?.frequency;
+
       const existingIndex = state.items.findIndex(
         (item) =>
           item.cartItemId === action.payload.cartItemId ||
-          String(item.productId) === String(action.payload.productId)
+          (String(item.productId) === String(action.payload.productId) &&
+            Boolean(item.isSubscription) === isSub &&
+            (!isSub || item.subscriptionConfig?.frequency === subFreq))
       );
+
+      const effectiveUnitPrice = action.payload.itemTotal && action.payload.quantity
+        ? action.payload.itemTotal / action.payload.quantity
+        : action.payload.product.price;
 
       if (existingIndex >= 0) {
         const currentQty = state.items[existingIndex].quantity;
         const newQty = Math.min(maxStock, currentQty + action.payload.quantity);
         state.items[existingIndex].quantity = newQty;
+        const currentUnit = currentQty > 0 ? (state.items[existingIndex].itemTotal / currentQty) : effectiveUnitPrice;
         state.items[existingIndex].itemTotal =
-          state.items[existingIndex].product.price * newQty +
+          currentUnit * newQty +
           (state.items[existingIndex].addons?.vase?.price || 0) +
           (state.items[existingIndex].addons?.chocolates?.price || 0);
       } else {
         const safeQty = Math.min(maxStock, action.payload.quantity);
         state.items.push({
           ...action.payload,
-          cartItemId: action.payload.cartItemId || String(action.payload.productId),
+          cartItemId: action.payload.cartItemId || (isSub ? `${action.payload.productId}-sub-${subFreq}` : String(action.payload.productId)),
           quantity: safeQty,
-          itemTotal: action.payload.product.price * safeQty,
+          itemTotal: effectiveUnitPrice * safeQty,
         });
       }
       persistState(state);
