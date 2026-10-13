@@ -1099,7 +1099,7 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                 <div className="mb-5">
                   <label className="block text-xs font-semibold text-[#5A5049] mb-2 leading-relaxed">
                     {isRtl
-                      ? 'تفاصيل التنسيق المرغوب: مدخل الغرفة، ستاندات للضيافة، أو الاثنين معًا، أو أي تفاصيل/إضافات أخرى في بالك؟'
+                      ? 'ما الذي تود منا أن نزينه؟'
                       : 'What would you like us to decorate?'}
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
