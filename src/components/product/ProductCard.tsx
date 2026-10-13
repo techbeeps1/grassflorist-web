@@ -14,9 +14,9 @@ import {
   useRemoveFromWishlistServerMutation,
 } from '@/store/api/wishlistApi';
 import { addToast } from '@/store/slices/uiSlice';
-import { formatPrice, calculateDiscount, cn } from '@/lib/utils';
+import { calculateDiscount, cn } from '@/lib/utils';
 import { formatStorageUrl } from '@/lib/wordpress/store-api';
-import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
+import { PriceDisplay } from '@/components/common/CurrencySymbol';
 import { Heart, ShoppingBag, Check, Zap, Loader2 } from 'lucide-react';
 
 interface ProductCardProps {
@@ -102,41 +102,16 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
   };
 
   const currentImage =
-    isHovered && product.images.length > 1 ? product.images[1] : product.thumbnail;
-
-  // Small subtle pastel badge
-  const getBadge = () => {
-    if (product.bestseller) {
-      return {
-        label: locale === 'ar' ? 'الأكثر طلباً' : 'Bestseller',
-        className: 'bg-[#FAF0E6] text-[#B86A3E] border border-[#F2DECE]',
-      };
-    }
-    if (product.newArrival) {
-      return {
-        label: locale === 'ar' ? 'جديد' : 'New',
-        className: 'bg-[#EAF3EC] text-[#3B704A] border border-[#D5EADB]',
-      };
-    }
-    if (discount && discount > 0) {
-      return {
-        label: locale === 'ar' ? `خصم ${discount}%` : `-${discount}%`,
-        className: 'bg-[#FCE8E8] text-[#C44D4D] border border-[#F7D2D2]',
-      };
-    }
-    return null;
-  };
-
-  const badge = getBadge();
+    isHovered && product.images?.length > 1 ? product.images[1] : product.thumbnail;
 
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex flex-col bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 border border-[#EBE3D7] shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_16px_36px_rgba(67,88,73,0.09)] hover:border-[#D8CFBF] hover:-translate-y-1 transition-all duration-300 h-full select-none"
+      className="group relative flex flex-col w-full h-full select-none"
     >
-      {/* 1. Main Visual Frame */}
-      <div className="relative w-full aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-[#FAF7F2]">
+      {/* 1. Main Visual Frame (4px border-radius) */}
+      <div className="relative w-full aspect-square rounded-[4px] overflow-hidden bg-[#FAF7F2]">
         <Link href={productUrl} prefetch={true} className="block w-full h-full">
           <Image
             src={formatStorageUrl(currentImage)}
@@ -144,25 +119,24 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
             fill
             priority={priority}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+            className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out rounded-[4px]"
           />
         </Link>
 
-        {/* Small Subtle Luxury Badge */}
-        {badge && (
-          <div className="absolute top-2.5 start-2.5 z-10 pointer-events-none">
-            <span
-              className={cn(
-                'px-2.5 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-semibold shadow-xs block tracking-wide',
-                badge.className
-              )}
-            >
-              {badge.label}
+        {/* Express / Status Badge (top-right / end-2.5) */}
+        <div className="absolute top-2.5 end-2.5 z-10 pointer-events-none">
+          {isOutOfStock ? (
+            <span className="inline-block bg-neutral-800/80 text-white text-[10px] sm:text-[11px] font-medium px-2 py-0.5 rounded-[4px] tracking-wide shadow-xs">
+              {locale === 'ar' ? 'نفدت الكمية' : 'Out of Stock'}
             </span>
-          </div>
-        )}
+          ) : (
+            <span className="inline-block bg-[#435849] text-white text-[10px] sm:text-[11px] font-medium px-2.5 py-0.5 rounded-[4px] tracking-wide shadow-xs">
+              {locale === 'ar' ? 'إكسبرس' : 'Express'}
+            </span>
+          )}
+        </div>
 
-        {/* Minimal Floating Glassmorphic Wishlist Button */}
+        {/* Minimal Floating Glassmorphic Wishlist Button (top-start / start-2.5) */}
         <button
           type="button"
           onClick={handleToggleWishlist}
@@ -175,7 +149,7 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
                 ? 'إضافة للمفضلة'
                 : 'Add to wishlist'
           }
-          className="absolute top-2.5 end-2.5 z-10 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md shadow-xs border border-[#ECE5DB] flex items-center justify-center transition-all duration-200 hover:bg-white hover:scale-110 active:scale-95 cursor-pointer"
+          className="absolute top-2.5 start-2.5 z-10 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md shadow-xs border border-[#ECE5DB] flex items-center justify-center transition-all duration-200 hover:bg-white hover:scale-110 active:scale-95 cursor-pointer"
         >
           <Heart
             className={cn(
@@ -184,22 +158,14 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
             )}
           />
         </button>
-
       </div>
 
       {/* 2. Product Information Details & Hover Add to Bag */}
-      <div className="relative px-1 pt-3 sm:pt-3.5 pb-0.5 flex flex-col justify-end min-h-[64px] sm:min-h-[72px]">
-        {/* Default View: Title & Price (Hides on desktop hover) */}
+      <div className="relative pt-2.5 sm:pt-3 pb-0.5 flex flex-col justify-end min-h-[60px] sm:min-h-[64px]">
+        {/* Default View: Price (Top) & Title (Bottom) (Hides on desktop hover) */}
         <div className="transition-all duration-300 md:group-hover:opacity-0 md:group-hover:invisible md:group-hover:pointer-events-none md:group-hover:translate-y-1">
-          {/* Product Title */}
-          <Link href={productUrl} prefetch={true} className="block group/title mb-1.5">
-            <h3 className="text-[15px] md:text-[17px] font-bold text-[#1E1915] group-hover/title:text-[#435849] transition-colors line-clamp-1 leading-snug">
-              {product.name[locale]}
-            </h3>
-          </Link>
-
           {/* Price & Mobile Action Row */}
-          <div className="flex items-center justify-between gap-1.5 pt-0.5">
+          <div className="flex items-center justify-between gap-1.5">
             <div className="flex items-baseline gap-1.5 flex-wrap">
               <PriceDisplay
                 amount={product.price}
@@ -238,6 +204,13 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
               </button>
             </div>
           </div>
+
+          {/* Product Title (below price) */}
+          <Link href={productUrl} prefetch={true} className="block group/title mt-1.5">
+            <h3 className="text-[14px] sm:text-[15px] font-bold text-[#1E1915] group-hover/title:text-[#435849] transition-colors line-clamp-1 leading-snug">
+              {product.name[locale]}
+            </h3>
+          </Link>
         </div>
 
         {/* Desktop Hover View: Add to Bag & Buy Now Buttons in place of Title & Price */}
