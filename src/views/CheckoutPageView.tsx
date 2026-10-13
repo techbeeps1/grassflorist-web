@@ -622,7 +622,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     const gateway = params.get('gateway') || 'hyperpay';
     const hyperpayId = params.get('id');
     const token = params.get('token');
-    const isPaymentReturn = Boolean(hyperpayId || token || params.get('payment_success') === '1' || params.get('PayerID'));
+    const subId = params.get('subscription_id');
+    const isPaymentReturn = Boolean(hyperpayId || token || subId || params.get('payment_success') === '1' || params.get('PayerID'));
 
     if (orderNum) {
       setDraftOrderNumber(orderNum);
@@ -682,7 +683,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       return;
     }
 
-    if ((orderNum || hyperpayId || token) && isPaymentReturn) {
+    if ((orderNum || hyperpayId || token || subId) && isPaymentReturn) {
       if (hasVerifiedPaymentRef.current) return;
       hasVerifiedPaymentRef.current = true;
 
@@ -703,9 +704,9 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       const brand = params.get('brand') || undefined;
 
       verifyPayment({
-        orderId: orderNum || hyperpayId || token!,
+        orderId: orderNum || hyperpayId || subId || token!,
         gateway,
-        referenceId: hyperpayId || token || undefined,
+        referenceId: hyperpayId || subId || token || undefined,
         resourcePath,
         brand,
       })
