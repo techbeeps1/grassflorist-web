@@ -26,16 +26,10 @@ import {
 } from '@/lib/wordpress/store-api';
 import { ProductDetailPageSkeleton } from '@/components/product/ProductDetailPageSkeleton';
 import {
-  SubscriptionPurchaseSelector,
-  type PurchaseType,
-  type SubscriptionConfig,
-} from '@/components/subscription/SubscriptionPurchaseSelector';
-import {
   Heart,
   ShoppingBag,
   Loader2,
   Zap,
-  RotateCw,
 } from 'lucide-react';
 
 interface ProductDetailPageViewProps {
@@ -75,13 +69,6 @@ export function ProductDetailPageView({
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
-  const [purchaseType, setPurchaseType] = useState<PurchaseType>('one_time');
-  const [subscriptionConfig, setSubscriptionConfig] = useState<SubscriptionConfig>({
-    frequency: 'weekly',
-    durationType: 'until_cancelled',
-    startDate: '',
-    timeSlot: '',
-  });
 
   // Compute live price
   const totalItemPrice = product.price * quantity;
@@ -117,7 +104,12 @@ export function ProductDetailPageView({
     product.description?.[locale] ||
     (locale === 'en' ? product.description?.en : product.description?.ar) ||
     '';
-  const displayDescription = rawDescription.trim() || displayShortDescription;
+  const displayDescription = rawDescription.trim();
+  const hasDistinctDescription = Boolean(
+    displayDescription &&
+    displayDescription !== displayShortDescription &&
+    displayDescription.toLowerCase() !== displayShortDescription.toLowerCase()
+  );
 
   // Schema Generation
   const productSchema = generateProductSchema(
@@ -125,7 +117,7 @@ export function ProductDetailPageView({
       ...product,
       name: { ar: product.name.ar, en: displayName },
       category: { ar: product.category.ar, en: displayCategory },
-      description: { ar: product.description.ar, en: displayDescription },
+      description: { ar: product.description.ar, en: displayDescription || displayShortDescription },
     },
     locale
   );
@@ -166,23 +158,8 @@ export function ProductDetailPageView({
       setIsAdding(true);
     }
 
-    const isSub = purchaseType === 'subscription' && Boolean(product.is_subscription_enabled);
-    const discountPct = Number(product.subscription_discount_percentage) || 10;
-    const discountedSinglePrice = Math.round(product.price * (1 - discountPct / 100));
-
     const success = await addToCart(product, quantity, {
       openDrawer: !directToCheckout,
-      isSubscription: isSub,
-      subscriptionConfig: isSub
-        ? {
-            frequency: subscriptionConfig.frequency,
-            durationType: subscriptionConfig.durationType,
-            startDate: subscriptionConfig.startDate,
-            timeSlot: subscriptionConfig.timeSlot,
-            discountPercent: discountPct,
-          }
-        : undefined,
-      discountedPrice: isSub ? discountedSinglePrice : undefined,
     });
 
     setIsAdding(false);
@@ -265,16 +242,6 @@ export function ProductDetailPageView({
               )}
 
               {/* 🌟 Dual Purchase Options: One-Time Purchase vs Subscribe & Save */}
-              <SubscriptionPurchaseSelector
-                product={product}
-                locale={locale}
-                quantity={quantity}
-                purchaseType={purchaseType}
-                onPurchaseTypeChange={setPurchaseType}
-                subscriptionConfig={subscriptionConfig}
-                onSubscriptionConfigChange={setSubscriptionConfig}
-              />
-
               {/* Quantity & CTA Buttons */}
               <div className="space-y-3 pt-4 border-t border-border">
                 <div className="flex items-center gap-3">
@@ -290,11 +257,7 @@ export function ProductDetailPageView({
                   </div>
 
                   <PriceDisplay
-                    amount={
-                      purchaseType === 'subscription' && product.is_subscription_enabled
-                        ? Math.round(product.price * (1 - (product.subscription_discount_percentage || 10) / 100)) * quantity
-                        : totalItemPrice
-                    }
+                    amount={totalItemPrice}
                     locale={locale}
                     className="text-lg font-black text-primary ms-auto"
                     symbolClassName="w-4 h-4"
@@ -302,52 +265,34 @@ export function ProductDetailPageView({
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
-                  {/* Add to Bag Button (Unified for both One-time and Subscription) */}
+                  {/* Add to Bag Button */}
                   <button
                     type="button"
                     disabled={isAdding || isBuyingNow}
                     onClick={() => handleAddToCart(false)}
-                    className={`flex-1 min-h-[48px] sm:min-h-[52px] py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base border shadow-xs hover:shadow-sm active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 select-none ${
-                      purchaseType === 'subscription'
-                        ? 'bg-emerald-50/70 hover:bg-emerald-100/70 text-emerald-950 border-emerald-300 hover:border-emerald-500'
-                        : 'bg-white hover:bg-[#FAF7F2] text-[#2C382F] border-[#DDD3C4] hover:border-[#435849]'
-                    }`}
+                    className="flex-1 min-h-[48px] sm:min-h-[52px] py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base border shadow-xs hover:shadow-sm active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 select-none bg-white hover:bg-[#FAF7F2] text-[#2C382F] border-[#DDD3C4] hover:border-[#435849]"
                   >
                     {isAdding ? (
                       <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-current" />
-                    ) : purchaseType === 'subscription' ? (
-                      <RotateCw className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700" />
                     ) : (
                       <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-[#435849]" />
                     )}
-                    <span>
-                      {purchaseType === 'subscription'
-                        ? (locale === 'ar' ? 'إضافة الاشتراك للسلة' : 'Add Subscription to Bag')
-                        : dict.product.addToCart}
-                    </span>
+                    <span>{dict.product.addToCart}</span>
                   </button>
 
-                  {/* Buy Now / Subscribe Now Button (Unified - Direct to /checkout) */}
+                  {/* Buy Now Button (Direct to /checkout) */}
                   <button
                     type="button"
                     disabled={isAdding || isBuyingNow}
                     onClick={() => handleAddToCart(true)}
-                    className={`flex-1 min-h-[48px] sm:min-h-[52px] py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 select-none ${
-                      purchaseType === 'subscription'
-                        ? 'bg-emerald-700 hover:bg-emerald-800'
-                        : 'bg-[#435849] hover:bg-[#34463A]'
-                    }`}
+                    className="flex-1 min-h-[48px] sm:min-h-[52px] py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 select-none bg-[#435849] hover:bg-[#34463A]"
                   >
                     {isBuyingNow ? (
                       <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-white" />
                     ) : (
                       <Zap className="w-4 h-4 sm:w-5 sm:h-5 fill-current text-white" />
                     )}
-                    <span>
-                      {purchaseType === 'subscription'
-                        ? (locale === 'ar' ? 'اشترك الآن' : 'Subscribe Now')
-                        : dict.product.buyNow}
-                    </span>
+                    <span>{dict.product.buyNow}</span>
                   </button>
 
                   {/* Wishlist Button */}
@@ -369,7 +314,7 @@ export function ProductDetailPageView({
           </div>
 
           {/* Product Description Section (Above Reviews) */}
-          {displayDescription && (
+          {hasDistinctDescription && (
             <div className="mt-12 pt-8 border-t border-border">
               <div className="w-full space-y-3">
                 <h2 className="text-lg sm:text-xl font-bold text-text-main flex items-center gap-2">

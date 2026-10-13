@@ -1885,9 +1885,6 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
                           <span>Base Amount:</span>
                           <CurrencySymbol forcedCurrency="SAR" size={12} className="w-3 h-3 inline -mt-0.5" />
                           <span>{modalTotalSar}</span>
-                          <span className="text-[10px] text-[#8C8075] font-normal ms-1">
-                            (Rate: 1 <CurrencySymbol forcedCurrency="SAR" size={10} className="w-2.5 h-2.5 inline -mt-0.5" /> = ${modalRate})
-                          </span>
                         </div>
                       ) : (
                         <div className="text-xs text-[#8C8075] font-medium mt-0.5 flex items-center justify-end gap-1" dir="ltr">

@@ -58,6 +58,18 @@ export const mainNavItems: NavItem[] = [
     hasDropdown: false,
   },
   {
+    id: 'subscriptions',
+    name: {
+      en: 'SUBSCRIPTIONS',
+      ar: 'اشتراكات الزهور',
+    },
+    href: {
+      en: '/en/flowers-subscription-deals',
+      ar: '/flowers-subscription-deals',
+    },
+    hasDropdown: false,
+  },
+  {
     id: 'occasions',
     name: {
       en: 'OCCASIONS',
