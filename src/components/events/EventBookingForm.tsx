@@ -802,9 +802,7 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                 {/* 1. Type of Event */}
                 <div className="mb-5">
                   <label className="block text-xs font-semibold text-[#5A5049] mb-2">
-                    {isRtl
-                      ? 'نوع المناسبة: (خطوبة، زواج، عيد ميلاد، تخرج، أو أي مناسبة أخرى)'
-                      : 'Type of Event (Engagement, Wedding, Birthday, Graduation, etc.)'}
+                    {isRtl ? 'نوع المناسبة' : 'Type of Event'}
                     <span className="text-red-500 ms-1">*</span>
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
