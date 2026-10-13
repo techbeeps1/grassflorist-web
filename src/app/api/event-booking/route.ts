@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     } = body;
 
     // Validate essential fields
-    if (!firstName || !lastName || !phone || !email || !date || !location) {
+    if (!firstName || !lastName || !phone || !email || (!date && eventType !== 'Flower supply') || !location) {
       return NextResponse.json(
         { success: false, error: 'Missing required booking fields' },
         { status: 400 }
