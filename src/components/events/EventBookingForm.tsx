@@ -42,10 +42,10 @@ interface EventTypeOption {
 
 const EVENT_TYPES: EventTypeOption[] = [
   { id: 'Bridal bouquets', name: { en: 'Bridal Bouquets', ar: 'مسكات العرائس' }, icon: Flower2 },
-  { id: 'Hall wedding', name: { en: 'Hall Wedding', ar: 'زفاف قاعات' }, icon: Crown },
+  { id: 'Hall wedding', name: { en: 'Hall Event Decoration', ar: 'تنسيق مناسبة في قاعة' }, icon: Crown },
   { id: 'House wedding', name: { en: 'Home Event Decoration', ar: 'تنسيق مناسبة منزلية' }, icon: HomeIcon },
   { id: 'Milkah decoration', name: { en: 'Milkah Decoration', ar: 'تنسيق ملكة وعقد قران' }, icon: Heart },
-  { id: 'Newborn welcome decorations', name: { en: 'Newborn Welcome Decorations', ar: 'ديكورات استقبال مواليد' }, icon: Baby },
+  { id: 'Newborn welcome decorations', name: { en: 'Newborn Welcome Decorations', ar: 'استقبال مواليد' }, icon: Baby },
   { id: 'Birthday party', name: { en: 'Birthday Party', ar: 'حفل عيد ميلاد' }, icon: Cake },
   { id: 'Graduation event', name: { en: 'Graduation Event', ar: 'حفل تخرج' }, icon: GraduationCap },
   { id: 'Corporate event', name: { en: 'Corporate Event', ar: 'فعالية شركات ومؤتمرات' }, icon: Briefcase },
@@ -136,9 +136,11 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
   });
 
   const isBridal = formData.eventType === 'Bridal bouquets';
+  const isHallEvent = formData.eventType === 'Hall wedding';
   const isHomeEvent =
     formData.eventType === 'House wedding' ||
     formData.eventType === 'Home event';
+  const isHallOrHome = isHallEvent || isHomeEvent;
   const isNewborn =
     formData.eventType === 'Newborn welcome decorations' ||
     formData.eventType === 'Baby reception';
@@ -177,6 +179,10 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
     } else if (isBridal) {
       if (formData.deliveryMethod === 'Delivery' && !formData.deliveryAddress.trim()) {
         errs.deliveryAddress = isRtl ? 'يرجى إدخال موقع أو عنوان التوصيل' : 'Delivery address is required';
+      }
+    } else if (isHallEvent) {
+      if (!formData.location.trim()) {
+        errs.location = isRtl ? 'يرجى إدخال اسم القاعة وموقعها' : 'Venue name and location is required';
       }
     } else if (isHomeEvent) {
       if (!formData.location.trim()) {
@@ -243,6 +249,17 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
           `التنسيق المرغوب: ${formData.decorationOption}`,
           `نوع الورد: ${formData.flowerType}`,
           `الألوان / الثيم: ${formData.themeColor || 'غير محدد'}`,
+        ].filter(Boolean).join('\n')
+      : isHallEvent
+      ? [
+          formData.message.trim(),
+          `\n--- تفاصيل تنسيق مناسبة في قاعة ---`,
+          `نوع المناسبة: ${homeEventSubtypeLabel}`,
+          `اسم القاعة وموقعها: ${formData.location}`,
+          `تفاصيل التنسيق المطلوب: ${homeDecorAreasLabel || 'غير محدد'}`,
+          `نوع الورد المفضل: ${formData.flowerType || 'غير محدد'}`,
+          `الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}`,
+          `الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}`,
         ].filter(Boolean).join('\n')
       : isHomeEvent
       ? [
@@ -375,6 +392,10 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
       ? (isRtl
         ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق استقبال مواليد:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- المستشفى: ${formData.hospitalName || formData.location}\n- تاريخ المناسبة: ${formData.date}\n- تفاصيل التنسيق المرغوب: ${selectedDecorLabel}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان أو الثيم: ${formData.themeColor || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
         : `Hello Grass Florist, I would like to inquire about Newborn Welcome Decorations:\n- Name: ${formData.firstName} ${formData.lastName}\n- Hospital: ${formData.hospitalName || formData.location}\n- Event Date: ${formData.date}\n- Decoration Preference: ${selectedDecorLabel}\n- Flower Type: ${selectedFlowerLabel}\n- Colors / Theme: ${formData.themeColor || 'Not specified'}\n- Additional Requests: ${formData.message || 'None'}`)
+      : isHallEvent
+      ? (isRtl
+        ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق مناسبة في قاعة:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- نوع المناسبة: ${homeEventSubtypeLabel}\n- تاريخ المناسبة: ${formData.date}\n- اسم القاعة وموقعها: ${formData.location}\n- تفاصيل التنسيق المرغوب: ${homeDecorAreasLabel || 'غير محدد'}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}\n- الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
+        : `Hello Grass Florist, I would like to inquire about Hall Event Decoration:\n- Name: ${formData.firstName} ${formData.lastName}\n- Type of Event: ${homeEventSubtypeLabel}\n- Event Date: ${formData.date}\n- Venue Name and Location: ${formData.location}\n- Decoration Preference: ${homeDecorAreasLabel || 'Not specified'}\n- Flower Type: ${selectedFlowerLabel}\n- Preferred Colors: ${formData.themeColor || 'Not specified'}\n- Specific Theme: ${formData.homeTheme || 'Not specified'}\n- Additional Requests: ${formData.message || 'None'}`)
       : isHomeEvent
       ? (isRtl
         ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق مناسبة منزلية:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- نوع المناسبة: ${homeEventSubtypeLabel}\n- تاريخ المناسبة: ${formData.date}\n- موقع المناسبة: ${formData.location}\n- تفاصيل التنسيق المرغوب: ${homeDecorAreasLabel || 'غير محدد'}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}\n- الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
@@ -577,8 +598,8 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
             <label className="block text-xs sm:text-sm font-bold text-[#201B18] mb-3">
               {isBridal
                 ? (isRtl ? '٣. تفاصيل مسكة العروسة' : '3. Bridal Bouquet Details')
-                : isHomeEvent
-                ? (isRtl ? '٣. تفاصيل وموقع المناسبة' : '3. Home Event Details & Location')
+                : isHallOrHome
+                ? (isRtl ? '٣. تفاصيل وموقع المناسبة' : '3. Event Details & Location')
                 : (isRtl ? '٣. تفاصيل وموقع المناسبة' : '3. Event Logistics & Venue')}
             </label>
 
@@ -796,9 +817,9 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                   )}
                 </div>
               </>
-            ) : isHomeEvent ? (
+            ) : isHallOrHome ? (
               <>
-                {/* Home Event Specific Fields */}
+                {/* Hall / Home Event Specific Fields */}
                 {/* 1. Type of Event */}
                 <div className="mb-5">
                   <label className="block text-xs font-semibold text-[#5A5049] mb-2">
@@ -874,10 +895,12 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                     )}
                   </div>
 
-                  {/* Event Location */}
+                  {/* Event Location / Venue */}
                   <div>
                     <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
-                      {isRtl ? 'موقع المناسبة؟' : 'Event Location'}
+                      {isHallEvent
+                        ? (isRtl ? 'اسم القاعة وموقعها؟' : 'Venue Name and Location')
+                        : (isRtl ? 'موقع المناسبة؟' : 'Event Location')}
                       <span className="text-red-500 ms-1">*</span>
                     </label>
                     <div className="relative">
@@ -890,9 +913,13 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                           if (errors.location) setErrors({ ...errors, location: '' });
                         }}
                         placeholder={
-                          isRtl
-                            ? 'مثال: جدة، حي الروضة / فيلا خاصة'
-                            : 'e.g. Jeddah, Al Rawdah / Private Villa'
+                          isHallEvent
+                            ? (isRtl
+                                ? 'مثال: جدة - فندق هيلتون / قاعة ليلتي'
+                                : 'e.g. Jeddah - Hilton Hotel / Laylaty Ballroom')
+                            : (isRtl
+                                ? 'مثال: جدة، حي الروضة / فيلا خاصة'
+                                : 'e.g. Jeddah, Al Rawdah / Private Villa')
                         }
                         className={cn(
                           'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
