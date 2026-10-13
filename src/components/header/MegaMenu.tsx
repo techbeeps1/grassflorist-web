@@ -340,13 +340,13 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                       <div className="absolute -top-4 inset-x-0 h-4 bg-transparent pointer-events-auto" />
 
                       <div className="site-container grid grid-cols-12 gap-8 items-start">
-                        {/* Left: Category Sub-links in 3 Columns with Circular Icons */}
+                        {/* Left: Category Sub-links in 3 Columns with Luxury Cards */}
                         <div className={cn(
-                          item.featuredProduct || item.featuredCard ? 'col-span-12 lg:col-span-8' : 'col-span-12',
+                          item.featuredProduct || item.featuredCard ? 'col-span-12 lg:col-span-8' : 'col-span-12 max-w-5xl mx-auto w-full',
                           'flex flex-col'
                         )}>
                           {/* Header Bar */}
-                          <div className="pb-4 mb-2 border-b border-[#EFE7DC] flex items-center justify-between">
+                          <div className="pb-4 mb-3 border-b border-[#EFE7DC] flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               {/* Header icon temporarily commented out */}
                               {/* <div className="w-8 h-8 rounded-full bg-[#FAF7F2] text-[#435849] border border-[#EAE3D7] flex items-center justify-center shrink-0">
@@ -355,8 +355,7 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                               <h3 className="text-base sm:text-[17px] font-extrabold text-[#1E1915] tracking-wide uppercase font-sans">
                                 {item.name?.[locale] || ''}
                               </h3>
-                              <span className="text-[#D8CFBF] text-base font-light select-none">|</span>
-                              <span className="text-xs sm:text-[13px] font-medium text-[#8C8075]">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#FAF5EE] text-[#5C5044] border border-[#EAE1D3]">
                                 {item.subcategories?.length || 0} {locale === 'ar' ? 'تصنيف' : 'Items'}
                               </span>
                             </div>
@@ -364,15 +363,15 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                             <Link
                               href={itemUrl}
                               onClick={closeMenusImmediately}
-                              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#FAF7F2] hover:bg-[#435849] text-[#435849] hover:text-white border border-[#E8E0D4] text-xs font-semibold transition-all duration-200 group/all"
+                              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white hover:bg-[#2D3F33] text-[#2D3F33] hover:text-white border border-[#DDD3C6] hover:border-[#2D3F33] text-xs font-bold transition-all duration-200 shadow-2xs group/all"
                             >
                               <span>{locale === 'ar' ? 'عرض الكل' : 'View All'}</span>
                               <ArrowIcon className="w-3.5 h-3.5 group-hover/all:translate-x-0.5 rtl:group-hover/all:-translate-x-0.5 transition-transform" />
                             </Link>
                           </div>
 
-                          {/* 3-Column Subcategories List with Icons */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-0">
+                          {/* 3-Column Subcategories List with Luxury Row Styling */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
                             {item.subcategories?.map((sub) => {
                               const IconComponent = getOccasionIcon(sub.icon || sub.id);
                               const subUrl = sub.href?.[locale] || '#';
@@ -381,15 +380,16 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                                   key={sub.id}
                                   href={subUrl}
                                   onClick={closeMenusImmediately}
-                                  className="group/occ flex items-center gap-3 py-2.5 border-b border-[#F4EFEA] hover:border-[#8CA841]/50 transition-colors"
+                                  className="group/occ flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/70 hover:bg-white border border-[#EFE8DD] hover:border-[#435849]/40 text-[#2B231D] hover:text-[#2D3F33] transition-all duration-200 shadow-2xs hover:shadow-xs cursor-pointer"
                                 >
                                   {/* Subcategory icon temporarily commented out */}
                                   {/* <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-[#FAF7F2] group-hover/occ:bg-[#435849] border border-[#EAE3D7] group-hover/occ:border-[#435849] flex items-center justify-center transition-all duration-200 shrink-0 shadow-2xs">
                                     <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#435849] group-hover/occ:text-white transition-colors duration-200" />
                                   </div> */}
-                                  <span className="text-xs sm:text-[13.5px] font-medium text-[#25211E] group-hover/occ:text-[#435849] group-hover/occ:font-semibold transition-colors truncate">
+                                  <span className="text-xs sm:text-[13px] font-medium group-hover/occ:font-bold transition-colors truncate">
                                     {sub.name?.[locale] || ''}
                                   </span>
+                                  <ArrowIcon className="w-3.5 h-3.5 text-[#8C8075] group-hover/occ:text-[#435849] opacity-40 group-hover/occ:opacity-100 group-hover/occ:translate-x-0.5 rtl:group-hover/occ:-translate-x-0.5 transition-all duration-200 shrink-0" />
                                 </Link>
                               );
                             })}
