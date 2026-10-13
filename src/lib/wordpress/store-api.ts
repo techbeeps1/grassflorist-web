@@ -880,21 +880,16 @@ export function formatStorageUrl(path?: string | null): string {
   const str = String(path).trim();
   if (!str) return 'https://grassflorist.com/wp-content/uploads/2025/02/placeholder.png';
 
-  const isBrowser = typeof window !== 'undefined';
-  const isLocalhost = isBrowser
-    ? (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    : (process.env.NODE_ENV !== 'production');
-
-  const backendOrigin = (
-    process.env.NEXT_PUBLIC_BACKEND_URL || 
-    (isLocalhost ? 'http://127.0.0.1:8000' : 'https://api.grassflorist.com')
+  const mediaOrigin = (
+    process.env.NEXT_PUBLIC_MEDIA_URL || 
+    'https://api.grassflorist.com'
   ).replace(/\/+$/, '');
 
   if (str.startsWith('http://') || str.startsWith('https://')) {
-    // If it's a localhost URL rendered on a live staging/production site, remap to the actual live backend
-    if (!isLocalhost && (str.includes('127.0.0.1:8000') || str.includes('localhost:8000'))) {
-      const clean = str.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000\/?/, '');
-      return `${backendOrigin}/${clean.replace(/^\/+/, '')}`;
+    // If it points to local dev backend storage, remap to live mediaOrigin so images load cleanly
+    if (str.includes('127.0.0.1:8000/storage/') || str.includes('localhost:8000/storage/')) {
+      const clean = str.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000\/storage\/?/, '');
+      return `${mediaOrigin}/storage/${clean.replace(/^\/+/, '')}`;
     }
     return str;
   }
@@ -904,7 +899,7 @@ export function formatStorageUrl(path?: string | null): string {
   }
 
   const cleanPath = str.replace(/^\/?storage\/?/, '').replace(/^\/+/, '');
-  return `${backendOrigin}/storage/${cleanPath}`;
+  return `${mediaOrigin}/storage/${cleanPath}`;
 }
 
 /**
