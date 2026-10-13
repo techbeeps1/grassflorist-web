@@ -3,8 +3,8 @@ import { AboutPageView } from '@/views/AboutPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'عن غراس فلوريست | بوتيك الزهور الفاخرة وسلسلة التبريد',
-  description: 'تعرف على قصة بوتيك غراس فلوريست، التزامنا باستيراد أجود الزهور الهولندية وسلسلة التبريد المتكاملة.',
+  title: 'عن غراس فلوريست | متجر زهور إلكتروني سعودي في جدة',
+  description: 'في غراس فلوريست نصنع تجارب تنبض بالمشاعر. متجر زهور إلكتروني سعودي متخصص في بيع وتوصيل باقات الورد والزهور في جدة.',
   path: '/about',
   locale: 'ar',
 });

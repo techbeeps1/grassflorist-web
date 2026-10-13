@@ -2160,14 +2160,14 @@ export interface ContactPageData {
 
 const fallbackContactDataEn: ContactPageData = {
   badge: 'ALWAYS AT YOUR SERVICE',
-  title: 'Connect with Our Concierge',
+  title: 'Contact the Grass Florist Team',
   subtitle: 'We are at your service for bespoke floral requests, event styling, and delivery inquiries.',
   form_title: 'Send an Inquiry',
   inquiries_title: 'DIRECT INQUIRIES',
   phone: '+966 55 513 4211',
   whatsapp: '+966 55 513 4211',
   email: 'info@grassflorist.com',
-  working_hours: 'Daily 9:00 AM - 11:30 PM AST',
+  working_hours: 'Daily 9:00 AM - 11:00 PM AST',
   ateliers_title: 'BOUTIQUE ATELIERS',
   city: 'Jeddah',
   address: '4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia',
@@ -2175,15 +2175,15 @@ const fallbackContactDataEn: ContactPageData = {
 
 const fallbackContactDataAr: ContactPageData = {
   badge: 'نحن في خدمتك',
-  title: 'تواصل مع خدمة العملاء',
+  title: 'تواصل مع فريق غراس',
   subtitle: 'نحن في خدمتكم لتلبية طلبات الزهور وتنسيق المناسبات والاستفسارات الفاخرة.',
   form_title: 'أرسل استفسارك',
   inquiries_title: 'التواصل المباشر',
   phone: '+966 55 513 4211',
   whatsapp: '+966 55 513 4211',
   email: 'info@grassflorist.com',
-  working_hours: 'يومياً من 9:00 صباحاً حتى 11:30 مساءً',
-  ateliers_title: 'فروعنا وبوتيكاتنا',
+  working_hours: 'يومياً من 9:00 صباحاً حتى 11:00 مساءً',
+  ateliers_title: 'فروع وبوتيكات غراس فلوريست',
   city: 'جدة',
   address: '٤٣٦٦ شارع الكيال، حي الروضة، جدة ٢٣٤٣٤، المملكة العربية السعودية',
 };

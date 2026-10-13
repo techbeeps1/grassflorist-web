@@ -58,15 +58,25 @@ export function ContactPageView({ locale, contactData }: ContactPageViewProps) {
 
   // Dynamic values with elegant fallbacks
   const badgeText = contactData?.badge || (locale === 'ar' ? 'نحن في خدمتك' : 'ALWAYS AT YOUR SERVICE');
-  const pageTitle = contactData?.title || dict.contact.title;
+  const defaultTitle = locale === 'ar' ? 'تواصل مع فريق غراس' : 'Contact the Grass Florist Team';
+  const rawPageTitle = contactData?.title;
+  const pageTitle =
+    !rawPageTitle ||
+    rawPageTitle.includes('فلوريل') ||
+    rawPageTitle === 'تواصل مع خدمة العملاء' ||
+    rawPageTitle === 'Connect with Our Concierge'
+      ? defaultTitle
+      : rawPageTitle;
   const pageSubtitle = contactData?.subtitle || dict.contact.subtitle;
   const formTitle = contactData?.form_title || dict.contact.sendMessage;
   const inquiriesTitle = contactData?.inquiries_title || dict.contact.getInTouch;
   const phoneNumber = contactData?.phone || siteConfig.contact.phone;
   const whatsappNumber = contactData?.whatsapp || siteConfig.contact.whatsapp;
   const contactEmail = contactData?.email || siteConfig.contact.email;
-  const workingHours = contactData?.working_hours || (locale === 'ar' ? siteConfig.contact.hours.ar : siteConfig.contact.hours.en);
-  const ateliersTitle = contactData?.ateliers_title || dict.contact.boutiqueLocations;
+  const rawWorkingHours = contactData?.working_hours || (locale === 'ar' ? siteConfig.contact.hours.ar : siteConfig.contact.hours.en);
+  const workingHours = rawWorkingHours ? rawWorkingHours.replace(/11:30/g, '11:00') : (locale === 'ar' ? siteConfig.contact.hours.ar : siteConfig.contact.hours.en);
+  const rawAteliersTitle = contactData?.ateliers_title || dict.contact.boutiqueLocations;
+  const ateliersTitle = rawAteliersTitle ? rawAteliersTitle.replace(/فلوريل/g, 'غراس') : dict.contact.boutiqueLocations;
   const cityName = contactData?.city || (locale === 'ar' ? 'جدة' : 'Jeddah');
   const addressText = contactData?.address || (locale === 'ar' ? siteConfig.locations[0].address.ar : siteConfig.locations[0].address.en);
   const mapLink = contactData?.map_link;

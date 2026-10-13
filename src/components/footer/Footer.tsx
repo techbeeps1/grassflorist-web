@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { type Locale, siteConfig } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { categories } from '@/data/categories';
@@ -28,6 +29,8 @@ interface FooterProps {
 }
 
 export function Footer({ locale }: FooterProps) {
+  const pathname = usePathname();
+  const isHomePage = pathname === '/' || pathname === '/en' || pathname === '/en/';
   const dict = getDictionary(locale);
   const isRtl = locale === 'ar';
   const [email, setEmail] = useState('');
@@ -163,11 +166,12 @@ export function Footer({ locale }: FooterProps) {
 
   return (
     <>
-      {/* 1. SEPARATE VIP NEWSLETTER SECTION (Clean, attractive & visually appealing) */}
-      <section
-        aria-label="Newsletter Subscription"
-        className="w-full bg-[#FAF7F2] border-t border-[#EAE2D5] py-14 sm:py-16 relative overflow-hidden"
-      >
+      {/* 1. SEPARATE VIP NEWSLETTER SECTION (Only displayed on the Home Page) */}
+      {isHomePage && (
+        <section
+          aria-label="Newsletter Subscription"
+          className="w-full bg-[#FAF7F2] border-t border-[#EAE2D5] py-14 sm:py-16 relative overflow-hidden"
+        >
         {/* Subtle Decorative Background Elements */}
         <div className="absolute top-0 end-0 w-96 h-96 bg-[#8CA841]/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 start-0 w-80 h-80 bg-[#D4C4B5]/20 rounded-full blur-3xl pointer-events-none" />
@@ -292,6 +296,7 @@ export function Footer({ locale }: FooterProps) {
           </div>
         </div>
       </section>
+    )}
 
       {/* 2. MAIN LUXURY DARK FOOTER (Floward-Style Structure & Hierarchy) */}
       <footer className="bg-[#493D25] text-[#D1C9BE] pt-16 sm:pt-20 pb-10 sm:pb-12 border-t border-[#233227]">

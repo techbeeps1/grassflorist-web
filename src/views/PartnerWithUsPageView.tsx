@@ -28,15 +28,15 @@ interface PartnerWithUsPageViewProps {
 }
 
 const CATEGORIES = [
-  { id: 'Chocolates', en: 'Chocolates', ar: 'شوكولاتة' },
-  { id: 'Home Accessories', en: 'Home Accessories', ar: 'إكسسوارات منزلية' },
-  { id: 'Candles', en: 'Candles', ar: 'شموع' },
-  { id: 'Cakes', en: 'Cakes', ar: 'كيك' },
-  { id: 'Bakery', en: 'Bakery', ar: 'مخبوزات' },
-  { id: 'Sweets', en: 'Sweets', ar: 'حلويات' },
+  { id: 'Chocolates & Sweets', en: 'Chocolates & Sweets', ar: 'شوكولاتة وحلويات' },
+  { id: 'Cakes & Bakeries', en: 'Cakes & Bakeries', ar: 'كيك ومخابز' },
   { id: 'Perfumes', en: 'Perfumes', ar: 'عطور' },
-  { id: 'Beauty', en: 'Beauty', ar: 'منتجات تجميل' },
-  { id: 'Fashion', en: 'Fashion', ar: 'أزياء' },
+  { id: 'Jewelry', en: 'Jewelry', ar: 'مجوهرات' },
+  { id: 'Gifts & Wrapping', en: 'Gifts & Wrapping', ar: 'هدايا وتغليف' },
+  { id: 'Indoor Plants', en: 'Indoor Plants', ar: 'نباتات داخلية' },
+  { id: 'Hotels & Hospitality', en: 'Hotels & Hospitality', ar: 'فنادق وضيافة' },
+  { id: 'Event & Wedding Planning', en: 'Event & Wedding Planning', ar: 'تنظيم مناسبات وأعراس' },
+  { id: 'Corporate Services', en: 'Corporate Services', ar: 'شركات ومؤسسات' },
   { id: 'Other', en: 'Other', ar: 'أخرى' },
 ];
 
@@ -61,7 +61,7 @@ export function PartnerWithUsPageView({ locale }: PartnerWithUsPageViewProps) {
   const [city, setCity] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [website, setWebsite] = useState('');
-  const [category, setCategory] = useState('Chocolates');
+  const [category, setCategory] = useState('Chocolates & Sweets');
   const [socialMedia, setSocialMedia] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -193,7 +193,7 @@ export function PartnerWithUsPageView({ locale }: PartnerWithUsPageViewProps) {
     setCity('');
     setCompanyName('');
     setWebsite('');
-    setCategory('Chocolates');
+    setCategory('Chocolates & Sweets');
     setSocialMedia('');
     setFirstName('');
     setLastName('');

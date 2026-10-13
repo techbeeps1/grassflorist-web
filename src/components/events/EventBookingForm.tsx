@@ -25,6 +25,7 @@ import {
   Building2,
   Home as HomeIcon,
   Crown,
+  Palette,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -43,7 +44,7 @@ const EVENT_TYPES: EventTypeOption[] = [
   { id: 'Hall wedding', name: { en: 'Hall Wedding', ar: 'زفاف قاعات' }, icon: Crown },
   { id: 'House wedding', name: { en: 'House Wedding', ar: 'زفاف منزلي' }, icon: HomeIcon },
   { id: 'Milkah decoration', name: { en: 'Milkah Decoration', ar: 'تنسيق ملكة وعقد قران' }, icon: Heart },
-  { id: 'Baby reception', name: { en: 'Baby Reception', ar: 'استقبال مواليد' }, icon: Baby },
+  { id: 'Newborn welcome decorations', name: { en: 'Newborn Welcome Decorations', ar: 'ديكورات استقبال مواليد' }, icon: Baby },
   { id: 'Birthday party', name: { en: 'Birthday Party', ar: 'حفل عيد ميلاد' }, icon: Cake },
   { id: 'Graduation event', name: { en: 'Graduation Event', ar: 'حفل تخرج' }, icon: GraduationCap },
   { id: 'Corporate event', name: { en: 'Corporate Event', ar: 'فعالية شركات ومؤتمرات' }, icon: Briefcase },
@@ -58,6 +59,19 @@ const GUEST_RANGES = [
   { id: '300+', label: { en: '300+ Guests', ar: '+٣٠٠ ضيف' } },
 ];
 
+const DECORATION_OPTIONS = [
+  { id: 'Hospital Room Entrance', label: { en: 'Hospital Room Entrance', ar: 'مدخل الغرفة' } },
+  { id: 'Hospitality Display Stands', label: { en: 'Hospitality Display Stands', ar: 'ستاندات للضيافة' } },
+  { id: 'Both', label: { en: 'Both', ar: 'الاثنين معًا' } },
+  { id: 'Other Decorations or Special Requests', label: { en: 'Other Decorations / Requests', ar: 'أي تفاصيل أو إضافات أخرى' } },
+];
+
+const FLOWER_TYPES = [
+  { id: 'Fresh Flowers', label: { en: 'Fresh Flowers', ar: 'طبيعي' } },
+  { id: 'Artificial Flowers', label: { en: 'Artificial Flowers', ar: 'صناعي' } },
+  { id: 'A Mix of Fresh and Artificial Flowers', label: { en: 'Mix of Fresh & Artificial', ar: 'مكس بين الطبيعي والصناعي' } },
+];
+
 export function EventBookingForm({ locale }: EventBookingFormProps) {
   const isRtl = locale === 'ar';
   const dispatch = useAppDispatch();
@@ -70,10 +84,18 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
     email: '',
     eventType: 'Hall wedding',
     location: '',
+    hospitalName: '',
+    decorationOption: 'Both',
+    flowerType: 'Fresh Flowers',
+    themeColor: '',
     date: '',
     guests: '50-150',
     message: '',
   });
+
+  const isNewborn =
+    formData.eventType === 'Newborn welcome decorations' ||
+    formData.eventType === 'Baby reception';
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -102,8 +124,14 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
     if (!formData.email.trim() || !formData.email.includes('@')) {
       errs.email = isRtl ? 'يرجى إدخال بريد إلكتروني صحيح' : 'Valid email is required';
     }
-    if (!formData.location.trim()) {
-      errs.location = isRtl ? 'يرجى إدخال موقع أو مدينة المناسبة' : 'Event location is required';
+    if (isNewborn) {
+      if (!formData.hospitalName.trim() && !formData.location.trim()) {
+        errs.hospitalName = isRtl ? 'يرجى إدخال اسم المستشفى' : 'Hospital name is required';
+      }
+    } else {
+      if (!formData.location.trim()) {
+        errs.location = isRtl ? 'يرجى إدخال موقع أو مدينة المناسبة' : 'Event location is required';
+      }
     }
     if (!formData.date) {
       errs.date = isRtl ? 'يرجى اختيار تاريخ المناسبة' : 'Event date is required';
@@ -121,6 +149,10 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
     setIsSubmitting(true);
     setServerError(null);
 
+    const finalLocation = isNewborn
+      ? (formData.hospitalName.trim() || formData.location.trim() || 'Hospital Reception')
+      : formData.location.trim();
+
     try {
       const response = await fetch('/api/event-booking', {
         method: 'POST',
@@ -129,6 +161,7 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
         },
         body: JSON.stringify({
           ...formData,
+          location: finalLocation,
           locale,
         }),
       });
@@ -174,6 +207,10 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
       email: '',
       eventType: 'Hall wedding',
       location: '',
+      hospitalName: '',
+      decorationOption: 'Both',
+      flowerType: 'Fresh Flowers',
+      themeColor: '',
       date: '',
       guests: '50-150',
       message: '',
@@ -184,9 +221,21 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
   const selectedEventObj = EVENT_TYPES.find((t) => t.id === formData.eventType);
 
   const generateWhatsAppUrl = () => {
-    const text = isRtl
-      ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنظيم مناسبة:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- نوع المناسبة: ${selectedEventObj?.name.ar || formData.eventType}\n- التاريخ: ${formData.date}\n- الموقع: ${formData.location}\n- عدد الضيوف: ${formData.guests}\n- الملاحظات: ${formData.message || 'لا يوجد'}`
-      : `Hello Grass Florist, I would like to inquire about booking an event:\n- Name: ${formData.firstName} ${formData.lastName}\n- Event Type: ${selectedEventObj?.name.en || formData.eventType}\n- Date: ${formData.date}\n- Location: ${formData.location}\n- Guests: ${formData.guests}\n- Notes: ${formData.message || 'None'}`;
+    const selectedDecorLabel =
+      DECORATION_OPTIONS.find((d) => d.id === formData.decorationOption)?.label[locale] ||
+      formData.decorationOption;
+    const selectedFlowerLabel =
+      FLOWER_TYPES.find((f) => f.id === formData.flowerType)?.label[locale] ||
+      formData.flowerType;
+
+    const text = isNewborn
+      ? (isRtl
+        ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق استقبال مواليد:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- المستشفى: ${formData.hospitalName || formData.location}\n- تاريخ المناسبة: ${formData.date}\n- تفاصيل التنسيق المرغوب: ${selectedDecorLabel}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان أو الثيم: ${formData.themeColor || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
+        : `Hello Grass Florist, I would like to inquire about Newborn Welcome Decorations:\n- Name: ${formData.firstName} ${formData.lastName}\n- Hospital: ${formData.hospitalName || formData.location}\n- Event Date: ${formData.date}\n- Decoration Preference: ${selectedDecorLabel}\n- Flower Type: ${selectedFlowerLabel}\n- Colors / Theme: ${formData.themeColor || 'Not specified'}\n- Additional Requests: ${formData.message || 'None'}`)
+      : (isRtl
+        ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنظيم مناسبة:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- نوع المناسبة: ${selectedEventObj?.name.ar || formData.eventType}\n- التاريخ: ${formData.date}\n- الموقع: ${formData.location}\n- عدد الضيوف: ${formData.guests}\n- الملاحظات: ${formData.message || 'لا يوجد'}`
+        : `Hello Grass Florist, I would like to inquire about booking an event:\n- Name: ${formData.firstName} ${formData.lastName}\n- Event Type: ${selectedEventObj?.name.en || formData.eventType}\n- Date: ${formData.date}\n- Location: ${formData.location}\n- Guests: ${formData.guests}\n- Notes: ${formData.message || 'None'}`);
+
     return `https://wa.me/966555134211?text=${encodeURIComponent(text)}`;
   };
 
@@ -376,91 +425,260 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
             </div>
           </div>
 
-          {/* Step 3: Event Logistics (Date, Location, Guests) */}
+          {/* Step 3: Event Logistics & Venue */}
           <div>
             <label className="block text-xs sm:text-sm font-bold text-[#201B18] mb-3">
               {isRtl ? '٣. تفاصيل وموقع المناسبة' : '3. Event Logistics & Venue'}
             </label>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5">
-              {/* Event Location */}
-              <div>
-                <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
-                  {isRtl ? 'موقع أو مدينة المناسبة والقاعة' : 'Event Location & Venue'}
-                  <span className="text-red-500 ms-1">*</span>
-                </label>
-                <div className="relative">
-                  <MapPin className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder={isRtl ? 'مثال: جدة - فندق هيلتون / قاعة ليلتي' : 'e.g. Jeddah - Hilton Ballroom / Private Villa'}
-                    className={cn(
-                      'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
-                      errors.location ? 'border-red-400 ring-1 ring-red-400' : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+            {isNewborn ? (
+              <>
+                {/* Newborn Specific Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5">
+                  {/* Hospital Name */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      {isRtl ? 'المستشفى؟' : 'Hospital Name'}
+                      <span className="text-red-500 ms-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <Building2 className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                      <input
+                        type="text"
+                        value={formData.hospitalName}
+                        onChange={(e) => {
+                          setFormData({ ...formData, hospitalName: e.target.value });
+                          if (errors.hospitalName) setErrors({ ...errors, hospitalName: '' });
+                        }}
+                        placeholder={
+                          isRtl
+                            ? 'مثال: مستشفى د. سليمان فقيه / المركز الطبي الدولي'
+                            : 'e.g. Dr. Soliman Fakeeh Hospital / IMC'
+                        }
+                        className={cn(
+                          'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
+                          errors.hospitalName
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                        )}
+                      />
+                    </div>
+                    {errors.hospitalName && (
+                      <p className="text-red-500 text-[11px] mt-1">{errors.hospitalName}</p>
                     )}
-                  />
-                </div>
-                {errors.location && <p className="text-red-500 text-[11px] mt-1">{errors.location}</p>}
-              </div>
+                  </div>
 
-              {/* Event Date */}
-              <div>
-                <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
-                  {isRtl ? 'تاريخ المناسبة' : 'Event Date'}
-                  <span className="text-red-500 ms-1">*</span>
-                </label>
-                <div className="relative">
-                  <Calendar className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
-                  <input
-                    type="date"
-                    min={new Date().toISOString().split('T')[0]}
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className={cn(
-                      'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
-                      errors.date ? 'border-red-400 ring-1 ring-red-400' : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                  {/* Event Date */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      {isRtl ? 'تاريخ المناسبة؟ (DATE)' : 'Event Date'}
+                      <span className="text-red-500 ms-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <Calendar className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                      <input
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        value={formData.date}
+                        onChange={(e) => {
+                          setFormData({ ...formData, date: e.target.value });
+                          if (errors.date) setErrors({ ...errors, date: '' });
+                        }}
+                        className={cn(
+                          'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
+                          errors.date
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                        )}
+                      />
+                    </div>
+                    {errors.date && (
+                      <p className="text-red-500 text-[11px] mt-1">{errors.date}</p>
                     )}
-                  />
+                  </div>
                 </div>
-                {errors.date && <p className="text-red-500 text-[11px] mt-1">{errors.date}</p>}
-              </div>
-            </div>
 
-            {/* Estimated Guests */}
-            <div>
-              <label className="block text-xs font-semibold text-[#5A5049] mb-2">
-                <Users className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
-                {isRtl ? 'عدد الضيوف المتوقع' : 'Estimated Guest Count'}
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {GUEST_RANGES.map((range) => {
-                  const isSelected = formData.guests === range.id;
-                  return (
-                    <button
-                      key={range.id}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, guests: range.id })}
-                      className={cn(
-                        'py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
-                        isSelected
-                          ? 'bg-[#FAF5EE] text-[#2D3F33] border-[#2D3F33] ring-1 ring-[#2D3F33]'
-                          : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white'
-                      )}
-                    >
-                      {range.label[locale]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                {/* What would you like us to decorate? */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-2 leading-relaxed">
+                    {isRtl
+                      ? 'تفاصيل التنسيق المرغوب: مدخل الغرفة، ستاندات للضيافة، أو الاثنين معًا، أو أي تفاصيل/إضافات أخرى في بالك؟'
+                      : 'What would you like us to decorate?'}
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                    {DECORATION_OPTIONS.map((option) => {
+                      const isSelected = formData.decorationOption === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, decorationOption: option.id })}
+                          className={cn(
+                            'py-3 px-3.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
+                            isSelected
+                              ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-xs'
+                              : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white hover:border-[#435849]/50'
+                          )}
+                        >
+                          {option.label[locale]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Preferred Flower Type (Optional) */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-2">
+                    {isRtl ? 'نوع الورد المفضل؟ (optional)' : 'Preferred Flower Type (Optional)'}
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {FLOWER_TYPES.map((flower) => {
+                      const isSelected = formData.flowerType === flower.id;
+                      return (
+                        <button
+                          key={flower.id}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, flowerType: flower.id })}
+                          className={cn(
+                            'py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
+                            isSelected
+                              ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-xs'
+                              : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white hover:border-[#435849]/50'
+                          )}
+                        >
+                          {flower.label[locale]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Preferred Colors or Theme */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                    <Palette className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
+                    {isRtl
+                      ? 'هل فيه ألوان أو ثيم معين حابة يكون عليه التنسيق؟'
+                      : 'Preferred Colors or Theme'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.themeColor}
+                      onChange={(e) => setFormData({ ...formData, themeColor: e.target.value })}
+                      placeholder={
+                        isRtl
+                          ? 'مثال: أزرق سماوي وأبيض، درجات الوردي الناعم، ثيم ذهبي ومحايد...'
+                          : 'e.g. Baby blue & white, delicate pastel pink, neutral gold...'
+                      }
+                      className="w-full px-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849] text-xs sm:text-sm text-[#201B18] transition-all outline-none"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Standard Event Logistics Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5">
+                  {/* Event Location */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      {isRtl ? 'موقع أو مدينة المناسبة والقاعة' : 'Event Location & Venue'}
+                      <span className="text-red-500 ms-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                      <input
+                        type="text"
+                        value={formData.location}
+                        onChange={(e) => {
+                          setFormData({ ...formData, location: e.target.value });
+                          if (errors.location) setErrors({ ...errors, location: '' });
+                        }}
+                        placeholder={
+                          isRtl
+                            ? 'مثال: جدة - فندق هيلتون / قاعة ليلتي'
+                            : 'e.g. Jeddah - Hilton Ballroom / Private Villa'
+                        }
+                        className={cn(
+                          'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
+                          errors.location
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                        )}
+                      />
+                    </div>
+                    {errors.location && (
+                      <p className="text-red-500 text-[11px] mt-1">{errors.location}</p>
+                    )}
+                  </div>
+
+                  {/* Event Date */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      {isRtl ? 'تاريخ المناسبة' : 'Event Date'}
+                      <span className="text-red-500 ms-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <Calendar className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                      <input
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        value={formData.date}
+                        onChange={(e) => {
+                          setFormData({ ...formData, date: e.target.value });
+                          if (errors.date) setErrors({ ...errors, date: '' });
+                        }}
+                        className={cn(
+                          'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
+                          errors.date
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                        )}
+                      />
+                    </div>
+                    {errors.date && (
+                      <p className="text-red-500 text-[11px] mt-1">{errors.date}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Estimated Guests */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-2">
+                    <Users className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
+                    {isRtl ? 'عدد الضيوف المتوقع' : 'Estimated Guest Count'}
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {GUEST_RANGES.map((range) => {
+                      const isSelected = formData.guests === range.id;
+                      return (
+                        <button
+                          key={range.id}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, guests: range.id })}
+                          className={cn(
+                            'py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
+                            isSelected
+                              ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-xs'
+                              : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white'
+                          )}
+                        >
+                          {range.label[locale]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Step 4: Special Enquiry Details */}
           <div>
             <label className="block text-xs sm:text-sm font-bold text-[#201B18] mb-1.5">
-              {isRtl ? '٤. تفاصيل إضافية أو طلبات خاصة' : '4. Additional Details & Inquiries'}
+              {isRtl ? '٤. تفاصيل إضافية أو طلبات خاصة' : '4. Additional Details & Special Requests'}
             </label>
             <div className="relative">
               <MessageSquare className="w-4 h-4 absolute start-3.5 top-3.5 text-[#8A7E74]" />
@@ -470,8 +688,8 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 placeholder={
                   isRtl
-                    ? 'أخبرنا عن رؤيتك الخاصة، ألوان الزهور المفضلة، أو أي خدمات تأجير أثاث وطاولات تحتاجها...'
-                    : 'Tell us about your floral preferences, styling vision, specific flowers, or furniture rental requirements...'
+                    ? 'أخبرنا بأي تفاصيل أخرى أو طلبات خاصة'
+                    : 'Let us know if you have any additional details, preferences, or special requests.'
                 }
                 className="w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849] text-xs sm:text-sm text-[#201B18] transition-all outline-none resize-none"
               />
