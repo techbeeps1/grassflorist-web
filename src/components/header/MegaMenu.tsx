@@ -348,9 +348,10 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                           {/* Header Bar */}
                           <div className="pb-4 mb-2 border-b border-[#EFE7DC] flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[#FAF7F2] text-[#435849] border border-[#EAE3D7] flex items-center justify-center shrink-0">
+                              {/* Header icon temporarily commented out */}
+                              {/* <div className="w-8 h-8 rounded-full bg-[#FAF7F2] text-[#435849] border border-[#EAE3D7] flex items-center justify-center shrink-0">
                                 <Flower2 className="w-4.5 h-4.5 text-[#435849]" />
-                              </div>
+                              </div> */}
                               <h3 className="text-base sm:text-[17px] font-extrabold text-[#1E1915] tracking-wide uppercase font-sans">
                                 {item.name?.[locale] || ''}
                               </h3>
@@ -382,9 +383,10 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                                   onClick={closeMenusImmediately}
                                   className="group/occ flex items-center gap-3 py-2.5 border-b border-[#F4EFEA] hover:border-[#8CA841]/50 transition-colors"
                                 >
-                                  <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-[#FAF7F2] group-hover/occ:bg-[#435849] border border-[#EAE3D7] group-hover/occ:border-[#435849] flex items-center justify-center transition-all duration-200 shrink-0 shadow-2xs">
+                                  {/* Subcategory icon temporarily commented out */}
+                                  {/* <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-[#FAF7F2] group-hover/occ:bg-[#435849] border border-[#EAE3D7] group-hover/occ:border-[#435849] flex items-center justify-center transition-all duration-200 shrink-0 shadow-2xs">
                                     <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#435849] group-hover/occ:text-white transition-colors duration-200" />
-                                  </div>
+                                  </div> */}
                                   <span className="text-xs sm:text-[13.5px] font-medium text-[#25211E] group-hover/occ:text-[#435849] group-hover/occ:font-semibold transition-colors truncate">
                                     {sub.name?.[locale] || ''}
                                   </span>
