@@ -70,7 +70,8 @@ export function SubscriptionPurchaseSelector({
     let isMounted = true;
     const fetchSettings = async () => {
       try {
-        const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api').replace(/\/+$/, '').replace(/\/api$/, '') + '/api';
+        const activeLocale = locale === 'en' ? 'en' : 'ar';
+        const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api').replace(/\/+$/, '').replace(/\/api$/, '') + `/api/${activeLocale}`;
         const res = await fetch(`${apiBase}/subscriptions/settings`);
         if (res.ok) {
           const json = await res.json();
@@ -170,7 +171,8 @@ export function SubscriptionPurchaseSelector({
     const fetchPricing = async () => {
       setIsCalculating(true);
       try {
-        const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api').replace(/\/+$/, '').replace(/\/api$/, '') + '/api';
+        const activeLocale = locale === 'en' ? 'en' : 'ar';
+        const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api').replace(/\/+$/, '').replace(/\/api$/, '') + `/api/${activeLocale}`;
         const res = await fetch(`${apiBase}/subscriptions/calculate`, {
           method: 'POST',
           headers: {

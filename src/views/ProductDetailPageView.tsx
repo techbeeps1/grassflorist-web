@@ -105,11 +105,7 @@ export function ProductDetailPageView({
     (locale === 'en' ? product.description?.en : product.description?.ar) ||
     '';
   const displayDescription = rawDescription.trim();
-  const hasDistinctDescription = Boolean(
-    displayDescription &&
-    displayDescription !== displayShortDescription &&
-    displayDescription.toLowerCase() !== displayShortDescription.toLowerCase()
-  );
+  const hasDistinctDescription = Boolean(displayDescription);
 
   // Schema Generation
   const productSchema = generateProductSchema(

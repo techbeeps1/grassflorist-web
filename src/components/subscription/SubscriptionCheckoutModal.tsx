@@ -62,7 +62,8 @@ export function SubscriptionCheckoutModal({
     setIsSubmitting(true);
 
     try {
-      const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api').replace(/\/+$/, '').replace(/\/api$/, '') + '/api';
+      const activeLocale = locale === 'en' ? 'en' : 'ar';
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api').replace(/\/+$/, '').replace(/\/api$/, '') + `/api/${activeLocale}`;
       const token = typeof window !== 'undefined'
         ? localStorage.getItem('grass_auth_token') || localStorage.getItem('token') || localStorage.getItem('customer_token')
         : null;

@@ -7,7 +7,9 @@ export async function POST(request: Request) {
     const formData = await request.formData();
 
     // Forward multipart form data to Laravel API
-    const backendRes = await fetch(`${LARAVEL_API_BASE}/partner-with-us`, {
+    const rawLocale = (formData.get('locale') || formData.get('lang') || 'ar') as string;
+    const activeLocale = rawLocale === 'en' ? 'en' : 'ar';
+    const backendRes = await fetch(`${LARAVEL_API_BASE}/${activeLocale}/partner-with-us`, {
       method: 'POST',
       body: formData,
     });

@@ -74,8 +74,9 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
     if (!base.endsWith('/api')) {
       base = `${base}/api`;
     }
-    const cleanEndpoint = endpoint.replace(/^\/?(api\/)?/, '');
-    return `${base}/${cleanEndpoint}`;
+    const cleanEndpoint = endpoint.replace(/^\/?(api\/)?/, '').replace(/^(en|ar)\//, '');
+    const activeLocale = locale === 'en' ? 'en' : 'ar';
+    return `${base}/${activeLocale}/${cleanEndpoint}`;
   };
 
   const getAuthHeaders = () => {

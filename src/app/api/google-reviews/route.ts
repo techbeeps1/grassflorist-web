@@ -5,8 +5,10 @@ const LARAVEL_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:80
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
+    const activeLocale = searchParams.get('locale') === 'en' ? 'en' : 'ar';
+    searchParams.delete('locale');
     const qs = searchParams.toString();
-    const endpoint = `${LARAVEL_API_BASE}/google-reviews${qs ? `?${qs}` : ''}`;
+    const endpoint = `${LARAVEL_API_BASE}/${activeLocale}/google-reviews${qs ? `?${qs}` : ''}`;
 
     const res = await fetch(endpoint, {
       headers: {

@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 
 const LARAVEL_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const res = await fetch(`${LARAVEL_API_BASE}/navigation`, {
+    const { searchParams } = new URL(request.url);
+    const activeLocale = searchParams.get('locale') === 'en' ? 'en' : 'ar';
+    const res = await fetch(`${LARAVEL_API_BASE}/${activeLocale}/navigation`, {
       headers: {
         Accept: 'application/json',
       },

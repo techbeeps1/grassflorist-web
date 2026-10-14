@@ -34,9 +34,14 @@ const CATEGORY_SLUG_ALIASES: Record<string, string> = {
   'chocolates-cakes': 'كيك-وشوكولاته',
 };
 
-const REVERSE_SLUG_ALIASES: Record<string, string> = Object.fromEntries(
-  Object.entries(CATEGORY_SLUG_ALIASES).map(([en, ar]) => [ar, en])
-);
+const REVERSE_SLUG_ALIASES: Record<string, string> = {
+  ...Object.fromEntries(
+    Object.entries(CATEGORY_SLUG_ALIASES).map(([en, ar]) => [ar, en])
+  ),
+  'كيك-وشوكولاته': 'cake-chocolate',
+  'جميع-الزهور': 'all-flowers',
+  'باقات-فاخرة': 'luxury-bouquets',
+};
 
 const EN_TO_AR_PAGE_ALIASES: Record<string, string> = {
   '/about': '/عن-غراس',
@@ -93,17 +98,29 @@ export function getLocalizedPath(currentPath: string, targetLocale: Locale): str
   let basePath = isEnglish ? pathname.replace(/^\/en/, '') || '/' : pathname;
   const decodedBasePath = decodeURIComponent(basePath);
 
-  // If basePath is a category route, translate the slug if possible
-  const categoryMatch = basePath.match(/^\/category\/(.+)$/);
+  // If basePath is a category route, translate the slug(s) if possible
+  // Use decodedBasePath to prevent any %2F encoded slashes from collapsing subcategory segments
+  const categoryMatch = decodedBasePath.match(/^\/category\/(.+)$/);
   if (categoryMatch) {
-    const rawSlug = decodeURIComponent(categoryMatch[1]).trim().toLowerCase();
-    if (targetLocale === 'ar') {
-      const translatedSlug = CATEGORY_SLUG_ALIASES[rawSlug] || rawSlug;
-      basePath = `/category/${encodeURIComponent(translatedSlug)}`;
-    } else {
-      const translatedSlug = REVERSE_SLUG_ALIASES[rawSlug] || rawSlug;
-      basePath = `/category/${encodeURIComponent(translatedSlug)}`;
-    }
+    const rawSegments = categoryMatch[1].split('/').filter(Boolean);
+    const translatedSegments = rawSegments.map((seg) => {
+      const decodedSeg = decodeURIComponent(seg).trim();
+      const lowerSeg = decodedSeg.toLowerCase();
+      if (targetLocale === 'ar') {
+        const translated =
+          CATEGORY_SLUG_ALIASES[lowerSeg] ||
+          CATEGORY_SLUG_ALIASES[decodedSeg] ||
+          decodedSeg;
+        return encodeURIComponent(translated);
+      } else {
+        const translated =
+          REVERSE_SLUG_ALIASES[lowerSeg] ||
+          REVERSE_SLUG_ALIASES[decodedSeg] ||
+          decodedSeg;
+        return encodeURIComponent(translated);
+      }
+    });
+    basePath = `/category/${translatedSegments.join('/')}`;
   } else if (targetLocale === 'ar') {
     if (EN_TO_AR_PAGE_ALIASES[decodedBasePath]) {
       basePath = EN_TO_AR_PAGE_ALIASES[decodedBasePath];

@@ -142,6 +142,7 @@ function CategoryPageContent({
       const basePath = locale === 'ar' ? `/category/${slug}` : `/en/category/${slug}`;
       const newPath = subSlug ? `${basePath}/${subSlug}` : basePath;
       window.history.pushState({}, '', newPath);
+      window.dispatchEvent(new Event('locationchange'));
       scrollToProductsIfNeeded();
     }
   };
@@ -520,6 +521,7 @@ function CategoryPageContent({
                   if (typeof window !== 'undefined') {
                     const basePath = locale === 'ar' ? `/category/${slug}` : `/en/category/${slug}`;
                     window.history.pushState({}, '', basePath);
+                    window.dispatchEvent(new Event('locationchange'));
                   }
                 }}
               />
