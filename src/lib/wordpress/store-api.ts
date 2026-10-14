@@ -694,6 +694,8 @@ export function translateArabicToEnglishShortDescription(
 export function cacheProduct(product: Product) {
   if (IS_DEV) return;
   if (!product) return;
+  // Only cache if product has full description (do not pollute with card products)
+  if (!product.description?.ar && !product.description?.en) return;
   if (product.id) productMemoryCache.set(String(product.id), product);
   if (product.slug?.ar) productMemoryCache.set(product.slug.ar.toLowerCase(), product);
   if (product.slug?.en) productMemoryCache.set(product.slug.en.toLowerCase(), product);
@@ -985,8 +987,8 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
     ? safeDecodeUri(decodeHtmlEntities(rawCatEn))
     : translateArabicCategoryName(catNameAr, catSlug);
 
-  let descAr = cleanDesc || nameAr;
-  let descEn = cleanDesc || nameEn;
+  let descAr = cleanDesc;
+  let descEn = cleanDesc;
 
   if (typeof item.description === 'object' && item.description !== null) {
     if (item.description.ar) descAr = stripHtml(item.description.ar).trim();
@@ -999,8 +1001,8 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
     }
   }
 
-  let shortDescAr = cleanSubTitle || (cleanDesc ? cleanDesc.slice(0, 160) : nameAr);
-  let shortDescEn = cleanSubTitle || (cleanDesc ? cleanDesc.slice(0, 160) : nameEn);
+  let shortDescAr = cleanSubTitle || (cleanDesc ? cleanDesc.slice(0, 160) : '');
+  let shortDescEn = cleanSubTitle || (cleanDesc ? cleanDesc.slice(0, 160) : '');
 
   if (typeof item.sub_title === 'object' && item.sub_title !== null) {
     if (item.sub_title.ar) shortDescAr = stripHtml(item.sub_title.ar).trim();
@@ -1363,13 +1365,7 @@ export async function getStoreProductDetails(
   const activeLocale = locale || 'ar';
 
   try {
-    // 1. Check in-memory cache for INSTANT 0ms response (production only)
-    if (!IS_DEV && productMemoryCache.has(decodedSlug.toLowerCase())) {
-      const cached = productMemoryCache.get(decodedSlug.toLowerCase())!;
-      return { product: cached, relatedProducts: [] };
-    }
-
-    // 2. Direct API fetch from Laravel Backend (with en / ar prefix matching user's spec)
+    // Direct API fetch from Laravel Backend (Next.js data cache handles ISR revalidation per URL)
     const apiUrl = `${LARAVEL_API_BASE}/${activeLocale}/products/${encodeURIComponent(decodedSlug)}`;
 
     const res = await fetch(apiUrl, {
