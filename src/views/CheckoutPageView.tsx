@@ -59,6 +59,7 @@ import {
   ChevronDown,
   RotateCw,
   Loader2,
+  Sparkles,
 } from 'lucide-react';
 
 import { CountryCodePicker, ALL_COUNTRY_CODES } from '@/components/checkout/CountryCodePicker';
@@ -66,6 +67,7 @@ import { DeliveryDatePicker } from '@/components/checkout/DeliveryDatePicker';
 import { CountrySelect } from '@/components/common/CountrySelect';
 import { HyperPayWidgetModal } from '@/components/checkout/HyperPayWidgetModal';
 import { TabbyInstallmentModal } from '@/components/checkout/TabbyInstallmentModal';
+import { MakeItPerfectModal } from '@/components/checkout/MakeItPerfectModal';
 
 // Dynamically load Leaflet Map to avoid SSR issues
 const AddressMapPicker = dynamic(
@@ -223,10 +225,26 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const [couponErrorMessage, setCouponErrorMessage] = useState<string | null>(null);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
+  const [showMakeItPerfectModal, setShowMakeItPerfectModal] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  // Show "Make it perfect" upsell popup once on checkout if user hasn't seen it yet
+  useEffect(() => {
+    if (hasMounted && cartItems.length > 0) {
+      try {
+        const hasSeen = sessionStorage.getItem('seen_checkout_make_it_perfect');
+        if (!hasSeen) {
+          const timer = setTimeout(() => {
+            setShowMakeItPerfectModal(true);
+          }, 800);
+          return () => clearTimeout(timer);
+        }
+      } catch {}
+    }
+  }, [hasMounted, cartItems.length]);
 
   const clearCartCompletely = React.useCallback(() => {
     dispatch(clearCart());
@@ -2086,6 +2104,36 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   })}
                 </div>
 
+                {/* ✨ Make It Perfect Add-on Trigger Banner */}
+                <button
+                  type="button"
+                  onClick={() => setShowMakeItPerfectModal(true)}
+                  className="w-full my-3 p-3 bg-gradient-to-r from-primary/10 via-amber-500/10 to-primary/5 hover:from-primary/15 hover:via-amber-500/15 hover:to-primary/10 border border-primary/20 rounded-xl flex items-center justify-between text-start transition-all duration-200 cursor-pointer group shadow-2xs"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                      <Sparkles className="w-4 h-4 text-amber-200" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-text-main group-hover:text-primary transition-colors flex items-center gap-1.5">
+                        <span>{locale === 'ar' ? 'اجعلها مثالية' : 'Make it perfect'}</span>
+                        <span className="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.2 rounded-md">
+                          {locale === 'ar' ? 'إضافات' : 'Add-ons'}
+                        </span>
+                      </p>
+                      <p className="text-[11px] text-text-muted">
+                        {locale === 'ar'
+                          ? 'أضف شوكولاتة، كيك، أو بالونات لطلبك'
+                          : 'Add chocolates, cakes, or balloons to your order'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-primary flex items-center gap-1 shrink-0">
+                    <span>{locale === 'ar' ? 'تعديل / إضافة' : 'Add / Browse'}</span>
+                    <Plus className="w-3.5 h-3.5" />
+                  </span>
+                </button>
+
                 {/* Subtotals & Taxes */}
                 <div className="space-y-2.5 pt-3 border-t border-gray-100 text-xs text-gray-600">
                   <div className="flex justify-between items-center">
@@ -2592,6 +2640,18 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
           onClose={() => setShowTabbyModal(false)}
           totalAmount={activeCurrency === 'USD' ? totalUsd : total}
           currency={activeCurrency}
+          locale={locale}
+        />
+
+        {/* 🌟 Make It Perfect Upsell Add-ons Modal */}
+        <MakeItPerfectModal
+          isOpen={showMakeItPerfectModal}
+          onClose={() => {
+            setShowMakeItPerfectModal(false);
+            try {
+              sessionStorage.setItem('seen_checkout_make_it_perfect', '1');
+            } catch {}
+          }}
           locale={locale}
         />
 
