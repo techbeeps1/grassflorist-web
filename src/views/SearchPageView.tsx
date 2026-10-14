@@ -8,7 +8,8 @@ import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { SortDropdown, type SortOption } from '@/components/category/SortDropdown';
 import { useGetProductsQuery } from '@/store/api/productsApi';
-import { Search, PackageOpen } from 'lucide-react';
+import Link from 'next/link';
+import { Search, PackageOpen, FolderOpen, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface SearchPageViewProps {
   locale: Locale;
@@ -18,13 +19,15 @@ function SearchPageContent({ locale }: SearchPageViewProps) {
   const dict = getDictionary(locale);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const isRtl = locale === 'ar';
+  const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
   const initialQuery = searchParams?.get('q') || '';
   const [queryInput, setQueryInput] = useState(initialQuery);
   const [sortBy, setSortBy] = useState<SortOption>('popular');
 
   const { data, isLoading } = useGetProductsQuery(
-    { query: initialQuery, limit: 30 },
+    { query: initialQuery, limit: 30, locale },
     { skip: !initialQuery.trim() }
   );
 
@@ -64,6 +67,61 @@ function SearchPageContent({ locale }: SearchPageViewProps) {
 
     return results;
   }, [data, sortBy]);
+
+  const searchCategories = useMemo(() => {
+    const list: Array<{ id: string; name: string; slug: string; image?: string }> = [];
+    const seenSlugs = new Set<string>();
+
+    if (data?.categories && data.categories.length > 0) {
+      for (const cat of data.categories) {
+        const catSlug =
+          typeof cat.slug === 'object' && cat.slug !== null
+            ? (locale === 'ar' ? (cat.slug as any).ar : (cat.slug as any).en)
+            : String(cat.slug || '');
+        const catName =
+          typeof cat.name === 'object' && cat.name !== null
+            ? (cat.name[locale] || (cat.name as any).en || (cat.name as any).ar || '')
+            : String(cat.name || '');
+
+        if (catSlug && !seenSlugs.has(catSlug.toLowerCase())) {
+          seenSlugs.add(catSlug.toLowerCase());
+          list.push({
+            id: String(cat.id),
+            name: catName,
+            slug: catSlug,
+            image: cat.image,
+          });
+        }
+      }
+    }
+
+    if (initialQuery.trim().length >= 2 && searchResults.length > 0) {
+      const qLower = initialQuery.toLowerCase().trim();
+      for (const prod of searchResults) {
+        const catNameEn = prod.category?.en || '';
+        const catNameAr = prod.category?.ar || '';
+        const catSlug = prod.categorySlug || '';
+
+        if (
+          catNameEn.toLowerCase().includes(qLower) ||
+          catNameAr.toLowerCase().includes(qLower) ||
+          catSlug.toLowerCase().includes(qLower)
+        ) {
+          if (catSlug && !seenSlugs.has(catSlug.toLowerCase())) {
+            seenSlugs.add(catSlug.toLowerCase());
+            list.push({
+              id: `prod-cat-${catSlug}`,
+              name: locale === 'ar' ? (catNameAr || catNameEn) : (catNameEn || catNameAr),
+              slug: catSlug,
+              image: prod.thumbnail,
+            });
+          }
+        }
+      }
+    }
+
+    return list;
+  }, [data?.categories, searchResults, initialQuery, locale]);
 
   const breadcrumbItems = [
     { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },
@@ -131,6 +189,45 @@ function SearchPageContent({ locale }: SearchPageViewProps) {
             ))}
           </div>
         </div>
+
+        {/* Matching Categories as Full Rows */}
+        {initialQuery && searchCategories.length > 0 && (
+          <div className="mb-6 p-4 rounded-2xl bg-surface-subtle border border-border/80 shadow-2xs">
+            <div className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3 flex items-center gap-2">
+              <FolderOpen className="w-4 h-4 text-primary" />
+              <span>{locale === 'ar' ? 'الأقسام المطابقة لبحثك' : 'Categories matching your search'}</span>
+              <span className="text-[11px] font-normal text-text-muted">
+                ({searchCategories.length})
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {searchCategories.map((category) => {
+                const categoryUrl =
+                  locale === 'ar'
+                    ? `/category/${category.slug}`
+                    : `/en/category/${category.slug}`;
+
+                return (
+                  <Link
+                    key={category.id}
+                    href={categoryUrl}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-surface hover:bg-primary-light/40 border border-border/80 hover:border-primary/50 text-xs sm:text-sm font-semibold text-text-main shadow-2xs transition-all group cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden relative">
+                      <FolderOpen className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-semibold text-text-main group-hover:text-primary transition-colors truncate">
+                        {category.name}
+                      </span>
+                    </div>
+                    <ArrowIcon className="w-4 h-4 text-primary group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform shrink-0" />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Results Info & Sort */}
         {initialQuery && (

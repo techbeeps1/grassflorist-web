@@ -1252,7 +1252,7 @@ export async function getStoreProducts(params?: {
   order?: 'asc' | 'desc';
   featured?: boolean;
   locale?: Locale;
-}): Promise<{ products: Product[]; total: number }> {
+}): Promise<{ products: Product[]; categories?: Category[]; total: number }> {
   try {
     const activeLocale = params?.locale || 'ar';
     let url = `${LARAVEL_API_BASE}/${activeLocale}/products`;
@@ -1275,13 +1275,23 @@ export async function getStoreProducts(params?: {
     if (res.ok) {
       const data = await res.json();
       const rawList = Array.isArray(data) ? data : data.products || data.data || [];
+      const rawCategories = Array.isArray(data.categories) ? data.categories : [];
+      const categories: Category[] = rawCategories.map(mapLaravelCategoryToCategory);
+
       if (Array.isArray(rawList) && rawList.length > 0) {
         const products = rawList.map((item: any) => mapLaravelProductToProduct(item, activeLocale));
         cacheProducts(products);
         const limit = params?.per_page || 24;
         return {
           products: products.slice(0, limit),
-          total: products.length,
+          categories,
+          total: data.total || products.length,
+        };
+      } else if (categories.length > 0) {
+        return {
+          products: [],
+          categories,
+          total: 0,
         };
       }
     }

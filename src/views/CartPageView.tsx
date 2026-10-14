@@ -28,7 +28,7 @@ import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
 import { CartPageItemSkeleton } from '@/components/ui/Skeleton';
 import { CartPageSkeleton } from '@/components/cart/CartPageSkeleton';
-import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft, Loader2, RotateCw } from 'lucide-react';
+import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft, Loader2, RotateCw, AlertCircle } from 'lucide-react';
 
 interface CartPageViewProps {
   locale: Locale;
@@ -45,8 +45,10 @@ export function CartPageView({ locale }: CartPageViewProps) {
 
   const cartItems = useAppSelector((state) => state.cart.items);
   const couponCode = useAppSelector((state) => state.cart.couponCode);
+  const user = useAppSelector((state) => state.auth.user);
 
   const [promoCodeInput, setPromoCodeInput] = useState('');
+  const [promoError, setPromoError] = useState<string | null>(null);
   const {
     subtotal,
     discount,
@@ -59,7 +61,7 @@ export function CartPageView({ locale }: CartPageViewProps) {
   } = useCartDynamicTotals(locale);
 
   const { updateQuantity, removeItem, pendingAddItem, updatingItemIds, removingItemIds } = useCartActions();
-  const [applyServerCoupon] = useApplyServerCouponMutation();
+  const [applyServerCoupon, { isLoading: isApplyingCoupon }] = useApplyServerCouponMutation();
 
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
@@ -80,9 +82,14 @@ export function CartPageView({ locale }: CartPageViewProps) {
   const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = promoCodeInput.trim();
-    if (!code) return;
+    if (!code || isApplyingCoupon) return;
+    setPromoError(null);
     try {
-      const res = await applyServerCoupon({ code, subtotal }).unwrap();
+      const res = await applyServerCoupon({
+        code,
+        subtotal,
+        email: user?.email,
+      }).unwrap();
       dispatch(
         setAppliedCoupon({
           code: res.code || code,
@@ -101,15 +108,18 @@ export function CartPageView({ locale }: CartPageViewProps) {
         })
       );
       setPromoCodeInput('');
+      setPromoError(null);
     } catch (err: any) {
+      const errorMsg =
+        err?.data?.message ||
+        (locale === 'ar'
+          ? 'رمز القسيمة غير صالح أو منتهي الصلاحية'
+          : 'Invalid or expired coupon code');
+      setPromoError(errorMsg);
       dispatch(
         addToast({
           type: 'error',
-          message:
-            err?.data?.message ||
-            (locale === 'ar'
-              ? 'رمز القسيمة غير صالح أو منتهي الصلاحية'
-              : 'Invalid or expired coupon code'),
+          message: errorMsg,
         })
       );
     }
@@ -318,25 +328,57 @@ export function CartPageView({ locale }: CartPageViewProps) {
                       </span>
                     </div>
                     <button
-                      onClick={() => dispatch(removeCoupon())}
+                      onClick={() => {
+                        dispatch(removeCoupon());
+                        setPromoError(null);
+                      }}
                       className="text-text-muted hover:text-error text-xs font-bold underline cursor-pointer"
                     >
                       {dict.cart.remove}
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleApplyPromo} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={promoCodeInput}
-                      onChange={(e) => setPromoCodeInput(e.target.value)}
-                      placeholder={dict.cart.promoCodePlaceholder}
-                      className="flex-1 px-3 py-2 text-xs bg-surface-subtle border border-border rounded-xl focus:outline-none focus:border-primary uppercase"
-                    />
-                    <Button type="submit" variant="secondary" size="sm" className="font-bold shrink-0">
-                      {dict.cart.apply}
-                    </Button>
-                  </form>
+                  <div>
+                    <form onSubmit={handleApplyPromo} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoCodeInput}
+                        disabled={isApplyingCoupon}
+                        onChange={(e) => {
+                          setPromoCodeInput(e.target.value);
+                          if (promoError) setPromoError(null);
+                        }}
+                        placeholder={dict.cart.promoCodePlaceholder}
+                        className="flex-1 px-3 py-2 text-xs bg-surface-subtle border border-border rounded-xl focus:outline-none focus:border-primary uppercase disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+                      />
+                      <Button
+                        type="submit"
+                        variant="secondary"
+                        size="sm"
+                        isLoading={isApplyingCoupon}
+                        disabled={isApplyingCoupon || !promoCodeInput.trim()}
+                        className="font-bold shrink-0 min-w-[85px] transition-all"
+                      >
+                        {isApplyingCoupon
+                          ? (locale === 'ar' ? 'جاري التحقق...' : 'Applying...')
+                          : dict.cart.apply}
+                      </Button>
+                    </form>
+
+                    {isApplyingCoupon && (
+                      <p className="text-[11px] text-primary font-medium mt-1.5 flex items-center gap-1.5 animate-pulse">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-primary" />
+                        <span>{locale === 'ar' ? 'جاري التحقق من كود الخصم وتطبيقه...' : 'Verifying and applying promo code...'}</span>
+                      </p>
+                    )}
+
+                    {promoError && (
+                      <p className="text-[11px] text-red-600 font-medium mt-1.5 flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
+                        <span>{promoError}</span>
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 {/* Subtotals & Total */}

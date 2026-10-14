@@ -252,7 +252,7 @@ Value Propositions / Trust Features: 2-hour express delivery, 7-day freshness gu
 Customer Testimonials: Real reviews with star ratings and photos.
 Editorial Flower Care / Blog Snippets: Visual preview of helpful guides.
 FAQ Accordion: Frequently asked questions for immediate customer trust.
-VIP Club / Newsletter Signup: With discount incentive.
+Newsletter Signup: With discount incentive.
 Phase 8: Product Catalog & Category Pages
 src/views/ProductsPageView.tsx & src/views/CategoryPageView.tsx:
 Accessible Breadcrumb navigation with localized links.

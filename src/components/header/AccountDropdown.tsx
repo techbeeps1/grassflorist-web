@@ -129,9 +129,8 @@ export function AccountDropdown({ locale }: AccountDropdownProps) {
           {user.name}
         </span>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-[#8C8075] transition-transform duration-200 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
+          className={`w-3.5 h-3.5 text-[#8C8075] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''
+            }`}
         />
       </button>
 
@@ -143,9 +142,7 @@ export function AccountDropdown({ locale }: AccountDropdownProps) {
               <span className="text-xs font-black text-[#201B18] block truncate">
                 {user.name}
               </span>
-              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#8CA841]/20 text-[#435849]">
-                VIP
-              </span>
+
             </div>
             <span className="text-[11px] text-[#7D7065] block truncate mt-0.5">
               {user.email}

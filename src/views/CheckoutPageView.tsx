@@ -58,6 +58,7 @@ import {
   Sunset,
   ChevronDown,
   RotateCw,
+  Loader2,
 } from 'lucide-react';
 
 import { CountryCodePicker, ALL_COUNTRY_CODES } from '@/components/checkout/CountryCodePicker';
@@ -888,7 +889,11 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     if (!code) return;
     setCouponErrorMessage(null);
     try {
-      const res = await applyServerCoupon({ code, subtotal }).unwrap();
+      const res = await applyServerCoupon({
+        code,
+        subtotal,
+        email: senderEmail.trim() || user?.email,
+      }).unwrap();
       dispatch(
         setAppliedCoupon({
           code: res.code || code,
@@ -901,6 +906,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     } catch (err: any) {
       setCouponErrorMessage(
         err?.data?.message ||
+        err?.data?.error ||
         (locale === 'ar' ? 'رمز القسيمة غير صالح أو منتهي الصلاحية' : 'Invalid or expired coupon code')
       );
     }
@@ -2180,22 +2186,26 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                     <input
                       type="text"
                       value={promoInput}
+                      disabled={isApplyingCoupon}
                       onChange={(e) => {
                         setPromoInput(e.target.value);
                         if (couponErrorMessage) setCouponErrorMessage(null);
                       }}
                       placeholder={locale === 'ar' ? 'رمز القسيمة' : 'Enter promo code'}
-                      className="flex-1 h-10 px-3 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#8fae2a]"
+                      className="flex-1 h-10 px-3 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#8fae2a] uppercase disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                     />
                     <button
                       type="button"
-                      disabled={isApplyingCoupon}
+                      disabled={isApplyingCoupon || !promoInput.trim()}
                       onClick={handleApplyCoupon}
-                      className="px-4 h-10 bg-[#8fae2a] text-white text-xs font-bold rounded-lg hover:bg-[#7d9b23] transition-colors uppercase tracking-wider shrink-0 cursor-pointer disabled:opacity-50"
+                      className="px-4 h-10 bg-[#8fae2a] text-white text-xs font-bold rounded-lg hover:bg-[#7d9b23] transition-all uppercase tracking-wider shrink-0 cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-1.5 min-w-[120px]"
                     >
-                      {isApplyingCoupon
-                        ? (locale === 'ar' ? 'جاري التحقق...' : 'Checking...')
-                        : (locale === 'ar' ? 'تطبيق الكوبون' : 'APPLY COUPON')}
+                      {isApplyingCoupon && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
+                      <span>
+                        {isApplyingCoupon
+                          ? (locale === 'ar' ? 'جاري التحقق...' : 'Checking...')
+                          : (locale === 'ar' ? 'تطبيق الكوبون' : 'APPLY COUPON')}
+                      </span>
                     </button>
                   </div>
                   {couponErrorMessage && (
