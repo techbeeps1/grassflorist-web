@@ -19,7 +19,10 @@ export async function POST(request: Request) {
     } = body;
 
     // Validate essential fields
-    if (!firstName || !lastName || !phone || !email || (!date && eventType !== 'Flower supply') || !location) {
+    const isNoDateRequired = eventType === 'Flower supply' || eventType === 'Other inquiries' || eventType === 'Cooperation';
+    const isNoLocationRequired = eventType === 'Other inquiries' || eventType === 'Cooperation';
+
+    if (!firstName || !lastName || !phone || !email || (!date && !isNoDateRequired) || (!location && !isNoLocationRequired)) {
       return NextResponse.json(
         { success: false, error: 'Missing required booking fields' },
         { status: 400 }
