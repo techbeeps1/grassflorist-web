@@ -2163,7 +2163,7 @@ const fallbackContactDataEn: ContactPageData = {
   working_hours: 'Daily 9:00 AM - 11:00 PM AST',
   ateliers_title: 'BOUTIQUE ATELIERS',
   city: 'Jeddah',
-  address: '4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia',
+  address: '4344 Al Kayal, Al-Rawdah, 4366, Jeddah 23434, Saudi Arabia',
 };
 
 const fallbackContactDataAr: ContactPageData = {
@@ -2178,7 +2178,7 @@ const fallbackContactDataAr: ContactPageData = {
   working_hours: 'يومياً من 9:00 صباحاً حتى 11:00 مساءً',
   ateliers_title: 'فروع وبوتيكات غراس فلوريست',
   city: 'جدة',
-  address: '٤٣٦٦ شارع الكيال، حي الروضة، جدة ٢٣٤٣٤، المملكة العربية السعودية',
+  address: '4344 شارع الكيال، حي الروضة، 4366، جدة 23434، المملكة العربية السعودية',
 };
 
 /**

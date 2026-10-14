@@ -71,7 +71,7 @@ export function CookieConsentBanner({ locale }: CookieConsentBannerProps) {
           onClick={() => setIsModalOpen(true)}
           title={t.cookiePreferences}
           aria-label={t.cookiePreferences}
-          className="fixed bottom-5 start-5 z-40 sm:bottom-6 sm:start-6 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 text-[#6d8c1c] hover:bg-[#8fae2a] hover:text-white border border-gray-300 shadow-md flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group cursor-pointer"
+          className="fixed bottom-20 start-4 z-40 md:bottom-6 md:start-6 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 text-[#6d8c1c] hover:bg-[#8fae2a] hover:text-white border border-gray-300 shadow-md flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group cursor-pointer"
         >
           {/* Cookie Icon SVG */}
           <svg

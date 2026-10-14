@@ -35,8 +35,8 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
 
   return (
     <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-      {/* Account Button / Dropdown (Desktop only) */}
-      <div className="hidden xl:block">
+      {/* Account Button / Dropdown (Tablet and Desktop) */}
+      <div className="hidden md:block">
         <AccountDropdown locale={locale} />
       </div>
 
@@ -57,11 +57,11 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
         )}
       </Link>
 
-      {/* Cart Button */}
+      {/* Cart Button (Hidden on mobile < md, visible on desktop) */}
       <button
         onClick={() => dispatch(setCartDrawerOpen(true))}
         aria-label="Open shopping bag"
-        className="relative flex items-center gap-1.5 sm:gap-2 p-2 sm:px-3 sm:py-2 bg-primary text-white hover:bg-primary-hover rounded-full transition-all active:scale-[0.98] shadow-xs cursor-pointer select-none shrink-0"
+        className="hidden md:flex relative items-center gap-1.5 sm:gap-2 p-2 sm:px-3 sm:py-2 bg-primary text-white hover:bg-primary-hover rounded-full transition-all active:scale-[0.98] shadow-xs cursor-pointer select-none shrink-0"
       >
         <div className="relative">
           <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />

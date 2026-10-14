@@ -78,7 +78,7 @@ export function ContactPageView({ locale, contactData }: ContactPageViewProps) {
   const rawAteliersTitle = contactData?.ateliers_title || dict.contact.boutiqueLocations;
   const ateliersTitle = rawAteliersTitle ? rawAteliersTitle.replace(/فلوريل/g, 'غراس') : dict.contact.boutiqueLocations;
   const cityName = contactData?.city || (locale === 'ar' ? 'جدة' : 'Jeddah');
-  const addressText = contactData?.address || (locale === 'ar' ? siteConfig.locations[0].address.ar : siteConfig.locations[0].address.en);
+  const addressText = locale === 'ar' ? siteConfig.locations[0].address.ar : siteConfig.locations[0].address.en;
   const mapLink = contactData?.map_link;
   const embedMapUrl = getEmbedMapUrl(
     mapLink ||

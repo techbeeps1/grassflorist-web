@@ -9,6 +9,7 @@ import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { DynamicHead } from '@/components/common/DynamicHead';
 import { CookieConsentBanner } from '@/components/common/cookie-consent/CookieConsentBanner';
 import { WhatsAppFloatingButton } from '@/components/common/WhatsAppFloatingButton';
+import { MobileBottomBar } from '@/components/layout/MobileBottomBar';
 import { seoConfig } from '@/config/seo';
 import { siteConfig } from '@/config/site';
 
@@ -49,10 +50,11 @@ export default function EnglishRootLayout({
             Skip to main content
           </a>
           <Header locale="en" />
-          <main id="main-content" className="flex-1 overflow-x-clip">
+          <main id="main-content" className="flex-1 overflow-x-clip pb-16 md:pb-0">
             {children}
           </main>
           <Footer locale="en" />
+          <MobileBottomBar locale="en" />
           <ToastContainer />
           <CookieConsentBanner locale="en" />
           <WhatsAppFloatingButton locale="en" />

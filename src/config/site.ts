@@ -35,8 +35,8 @@ export const siteConfig = {
       id: 'jeddah',
       name: { ar: 'جدة', en: 'Jeddah' },
       address: {
-        ar: '4366 شارع الكيال، حي الروضة، جدة 23434، المملكة العربية السعودية',
-        en: '4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia',
+        ar: '4344 شارع الكيال، حي الروضة، 4366، جدة 23434، المملكة العربية السعودية',
+        en: '4344 Al Kayal, Al-Rawdah, 4366, Jeddah 23434, Saudi Arabia',
       },
       deliveryTime: { ar: 'توصيل خلال ساعتين', en: 'Delivery within 2 hours' },
     },
