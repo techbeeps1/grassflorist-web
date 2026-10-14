@@ -27,7 +27,8 @@ export async function POST(request: Request) {
     }
 
     // Forward to Laravel Backend API which uses Filament Email Templates and logs to DB
-    const backendRes = await fetch(`${LARAVEL_API_BASE}/event-booking`, {
+    const activeLocale = locale === 'en' ? 'en' : 'ar';
+    const backendRes = await fetch(`${LARAVEL_API_BASE}/${activeLocale}/event-booking`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

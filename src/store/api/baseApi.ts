@@ -15,7 +15,7 @@ const API_BASE_URL =
 /**
  * Helper to determine current locale in SSR or Client environment
  */
-function getCurrentLocale(): string {
+export function getCurrentLocale(): string {
   if (typeof window !== 'undefined') {
     const pathname = window.location.pathname;
     if (pathname.startsWith('/en') || pathname.startsWith('/en/')) {
@@ -25,6 +25,29 @@ function getCurrentLocale(): string {
     if (htmlLang === 'en') return 'en';
   }
   return 'ar';
+}
+
+/**
+ * Ensures all API endpoint URLs are strictly prefixed with /en or /ar
+ */
+export function prefixUrlWithLocale(url: string, locale?: string): string {
+  if (!url || url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  const activeLocale = locale || getCurrentLocale();
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+
+  // If already prefixed with /en or /ar, keep as is
+  if (
+    cleanUrl.startsWith('/en/') ||
+    cleanUrl === '/en' ||
+    cleanUrl.startsWith('/ar/') ||
+    cleanUrl === '/ar'
+  ) {
+    return cleanUrl;
+  }
+
+  return `/${activeLocale}${cleanUrl}`;
 }
 
 const rawBaseQuery = fetchBaseQuery({
@@ -42,7 +65,7 @@ const rawBaseQuery = fetchBaseQuery({
       headers.set('Authorization', `Bearer ${token}`);
     }
 
-    // 2. Bilingual Locale Header (picked up by Laravel's SetApiLocale middleware)
+    // 2. Bilingual Locale Header (kept as supplementary context alongside URL prefix)
     const locale = getCurrentLocale();
     headers.set('X-Locale', locale);
     headers.set('Accept-Language', locale === 'ar' ? 'ar,en;q=0.8' : 'en,ar;q=0.8');
@@ -101,24 +124,30 @@ function handleSessionExpired(api: any) {
 }
 
 /**
- * Custom baseQuery that intercepts 401 Unauthorized for automatic silent token refresh.
- * If refresh fails, alerts user and redirects to login page.
+ * Custom baseQuery that enforces URL locale prefix (/en/... or /ar/...)
+ * and intercepts 401 Unauthorized for automatic silent token refresh.
  */
 const dynamicBaseQuery: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  let result = await rawBaseQuery(args, api, extraOptions);
+  const locale = getCurrentLocale();
+  const adjustedArgs: string | FetchArgs =
+    typeof args === 'string'
+      ? prefixUrlWithLocale(args, locale)
+      : { ...args, url: prefixUrlWithLocale(args.url, locale) };
+
+  let result = await rawBaseQuery(adjustedArgs, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
-    const url = typeof args === 'string' ? args : args.url;
-    const isRefreshUrl = url.includes('/refresh');
+    const rawUrl = typeof args === 'string' ? args : args.url;
+    const isRefreshUrl = rawUrl.includes('/refresh');
     const isAuthExempt =
-      url.includes('/login') ||
-      url.includes('/register') ||
-      url.includes('/forgot-password') ||
-      url.includes('/reset-password') ||
+      rawUrl.includes('/login') ||
+      rawUrl.includes('/register') ||
+      rawUrl.includes('/forgot-password') ||
+      rawUrl.includes('/reset-password') ||
       isRefreshUrl;
 
     const state = api.getState() as RootState;
@@ -129,12 +158,12 @@ const dynamicBaseQuery: BaseQueryFn<
     // If request was from an authenticated user and not an exempt auth endpoint
     if (!isAuthExempt && existingToken) {
       if (!refreshPromise) {
-        // Start single-flight silent refresh
+        // Start single-flight silent refresh with locale prefix
         refreshPromise = (async () => {
           try {
             const refreshResult = await rawBaseQuery(
               {
-                url: '/my-account/refresh',
+                url: prefixUrlWithLocale('/my-account/refresh', locale),
                 method: 'POST',
               },
               api,
@@ -158,8 +187,8 @@ const dynamicBaseQuery: BaseQueryFn<
       const refreshedToken = await refreshPromise;
 
       if (refreshedToken) {
-        // Retry the original query with the refreshed token
-        result = await rawBaseQuery(args, api, extraOptions);
+        // Retry the original query with the refreshed token using adjusted prefixed args
+        result = await rawBaseQuery(adjustedArgs, api, extraOptions);
       } else {
         // Silent refresh failed (refresh token expired or invalid) -> redirect to login with notification
         handleSessionExpired(api);

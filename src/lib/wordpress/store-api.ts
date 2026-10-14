@@ -1249,24 +1249,17 @@ export async function getStoreProducts(params?: {
 }): Promise<{ products: Product[]; total: number }> {
   try {
     const activeLocale = params?.locale || 'ar';
-    let url = activeLocale === 'en'
-      ? `${LARAVEL_API_BASE}/en/products`
-      : `${LARAVEL_API_BASE}/products`;
+    let url = `${LARAVEL_API_BASE}/${activeLocale}/products`;
 
     if (params?.search) {
-      url = activeLocale === 'en'
-        ? `${LARAVEL_API_BASE}/en/search?q=${encodeURIComponent(params.search)}`
-        : `${LARAVEL_API_BASE}/search?q=${encodeURIComponent(params.search)}`;
+      url = `${LARAVEL_API_BASE}/${activeLocale}/search?q=${encodeURIComponent(params.search)}`;
     } else if (params?.category) {
-      url = activeLocale === 'en'
-        ? `${LARAVEL_API_BASE}/en/category/${encodeURIComponent(String(params.category))}`
-        : `${LARAVEL_API_BASE}/category/${encodeURIComponent(String(params.category))}`;
+      url = `${LARAVEL_API_BASE}/${activeLocale}/category/${encodeURIComponent(String(params.category))}`;
     }
 
     const res = await fetch(url, {
       headers: {
         'Accept': 'application/json',
-        'X-Locale': activeLocale,
         ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
       },
       cache: IS_DEV ? 'no-store' : 'default',
@@ -1290,10 +1283,9 @@ export async function getStoreProducts(params?: {
     // Resilient Fallback: If /category/{slug} returns 0 products (e.g. backend casting bug),
     // query /products and filter accurately by category IDs and meta_data slugs
     if (params?.category || (params?.categoryIds && params.categoryIds.length > 0)) {
-      const allRes = await fetch(`${LARAVEL_API_BASE}/products`, {
+      const allRes = await fetch(`${LARAVEL_API_BASE}/${activeLocale}/products`, {
         headers: {
           'Accept': 'application/json',
-          'X-Locale': activeLocale,
           ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
         },
         cache: IS_DEV ? 'no-store' : 'default',
@@ -1378,14 +1370,11 @@ export async function getStoreProductDetails(
     }
 
     // 2. Direct API fetch from Laravel Backend (with en / ar prefix matching user's spec)
-    const apiUrl = activeLocale === 'en'
-      ? `${LARAVEL_API_BASE}/en/products/${encodeURIComponent(decodedSlug)}`
-      : `${LARAVEL_API_BASE}/products/${encodeURIComponent(decodedSlug)}`;
+    const apiUrl = `${LARAVEL_API_BASE}/${activeLocale}/products/${encodeURIComponent(decodedSlug)}`;
 
     const res = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
-        'X-Locale': activeLocale,
         ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
       },
       cache: IS_DEV ? 'no-store' : 'default',
@@ -1439,14 +1428,11 @@ export async function getStoreProductBySlug(slug: string, locale?: Locale): Prom
 export async function getStoreCategories(locale?: Locale): Promise<Category[]> {
   try {
     const activeLocale = locale || 'ar';
-    const apiUrl = activeLocale === 'en'
-      ? `${LARAVEL_API_BASE}/en/category`
-      : `${LARAVEL_API_BASE}/category`;
+    const apiUrl = `${LARAVEL_API_BASE}/${activeLocale}/category`;
 
     const res = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
-        'X-Locale': activeLocale,
         ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
       },
       cache: IS_DEV ? 'no-store' : 'default',
@@ -1502,9 +1488,14 @@ export const CATEGORY_SLUG_ALIASES: Record<string, string> = {
   'chocolates-cakes': 'كيك-وشوكولاته',
 };
 
-export const REVERSE_SLUG_ALIASES: Record<string, string> = Object.fromEntries(
-  Object.entries(CATEGORY_SLUG_ALIASES).map(([en, ar]) => [ar, en])
-);
+export const REVERSE_SLUG_ALIASES: Record<string, string> = {
+  ...Object.fromEntries(
+    Object.entries(CATEGORY_SLUG_ALIASES).map(([en, ar]) => [ar, en])
+  ),
+  'كيك-وشوكولاته': 'cake-chocolate',
+  'جميع-الزهور': 'all-flowers',
+  'باقات-فاخرة': 'luxury-bouquets',
+};
 
 /**
  * Helper to resolve category slug in either language
@@ -1537,15 +1528,12 @@ export async function getStoreCategoryBySlug(
     // 1. Direct fetch from Laravel API category endpoint
     const candidates = [decodedSlug, mappedSlug];
     for (const cand of candidates) {
-      const apiUrl = activeLocale === 'en'
-        ? `${LARAVEL_API_BASE}/en/category/${encodeURIComponent(cand)}`
-        : `${LARAVEL_API_BASE}/category/${encodeURIComponent(cand)}`;
+      const apiUrl = `${LARAVEL_API_BASE}/${activeLocale}/category/${encodeURIComponent(cand)}`;
 
       try {
         const res = await fetch(apiUrl, {
           headers: {
             'Accept': 'application/json',
-            'X-Locale': activeLocale,
             ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
           },
           cache: IS_DEV ? 'no-store' : 'default',
@@ -1804,10 +1792,10 @@ export async function getHomeCategorySections(locale: Locale): Promise<HomeCateg
  */
 export async function getHomePageData(locale: Locale) {
   try {
-    const res = await fetch(`${LARAVEL_API_BASE}/home-page`, {
+    const activeLocale = locale || 'ar';
+    const res = await fetch(`${LARAVEL_API_BASE}/${activeLocale}/home-page`, {
       headers: {
         'Accept': 'application/json',
-        'X-Locale': locale,
         ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
       },
       cache: IS_DEV ? 'no-store' : 'default',
@@ -1996,10 +1984,10 @@ export async function getHomeSliderCategories(locale: Locale): Promise<Category[
  */
 export async function getBlogPosts(locale: Locale): Promise<BlogPost[]> {
   try {
-    const res = await fetch(`${LARAVEL_API_BASE}/blog`, {
+    const activeLocale = locale || 'ar';
+    const res = await fetch(`${LARAVEL_API_BASE}/${activeLocale}/blog`, {
       headers: {
         'Accept': 'application/json',
-        'X-Locale': locale,
         ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
       },
       cache: IS_DEV ? 'no-store' : 'default',
@@ -2024,10 +2012,10 @@ export async function getBlogPosts(locale: Locale): Promise<BlogPost[]> {
  */
 export async function getBlogPostBySlug(slug: string, locale: Locale): Promise<BlogPost | null> {
   try {
-    const res = await fetch(`${LARAVEL_API_BASE}/blog/${encodeURIComponent(slug)}`, {
+    const activeLocale = locale || 'ar';
+    const res = await fetch(`${LARAVEL_API_BASE}/${activeLocale}/blog/${encodeURIComponent(slug)}`, {
       headers: {
         'Accept': 'application/json',
-        'X-Locale': locale,
         ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
       },
       cache: IS_DEV ? 'no-store' : 'default',
@@ -2053,10 +2041,10 @@ export async function getBlogPostBySlug(slug: string, locale: Locale): Promise<B
  */
 export async function getFaqs(locale: Locale): Promise<FAQItem[]> {
   try {
-    const res = await fetch(`${LARAVEL_API_BASE}/faqs`, {
+    const activeLocale = locale || 'ar';
+    const res = await fetch(`${LARAVEL_API_BASE}/${activeLocale}/faqs`, {
       headers: {
         'Accept': 'application/json',
-        'X-Locale': locale,
         ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
       },
       cache: IS_DEV ? 'no-store' : 'default',
@@ -2109,10 +2097,10 @@ export interface CmsPageData {
  */
 export async function getCmsPageBySlug(slug: string, locale: Locale): Promise<CmsPageData | null> {
   try {
-    const res = await fetch(`${LARAVEL_API_BASE}/cms-pages/${encodeURIComponent(slug)}`, {
+    const activeLocale = locale || 'ar';
+    const res = await fetch(`${LARAVEL_API_BASE}/${activeLocale}/cms-pages/${encodeURIComponent(slug)}`, {
       headers: {
         'Accept': 'application/json',
-        'X-Locale': locale,
         ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
       },
       cache: IS_DEV ? 'no-store' : 'default',
@@ -2187,13 +2175,13 @@ const fallbackContactDataAr: ContactPageData = {
  * Fetch Contact Page Content from Laravel /api/contact-page
  */
 export async function getContactPageData(locale: Locale): Promise<ContactPageData> {
-  const fallback = locale === 'ar' ? fallbackContactDataAr : fallbackContactDataEn;
+  const activeLocale = locale || 'ar';
+  const fallback = activeLocale === 'ar' ? fallbackContactDataAr : fallbackContactDataEn;
   try {
-    const url = locale === 'en' ? `${LARAVEL_API_BASE}/en/contact-page` : `${LARAVEL_API_BASE}/contact-page`;
+    const url = `${LARAVEL_API_BASE}/${activeLocale}/contact-page`;
     const res = await fetch(url, {
       headers: {
         'Accept': 'application/json',
-        'X-Locale': locale,
         ...(IS_DEV ? { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } : {}),
       },
       cache: IS_DEV ? 'no-store' : 'default',
@@ -2240,7 +2228,8 @@ export interface ContactFormPayload {
  * Submit Contact Inquiry to Laravel /api/contact-form
  */
 export async function submitContactInquiry(payload: ContactFormPayload): Promise<{ success: boolean; message: string; inquiry_id?: number }> {
-  const url = `${LARAVEL_API_BASE}/contact-form`;
+  const activeLocale = (payload as any)?.locale || 'ar';
+  const url = `${LARAVEL_API_BASE}/${activeLocale}/contact-form`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -2340,9 +2329,10 @@ export interface DynamicNavigationResponse {
 /**
  * Fetch Dynamic Navigation (Header & Footer) from backend
  */
-export async function getNavigationData(): Promise<DynamicNavigationResponse | null> {
+export async function getNavigationData(locale?: Locale): Promise<DynamicNavigationResponse | null> {
   try {
-    const url = `${LARAVEL_API_BASE}/navigation`;
+    const activeLocale = locale || 'ar';
+    const url = `${LARAVEL_API_BASE}/${activeLocale}/navigation`;
     const res = await fetch(url, {
       headers: {
         Accept: 'application/json',
