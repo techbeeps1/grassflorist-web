@@ -192,6 +192,8 @@ export const baseApi = createApi({
     'DeliverySlots',
     'Settings',
     'Cms',
+    'SubscriptionPlans',
+    'ShippingMethods',
   ],
   endpoints: () => ({}),
 });

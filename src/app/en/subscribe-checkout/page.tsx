@@ -5,7 +5,7 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 export async function generateMetadata() {
   return generatePageMetadata({
     title: 'Subscribe Checkout',
-    description: 'Complete your direct recurring flower subscription with secure payment and free delivery inside Jeddah.',
+    description: 'Complete your direct recurring flower subscription with secure payment and scheduled refrigerated delivery inside Jeddah.',
     path: '/en/subscribe-checkout',
     locale: 'en',
   });

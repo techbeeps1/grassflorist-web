@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setCartDrawerOpen } from '@/store/slices/uiSlice';
-import { selectCartTotals } from '@/store/slices/cartSlice';
+import { useCartDynamicTotals } from '@/hooks/useCartDynamicTotals';
 import { getLocalizedProductName } from '@/store/api/cartApi';
 import { useCartActions } from '@/hooks/useCartActions';
 import { Drawer } from '@/components/ui/Drawer';
@@ -26,7 +26,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
   const dispatch = useAppDispatch();
   const dict = getDictionary(locale);
 
-  const { total } = useAppSelector(selectCartTotals);
+  const { total } = useCartDynamicTotals(locale);
   const { updateQuantity, removeItem, pendingAddItem, updatingItemIds, removingItemIds } = useCartActions();
 
   const isRtl = locale === 'ar';

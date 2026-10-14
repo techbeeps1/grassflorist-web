@@ -76,7 +76,7 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
       <div
-        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl sm:max-w-3xl md:max-w-[800px] overflow-hidden border border-gray-100 flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-200"
         dir={locale === 'ar' ? 'rtl' : 'ltr'}
       >
         {/* Header */}
@@ -132,10 +132,13 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
         </div>
 
         {/* HyperPay Widget Form Container */}
-        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 min-h-[320px] flex flex-col justify-center items-center">
-          <div ref={containerRef} className="w-full flex justify-center min-h-[220px]" />
-          <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 inline" />
+        <div className="p-4 sm:p-6 md:p-8 overflow-y-auto overflow-x-auto sm:overflow-x-hidden custom-scrollbar flex-1 min-h-[460px] sm:min-h-[520px] flex flex-col justify-start items-center">
+          <div
+            ref={containerRef}
+            className="w-full flex justify-center items-start min-h-[420px] sm:min-h-[480px] [&_iframe]:w-full [&_iframe]:max-w-[620px] [&_iframe]:min-h-[460px] sm:[&_iframe]:min-h-[510px] [&_iframe]:border-0 [&_iframe]:mx-auto [&_.wpwl-container]:w-full [&_.wpwl-container]:flex [&_.wpwl-container]:justify-center [&_.wpwl-form]:w-full [&_.wpwl-form]:max-w-[620px] [&_.wpwl-form]:mx-auto"
+          />
+          <p className="text-[11px] text-gray-400 mt-5 pb-1 flex items-center justify-center gap-1.5 text-center px-4 shrink-0">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0 inline" />
             <span>
               {locale === 'ar'
                 ? 'معاملة مشفرة ومحمية بمعايير الأمان العالمية 3D Secure'
@@ -153,10 +156,16 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
           >
             {locale === 'ar' ? 'إلغاء واختيار وسيلة دفع أخرى' : 'Cancel & choose another payment method'}
           </button>
-          <div className="flex items-center gap-1.5 opacity-80">
-            <img src="/payments/mada-logo.svg" alt="mada" className="h-3 object-contain" />
-            <img src="/payments/visa.svg" alt="visa" className="h-3 object-contain" />
-            <img src="/payments/mastercard.svg" alt="mastercard" className="h-3 object-contain" />
+          <div className="flex items-center gap-2 opacity-90">
+            <img
+              src="/payments/mada-logo.svg"
+              alt="mada"
+              width={60}
+              height={20}
+              className="w-[60px] h-[20px] aspect-[3/1] object-contain"
+            />
+            <img src="/payments/visa.svg" alt="visa" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
+            <img src="/payments/mastercard.svg" alt="mastercard" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
           </div>
         </div>
       </div>

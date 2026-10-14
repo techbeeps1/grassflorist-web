@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { type Locale } from '@/config/site';
@@ -15,19 +15,19 @@ import {
   applyCoupon,
   setAppliedCoupon,
   removeCoupon,
-  selectCartTotals,
-  selectFreeShippingProgress,
 } from '@/store/slices/cartSlice';
 import {
   useApplyServerCouponMutation,
   getLocalizedProductName,
 } from '@/store/api/cartApi';
 import { useCartActions } from '@/hooks/useCartActions';
+import { useCartDynamicTotals } from '@/hooks/useCartDynamicTotals';
 import { addToast } from '@/store/slices/uiSlice';
 import { formatPrice } from '@/lib/utils';
 import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
 import { CartPageItemSkeleton } from '@/components/ui/Skeleton';
+import { CartPageSkeleton } from '@/components/cart/CartPageSkeleton';
 import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft, Loader2, RotateCw } from 'lucide-react';
 
 interface CartPageViewProps {
@@ -37,12 +37,26 @@ interface CartPageViewProps {
 export function CartPageView({ locale }: CartPageViewProps) {
   const dict = getDictionary(locale);
   const dispatch = useAppDispatch();
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const cartItems = useAppSelector((state) => state.cart.items);
   const couponCode = useAppSelector((state) => state.cart.couponCode);
 
   const [promoCodeInput, setPromoCodeInput] = useState('');
-  const { subtotal, discount, vat, shippingFee, total } = useAppSelector(selectCartTotals);
-  const { remaining, percentage, isFree } = useAppSelector(selectFreeShippingProgress);
+  const {
+    subtotal,
+    discount,
+    shippingFee,
+    isFreeShipping,
+    vat,
+    total,
+    shippingLabel,
+    vatLabel,
+  } = useCartDynamicTotals(locale);
 
   const { updateQuantity, removeItem, pendingAddItem, updatingItemIds, removingItemIds } = useCartActions();
   const [applyServerCoupon] = useApplyServerCouponMutation();
@@ -58,6 +72,10 @@ export function CartPageView({ locale }: CartPageViewProps) {
     { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },
     { label: dict.cart.title },
   ];
+
+  if (!hasMounted) {
+    return <CartPageSkeleton locale={locale} />;
+  }
 
   const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -336,17 +354,26 @@ export function CartPageView({ locale }: CartPageViewProps) {
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between text-text-muted">
-                    <span>{dict.cart.shipping}</span>
-                    <span className={isFree ? 'text-emerald-600 font-bold' : ''}>
-                      {isFree ? dict.cart.freeShipping : <PriceDisplay amount={shippingFee} />}
+                  {/* Dynamic Shipping Row from Admin Config */}
+                  <div className="flex justify-between items-center text-text-muted">
+                    <span>{shippingLabel}</span>
+                    <span className={isFreeShipping ? 'text-emerald-600 font-bold' : ''}>
+                      {isFreeShipping ? (
+                        locale === 'ar' ? 'توصيل مجاني' : 'Free Delivery'
+                      ) : (
+                        <PriceDisplay amount={shippingFee} />
+                      )}
                     </span>
                   </div>
-                  <div className="flex justify-between text-text-muted">
-                    <span>{dict.cart.vat}</span>
+
+                  {/* Dynamic VAT Row from Admin Config */}
+                  <div className="flex justify-between items-center text-text-muted">
+                    <span>{vatLabel}</span>
                     <PriceDisplay amount={vat} />
                   </div>
-                  <div className="flex justify-between text-lg font-black text-text-main pt-3 border-t border-border">
+
+                  {/* Total Amount */}
+                  <div className="flex justify-between items-center text-lg font-black text-text-main pt-3 border-t border-border">
                     <span>{dict.cart.total}</span>
                     <div dir="ltr" className="text-primary font-black">
                       <PriceDisplay amount={total} />

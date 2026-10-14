@@ -66,5 +66,6 @@ export interface ForgotPasswordData {
 
 export interface ResetPasswordData {
   token: string;
+  email: string;
   newPassword: string;
 }

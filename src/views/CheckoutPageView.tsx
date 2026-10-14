@@ -37,6 +37,7 @@ import {
 import { formatPrice } from '@/lib/utils';
 import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol } from '@/components/common/CurrencySymbol';
+import { CheckoutPageSkeleton } from '@/components/checkout/CheckoutPageSkeleton';
 import { Order } from '@/types/order';
 import {
   CheckCircle2,
@@ -151,6 +152,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
   // Dynamic Shipping Methods and rates managed from Filament Admin
   const { data: shippingMethodsData } = useGetShippingMethodsQuery();
+  const isShippingReady = Boolean(shippingMethodsData);
   const shippingMethods = useMemo(() => shippingMethodsData?.data || [], [shippingMethodsData]);
   const activeShippingMethod = useMemo(
     () => shippingMethods.find((m) => m.is_active) || shippingMethods[0],
@@ -184,7 +186,6 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       activeShippingMethod?.price ??
       shippingMethodsData?.default_shipping_fee ??
       globalSettings?.shipping?.inside_jeddah_fee ??
-      fallbackShippingFee ??
       30
     );
 
@@ -220,6 +221,11 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const [emptyCart] = useEmptyCartMutation();
   const [couponErrorMessage, setCouponErrorMessage] = useState<string | null>(null);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const clearCartCompletely = React.useCallback(() => {
     dispatch(clearCart());
@@ -626,6 +632,12 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     const isPaymentReturn = Boolean(hyperpayId || token || subId || params.get('payment_success') === '1' || params.get('PayerID'));
 
     if (orderNum) {
+      // 🌸 If this is a subscription order, forward immediately to the subscription checkout page
+      if (orderNum.toUpperCase().startsWith('SUB-') || orderNum.toUpperCase().startsWith('SUB_')) {
+        const subscribePath = locale === 'ar' ? '/subscribe-checkout' : '/en/subscribe-checkout';
+        window.location.replace(`${subscribePath}${window.location.search}`);
+        return;
+      }
       setDraftOrderNumber(orderNum);
       sessionStorage.setItem('grass_draft_order_number', orderNum);
     } else if (isPaymentReturn) {
@@ -689,11 +701,6 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
       setIsVerifyingPayment(true);
 
-      // Safety timeout: 25 seconds safety guard
-      const verificationTimeout = setTimeout(() => {
-        setIsVerifyingPayment(false);
-      }, 25000);
-
       const cleanReturnUrl = () => {
         if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -712,7 +719,6 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       })
         .unwrap()
         .then((res: any) => {
-          clearTimeout(verificationTimeout);
           setIsVerifyingPayment(false);
           cleanReturnUrl();
 
@@ -771,7 +777,6 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
           }
         })
         .catch((err: any) => {
-          clearTimeout(verificationTimeout);
           setIsVerifyingPayment(false);
           cleanReturnUrl();
           setPaymentNotification({
@@ -1219,6 +1224,10 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
         </div>
       </div>
     );
+  }
+
+  if (!hasMounted) {
+    return <CheckoutPageSkeleton locale={locale} />;
   }
 
   return (
@@ -2102,30 +2111,32 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center">
-                    <span>
-                      {activeShippingMethod
-                        ? (locale === 'ar'
-                          ? (activeShippingMethod.name_ar || activeShippingMethod.name)
-                          : (activeShippingMethod.name_en || activeShippingMethod.name))
-                        : (locale === 'ar' ? 'التوصيل داخل جدة' : 'Delivery Inside Jeddah')}
-                    </span>
-                    <span className="font-semibold text-emerald-600">
-                      {shippingFee === 0 ? (
-                        locale === 'ar' ? 'توصيل مجاني' : 'Free Delivery'
-                      ) : (
-                        <div dir="ltr" className="text-end">
-                          <span className="flex items-center justify-end gap-1 text-gray-900">
-                            <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
-                            <span>{shippingFee} SAR</span>
-                          </span>
-                          <span className="text-[10.5px] text-gray-500 font-normal block">
-                            ${shippingFeeUsd} USD
-                          </span>
-                        </div>
-                      )}
-                    </span>
-                  </div>
+                  {isShippingReady && (
+                    <div className="flex justify-between items-center">
+                      <span>
+                        {activeShippingMethod
+                          ? (locale === 'ar'
+                            ? (activeShippingMethod.name_ar || activeShippingMethod.name)
+                            : (activeShippingMethod.name_en || activeShippingMethod.name))
+                          : (locale === 'ar' ? 'التوصيل داخل جدة' : 'Delivery Inside Jeddah')}
+                      </span>
+                      <span className="font-semibold text-emerald-600">
+                        {shippingFee === 0 ? (
+                          locale === 'ar' ? 'توصيل مجاني' : 'Free Delivery'
+                        ) : (
+                          <div dir="ltr" className="text-end">
+                            <span className="flex items-center justify-end gap-1 text-gray-900">
+                              <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
+                              <span>{shippingFee} SAR</span>
+                            </span>
+                            <span className="text-[10.5px] text-gray-500 font-normal block">
+                              ${shippingFeeUsd} USD
+                            </span>
+                          </div>
+                        )}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex justify-between items-center">
                     <span>
@@ -2237,7 +2248,13 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       />
                       <span>{locale === 'ar' ? 'بطاقة مدى البنكية' : 'mada debit card'}</span>
                     </div>
-                    <img src="/payments/mada-logo.svg" alt="mada" className="h-4 object-contain shrink-0" />
+                    <img
+                      src="/payments/mada-logo.svg"
+                      alt="mada"
+                      width={60}
+                      height={20}
+                      className="w-[60px] h-[20px] aspect-[3/1] object-contain shrink-0"
+                    />
                   </label>
 
                   {/* 2. Credit Cards Payment */}
@@ -2258,9 +2275,9 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       <span>{locale === 'ar' ? 'البطاقات الائتمانية' : 'Credit Cards Payment'}</span>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <img src="/payments/visa.svg" alt="Visa" className="h-3.5 object-contain" />
-                      <img src="/payments/mastercard.svg" alt="Mastercard" className="h-4 object-contain" />
-                      <img src="/payments/amex.svg" alt="Amex" className="h-4 object-contain" />
+                      <img src="/payments/visa.svg" alt="Visa" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
+                      <img src="/payments/mastercard.svg" alt="Mastercard" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
+                      <img src="/payments/amex.svg" alt="Amex" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
                     </div>
                   </label>
 
@@ -2281,7 +2298,13 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       />
                       <span>{locale === 'ar' ? 'اس تي سي باي' : 'STCPay'}</span>
                     </div>
-                    <img src="/payments/stcpay.svg" alt="STCPay" className="h-4.5 object-contain shrink-0" />
+                    <img
+                      src="/payments/stcpay.svg"
+                      alt="STCPay"
+                      width={60}
+                      height={20}
+                      className="w-[60px] h-[20px] object-contain shrink-0"
+                    />
                   </label>
 
                   {/* 4. Pay later with Tabby (Hidden for subscriptions) */}
@@ -2303,7 +2326,13 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                           />
                           <span>{locale === 'ar' ? 'الدفع لاحقاً عبر تابي' : 'Pay later with Tabby'}</span>
                         </div>
-                        <img src="/payments/tabby.svg" alt="Tabby" className="h-5.5 object-contain shrink-0" />
+                        <img
+                          src="/payments/tabby.svg"
+                          alt="Tabby"
+                          width={60}
+                          height={20}
+                          className="w-[60px] h-[20px] object-contain shrink-0"
+                        />
                       </label>
 
                       {/* Expandable Tabby Installment Box */}
@@ -2368,7 +2397,13 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                         />
                         <span>{locale === 'ar' ? 'تمارا' : 'Tamara'}</span>
                       </div>
-                      <img src="/payments/tamara.svg" alt="Tamara" className="h-5.5 object-contain shrink-0" />
+                      <img
+                        src="/payments/tamara.svg"
+                        alt="Tamara"
+                        width={60}
+                        height={20}
+                        className="w-[60px] h-[20px] object-contain shrink-0"
+                      />
                     </label>
                   )}
 
@@ -2389,7 +2424,13 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       />
                       <span>{locale === 'ar' ? 'باي بال إكسبريس' : 'PayPal Express'}</span>
                     </div>
-                    <img src="/payments/paypal.svg" alt="PayPal" className="h-4.5 object-contain shrink-0" />
+                    <img
+                      src="/payments/paypal.svg"
+                      alt="PayPal"
+                      width={60}
+                      height={20}
+                      className="w-[60px] h-[20px] object-contain shrink-0"
+                    />
                   </label>
 
                   {/* 7. Cash on Delivery (COD) */}

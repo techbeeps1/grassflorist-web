@@ -5,7 +5,7 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 export async function generateMetadata() {
   return generatePageMetadata({
     title: 'إتمام دفع وتأكيد الاشتراك الدوري',
-    description: 'أتمم طلب اشتراك الزهور الطبيعية مع وسائل الدفع الآمنة والتوصيل المجاني داخل جدة.',
+    description: 'أتمم طلب اشتراك الزهور الطبيعية مع وسائل الدفع الآمنة والتوصيل المجدول المبرد داخل جدة.',
     path: '/subscribe-checkout',
     locale: 'ar',
   });

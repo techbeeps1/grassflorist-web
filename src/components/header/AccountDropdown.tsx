@@ -29,7 +29,12 @@ export function AccountDropdown({ locale }: AccountDropdownProps) {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close on outside click
   useEffect(() => {
@@ -59,7 +64,7 @@ export function AccountDropdown({ locale }: AccountDropdownProps) {
   const accountUrl = locale === 'ar' ? '/account' : '/en/account';
   const wishlistUrl = locale === 'ar' ? '/wishlist' : '/en/wishlist';
 
-  if (!isAuthenticated || !user) {
+  if (!mounted || !isAuthenticated || !user) {
     return (
       <div className="relative" ref={dropdownRef}>
         <button

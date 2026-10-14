@@ -484,7 +484,13 @@ export const OrderPayView: React.FC<OrderPayViewProps> = ({ orderNumber, locale 
                     </span>
                   </div>
                 </div>
-                <img src="/payments/mada-logo.svg" alt="mada" className="h-4 object-contain shrink-0" />
+                <img
+                  src="/payments/mada-logo.svg"
+                  alt="mada"
+                  width={60}
+                  height={20}
+                  className="w-[60px] h-[20px] aspect-[3/1] object-contain shrink-0"
+                />
               </label>
 
               {/* 2. Credit Cards */}
@@ -512,9 +518,9 @@ export const OrderPayView: React.FC<OrderPayViewProps> = ({ orderNumber, locale 
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <img src="/payments/visa.svg" alt="Visa" className="h-3.5 object-contain" />
-                  <img src="/payments/mastercard.svg" alt="Mastercard" className="h-4 object-contain" />
-                  <img src="/payments/amex.svg" alt="Amex" className="h-4 object-contain" />
+                  <img src="/payments/visa.svg" alt="Visa" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
+                  <img src="/payments/mastercard.svg" alt="Mastercard" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
+                  <img src="/payments/amex.svg" alt="Amex" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
                 </div>
               </label>
 
@@ -543,7 +549,13 @@ export const OrderPayView: React.FC<OrderPayViewProps> = ({ orderNumber, locale 
                       </span>
                     </div>
                   </div>
-                  <img src="/payments/tabby.svg" alt="Tabby" className="h-5.5 object-contain shrink-0" />
+                  <img
+                    src="/payments/tabby.svg"
+                    alt="Tabby"
+                    width={60}
+                    height={20}
+                    className="w-[60px] h-[20px] object-contain shrink-0"
+                  />
                 </label>
 
                 {selectedGateway === 'tabby' && (
@@ -596,7 +608,13 @@ export const OrderPayView: React.FC<OrderPayViewProps> = ({ orderNumber, locale 
                     </span>
                   </div>
                 </div>
-                <img src="/payments/tamara.svg" alt="Tamara" className="h-5.5 object-contain shrink-0" />
+                <img
+                  src="/payments/tamara.svg"
+                  alt="Tamara"
+                  width={60}
+                  height={20}
+                  className="w-[60px] h-[20px] object-contain shrink-0"
+                />
               </label>
 
               {/* 5. PayPal */}
@@ -623,7 +641,13 @@ export const OrderPayView: React.FC<OrderPayViewProps> = ({ orderNumber, locale 
                     </span>
                   </div>
                 </div>
-                <img src="/payments/paypal.svg" alt="PayPal" className="h-4.5 object-contain shrink-0" />
+                <img
+                  src="/payments/paypal.svg"
+                  alt="PayPal"
+                  width={60}
+                  height={20}
+                  className="w-[60px] h-[20px] object-contain shrink-0"
+                />
               </label>
             </div>
 

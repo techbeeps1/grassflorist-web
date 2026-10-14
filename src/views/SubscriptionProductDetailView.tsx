@@ -8,6 +8,7 @@ import { useGetSubscriptionDealBySlugQuery } from '@/store/api/subscriptionApi';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { ProductGallery } from '@/components/product/ProductGallery';
 import { PriceDisplay } from '@/components/common/CurrencySymbol';
+import { ProductDetailPageSkeleton } from '@/components/product/ProductDetailPageSkeleton';
 import { Zap } from 'lucide-react';
 
 interface SubscriptionProductDetailViewProps {
@@ -80,11 +81,7 @@ export function SubscriptionProductDetailView({ slug, locale }: SubscriptionProd
     : `/en/flowers-subscription-deals/${slug}/frequency`;
 
   if (isLoading) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center bg-surface">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <ProductDetailPageSkeleton locale={locale} />;
   }
 
   if (!deal) {

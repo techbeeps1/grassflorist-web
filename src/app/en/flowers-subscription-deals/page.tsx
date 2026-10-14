@@ -4,7 +4,7 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 export async function generateMetadata() {
   return generatePageMetadata({
     title: 'Fresh Flower Subscription Deals',
-    description: 'Subscribe to Grass Florist recurring bouquets and save up to 30% with free delivery and a complimentary luxury vase.',
+    description: 'Subscribe to Grass Florist recurring bouquets and save up to 20% with scheduled refrigerated delivery and a complimentary luxury vase.',
     path: '/en/flowers-subscription-deals',
     locale: 'en',
   });

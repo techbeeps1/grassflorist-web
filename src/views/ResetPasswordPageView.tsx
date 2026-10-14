@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type Locale } from '@/config/site';
@@ -9,7 +9,7 @@ import { useResetPasswordMutation } from '@/store/api/authApi';
 import { addToast } from '@/store/slices/uiSlice';
 import { useAppDispatch } from '@/store';
 import { Button } from '@/components/ui/Button';
-import { Lock, Eye, EyeOff, CheckCircle2, ShieldCheck, ArrowRight, ArrowLeft, Leaf } from 'lucide-react';
+import { Lock, Eye, EyeOff, CheckCircle2, ShieldCheck, ArrowRight, ArrowLeft, Leaf, Mail } from 'lucide-react';
 
 interface ResetPasswordPageViewProps {
   locale: Locale;
@@ -20,14 +20,23 @@ function ResetPasswordPageContent({ locale }: ResetPasswordPageViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
-  const token = searchParams.get('token') || 'demo_token';
+  const token = searchParams.get('token') || '';
+  const initialEmail = searchParams.get('email') || '';
 
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const qEmail = searchParams.get('email');
+    if (qEmail && !email) {
+      setEmail(qEmail);
+    }
+  }, [searchParams, email]);
 
   const [resetPasswordMutation, { isLoading }] = useResetPasswordMutation();
 
@@ -38,13 +47,17 @@ function ResetPasswordPageContent({ locale }: ResetPasswordPageViewProps) {
     e.preventDefault();
     setErrorMsg(null);
 
-    if (!password.trim() || !confirmPassword.trim()) {
+    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
       setErrorMsg(dict.validation.required);
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMsg(dict.auth.passwordTooShort);
+    if (password.length < 8) {
+      setErrorMsg(
+        locale === 'ar'
+          ? 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل'
+          : 'Password must be at least 8 characters'
+      );
       return;
     }
 
@@ -54,7 +67,11 @@ function ResetPasswordPageContent({ locale }: ResetPasswordPageViewProps) {
     }
 
     try {
-      await resetPasswordMutation({ token, newPassword: password }).unwrap();
+      await resetPasswordMutation({
+        token,
+        email: email.trim(),
+        newPassword: password,
+      }).unwrap();
       setIsSuccess(true);
       dispatch(
         addToast({
@@ -62,11 +79,17 @@ function ResetPasswordPageContent({ locale }: ResetPasswordPageViewProps) {
           message: dict.auth.resetSuccess,
         })
       );
-    } catch {
+    } catch (err: any) {
+      const serverMsg =
+        err?.data?.message ||
+        err?.data?.errors?.email?.[0] ||
+        err?.data?.errors?.password?.[0] ||
+        err?.data?.errors?.token?.[0];
       setErrorMsg(
-        locale === 'ar'
-          ? 'تعذر إعادة تعيين كلمة المرور. قد يكون الرابط منتهي الصلاحية.'
-          : 'Failed to reset password. Link may be expired.'
+        serverMsg ||
+          (locale === 'ar'
+            ? 'تعذر إعادة تعيين كلمة المرور. قد يكون الرابط منتهي الصلاحية.'
+            : 'Failed to reset password. Link may be expired.')
       );
     }
   };
@@ -124,6 +147,23 @@ function ResetPasswordPageContent({ locale }: ResetPasswordPageViewProps) {
                 {errorMsg}
               </div>
             )}
+
+            <div>
+              <label className="block text-xs font-bold text-[#1E1915] mb-2">
+                {dict.auth.email} <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={dict.auth.emailPlaceholder}
+                  className="w-full h-12 px-4 ps-11 text-xs sm:text-sm bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border border-[#E2D8CC] rounded-2xl text-[#1E1915] placeholder:text-[#A6998E] focus:outline-none focus:border-[#2D3F33] focus:ring-2 focus:ring-[#2D3F33]/10 focus:bg-white transition-all"
+                />
+                <Mail className="w-4 h-4 text-[#8C8075] absolute start-4 top-4 pointer-events-none" />
+              </div>
+            </div>
 
             <div>
               <label className="block text-xs font-bold text-[#1E1915] mb-2">

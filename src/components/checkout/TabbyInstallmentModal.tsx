@@ -55,7 +55,7 @@ export const TabbyInstallmentModal: React.FC<TabbyInstallmentModalProps> = ({
         {/* Header with Tabby logo */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-[#FAFAFA]">
           <div className="flex items-center gap-2.5">
-            <img src="/payments/tabby.svg" alt="Tabby" className="h-6 object-contain" />
+            <img src="/payments/tabby.svg" alt="Tabby" width={60} height={20} className="w-[60px] h-[20px] object-contain" />
             <span className="text-xs font-black text-gray-900 uppercase tracking-wide">
               {locale === 'ar' ? 'قسّم مشترياتك على 4 دفعات' : 'Split into 4 payments'}
             </span>

@@ -714,13 +714,15 @@ export function Footer({ locale }: FooterProps) {
                 ].map((pm) => (
                   <div
                     key={pm.name}
-                    className="h-7 sm:h-7.5 px-2 bg-white  border border-white/20 shadow-xs flex items-center justify-center hover:scale-105 transition-all"
+                    className="w-[62px] h-[30px] bg-white border border-white/20 shadow-xs flex items-center justify-center p-1 hover:scale-105 transition-all"
                     title={pm.name}
                   >
                     <img
                       src={pm.src}
                       alt={pm.name}
-                      className="h-3.5 sm:h-4 w-auto max-w-[42px] object-contain"
+                      width={60}
+                      height={20}
+                      className="w-[54px] h-[18px] sm:w-[56px] sm:h-[20px] object-contain shrink-0"
                     />
                   </div>
                 ))}

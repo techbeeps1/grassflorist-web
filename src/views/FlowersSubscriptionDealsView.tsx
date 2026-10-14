@@ -22,6 +22,8 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 
+import { SubscriptionLandingSkeleton } from '@/components/subscription/SubscriptionLandingSkeleton';
+
 interface FlowersSubscriptionDealsViewProps {
   locale: Locale;
 }
@@ -33,6 +35,10 @@ export function FlowersSubscriptionDealsView({ locale }: FlowersSubscriptionDeal
   const landing = response?.data;
   const plans = landing?.plans || [];
 
+  if (isLoading || !landing) {
+    return <SubscriptionLandingSkeleton locale={locale} />;
+  }
+
   const breadcrumbs = [
     { label: isAr ? 'الرئيسية' : 'Home', href: isAr ? '/' : '/en' },
     { label: isAr ? 'اشتراكات الزهور' : 'Flower Subscriptions', href: isAr ? '/flowers-subscription-deals' : '/en/flowers-subscription-deals' },
@@ -41,53 +47,55 @@ export function FlowersSubscriptionDealsView({ locale }: FlowersSubscriptionDeal
   return (
     <div className="bg-[#FAF7F2] min-h-screen text-[#1E1915]">
       {/* 1. Breadcrumbs */}
-      <div className="max-w-[1280px] mx-auto px-4 pt-4">
+      <div className="site-container pt-4">
         <Breadcrumbs items={breadcrumbs} locale={locale} />
       </div>
 
       {/* 2. Floward-Inspired Luxury Hero Banner */}
-      <section className="relative mt-3 mx-4 max-w-[1280px] xl:mx-auto rounded-3xl overflow-hidden shadow-lg border border-[#E8DFD3] min-h-[360px] sm:min-h-[440px] flex items-center">
-        {/* Background Image with Ambient Overlay */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src={landing?.hero?.image || 'https://api.grassflorist.com/storage/products/g46220flower20delivery20jeddah202-600x600-1.jpg'}
-            alt="Grass Flower Subscriptions"
-            fill
-            priority
-            className="object-cover object-center brightness-[0.78] contrast-[1.05]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-transparent rtl:bg-gradient-to-l" />
-        </div>
-
-        {/* Hero Content */}
-        <div className="relative z-10 p-6 sm:p-12 md:p-16 max-w-2xl text-white">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs sm:text-sm font-semibold mb-4 border border-white/25">
-            <Sparkles className="w-4 h-4 text-emerald-300" />
-            <span>{isAr ? 'عروض وباقات الاشتراكات الدورية' : 'Grass Premium Recurring Subscriptions'}</span>
+      <div className="site-container mt-3">
+        <section className="relative rounded-3xl overflow-hidden shadow-lg border border-[#E8DFD3] min-h-[360px] sm:min-h-[440px] flex items-center">
+          {/* Background Image with Ambient Overlay */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={landing?.hero?.image || 'https://api.grassflorist.com/storage/products/g46220flower20delivery20jeddah202-600x600-1.jpg'}
+              alt="Grass Flower Subscriptions"
+              fill
+              priority
+              className="object-cover object-center brightness-[0.78] contrast-[1.05]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-transparent rtl:bg-gradient-to-l" />
           </div>
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black font-serif tracking-tight leading-[1.15] mb-4 drop-shadow-sm">
-            {isAr ? (landing?.hero?.title?.ar || 'اشتراكات غراس') : (landing?.hero?.title?.en || 'Grass Subscriptions')}
-          </h1>
+          {/* Hero Content */}
+          <div className="relative z-10 p-6 sm:p-12 md:p-16 max-w-2xl text-white">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs sm:text-sm font-semibold mb-4 border border-white/25">
+              <Sparkles className="w-4 h-4 text-emerald-300" />
+              <span>{isAr ? 'عروض وباقات الاشتراكات الدورية' : 'Grass Premium Recurring Subscriptions'}</span>
+            </div>
 
-          <p className="text-base sm:text-xl text-white/90 leading-relaxed font-medium mb-8 max-w-xl drop-shadow-xs">
-            {isAr
-              ? (landing?.hero?.subtitle?.ar || 'اجعل كل يوم مميزاً بزهور طبيعية منعشة تصلك أو لمن تحب دورياً وبأعلى معايير الفخامة.')
-              : (landing?.hero?.subtitle?.en || 'Make any day special with fresh flowers delivered to you or your loved ones regularly.')}
-          </p>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black font-serif tracking-tight leading-[1.15] mb-4 drop-shadow-sm">
+              {isAr ? (landing?.hero?.title?.ar || 'اشتراكات غراس') : (landing?.hero?.title?.en || 'Grass Subscriptions')}
+            </h1>
 
-          <a
-            href="#select-plan"
-            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#8fae2a] hover:bg-[#7e9b25] text-white font-bold text-base transition-all shadow-md hover:shadow-xl active:scale-95"
-          >
-            <span>{isAr ? 'اختر باقتك الآن' : 'Select Your Plan'}</span>
-            {isAr ? <ArrowLeft className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
-          </a>
-        </div>
-      </section>
+            <p className="text-base sm:text-xl text-white/90 leading-relaxed font-medium mb-8 max-w-xl drop-shadow-xs">
+              {isAr
+                ? (landing?.hero?.subtitle?.ar || 'اجعل كل يوم مميزاً بزهور طبيعية منعشة تصلك أو لمن تحب دورياً وبأعلى معايير الفخامة.')
+                : (landing?.hero?.subtitle?.en || 'Make any day special with fresh flowers delivered to you or your loved ones regularly.')}
+            </p>
+
+            <a
+              href="#select-plan"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#8fae2a] hover:bg-[#7e9b25] text-white font-bold text-base transition-all shadow-md hover:shadow-xl active:scale-95"
+            >
+              <span>{isAr ? 'اختر باقتك الآن' : 'Select Your Plan'}</span>
+              {isAr ? <ArrowLeft className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
+            </a>
+          </div>
+        </section>
+      </div>
 
       {/* 3. Three Highlight Perks Bar */}
-      <section className="max-w-[1280px] mx-auto px-4 mt-8">
+      <section className="site-container mt-8">
         <div className="bg-white rounded-2xl border border-[#E8DFD3] p-4 sm:p-6 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4 divide-y md:divide-y-0 md:divide-x rtl:md:divide-x-reverse divide-[#E8DFD3]">
           {/* Perk 1 */}
           <div className="flex items-center gap-3.5 pt-2 md:pt-0 justify-center sm:justify-start px-2">
@@ -96,7 +104,7 @@ export function FlowersSubscriptionDealsView({ locale }: FlowersSubscriptionDeal
             </div>
             <div>
               <h3 className="font-bold text-sm sm:text-base text-[#1E1915]">
-                {isAr ? 'اشترك ووفر حتى 30%' : 'Subscribe & save up to 30%'}
+                {isAr ? 'اشترك ووفر حتى 20%' : 'Subscribe & save up to 20%'}
               </h3>
               <p className="text-xs text-[#7D7065]">
                 {isAr ? 'خصم فوري على كل التوصيلات الدورية' : 'Instant savings applied on recurring deliveries'}
@@ -111,10 +119,10 @@ export function FlowersSubscriptionDealsView({ locale }: FlowersSubscriptionDeal
             </div>
             <div>
               <h3 className="font-bold text-sm sm:text-base text-[#1E1915]">
-                {isAr ? 'توصيل مجاني لكل باقة' : 'Free delivery on every order'}
+                {isAr ? 'توصيل مجدول ومبرد' : 'Scheduled & Fresh Delivery'}
               </h3>
               <p className="text-xs text-[#7D7065]">
-                {isAr ? 'خدمة شحن وتوصيل مبردة بدون أي رسوم' : 'Temperature-controlled delivery at zero extra fee'}
+                {isAr ? 'شحن مبرد ومخصص يحافظ على نضارة الورد في موعدك المختار' : 'Temperature-controlled delivery ensuring peak bloom freshness'}
               </p>
             </div>
           </div>
@@ -137,7 +145,7 @@ export function FlowersSubscriptionDealsView({ locale }: FlowersSubscriptionDeal
       </section>
 
       {/* 4. "Select Your Plan" Grid Section (Matching Screenshot 1) */}
-      <section id="select-plan" className="max-w-[1280px] mx-auto px-4 py-12">
+      <section id="select-plan" className="site-container py-12">
         <div className="text-center max-w-xl mx-auto mb-10">
           <h2 className="text-2xl sm:text-4xl font-extrabold font-serif text-[#1E1915] mb-2 tracking-tight">
             {isAr ? 'اختر باقة اشتراكك' : 'Select Your Plan'}
@@ -178,7 +186,7 @@ export function FlowersSubscriptionDealsView({ locale }: FlowersSubscriptionDeal
                   className="bg-white rounded-3xl border border-[#E8DFD3] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
                 >
                   {/* Plan Image Container with Circular Podium Backdrop */}
-                  <div className="relative aspect-[4/3] sm:aspect-square w-full bg-[#FAF7F2] overflow-hidden">
+                  <div className="relative aspect-[4/3] w-full bg-[#FAF7F2] overflow-hidden">
                     <Image
                       src={plan.image}
                       alt={planName}
@@ -188,47 +196,51 @@ export function FlowersSubscriptionDealsView({ locale }: FlowersSubscriptionDeal
 
                     {/* Badge Pill */}
                     {planBadge && (
-                      <div className="absolute top-4 start-4 z-10 px-3 py-1 rounded-full bg-[#1E1915]/80 backdrop-blur-md text-white text-xs font-bold shadow-md">
+                      <div className="absolute top-3.5 start-3.5 z-10 px-2.5 py-1 rounded-full bg-[#1E1915]/80 backdrop-blur-md text-white text-[11px] font-bold shadow-md">
                         {planBadge}
                       </div>
                     )}
                   </div>
 
                   {/* Plan Content */}
-                  <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between">
+                  <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
                     <div>
                       {/* Title & Starting Price */}
-                      <div className="flex items-start justify-between gap-3 mb-2.5">
-                        <h3 className="text-xl sm:text-2xl font-black font-serif text-[#1E1915]">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <h3 className="text-lg sm:text-xl font-black font-serif text-[#1E1915]">
                           {planName}
                         </h3>
                         <div className="text-end shrink-0">
-                          <span className="text-[11px] uppercase tracking-wider text-[#7D7065] block font-semibold">
-                            {isAr ? 'تبدأ من' : 'From'}
-                          </span>
-                          <div className="text-lg sm:text-xl font-black text-[#2D3F33] flex items-center gap-1 justify-end">
-                            <CurrencySymbol forcedCurrency="SAR" className="w-4 h-4 text-[#8fae2a]" />
-                            <span>{plan.starting_price}</span>
-                          </div>
-                          {plan.original_price && plan.original_price > plan.starting_price && (
-                            <span className="text-[11px] line-through text-[#A69B91] block">
-                              {plan.original_price} {isAr ? 'ر.س' : 'SAR'}
+                          <div className="flex items-baseline justify-end gap-1.5 flex-wrap">
+                            <span className="text-[10.5px] uppercase tracking-wider text-[#7D7065] font-semibold">
+                              {isAr ? 'تبدأ من' : 'From'}
                             </span>
-                          )}
-                          <span className="text-[10px] text-[#7D7065] block">
+                            <span className="text-base sm:text-lg font-black text-[#2D3F33] inline-flex items-center gap-0.5">
+                              <CurrencySymbol forcedCurrency="SAR" className="w-3.5 h-3.5 text-[#8fae2a]" />
+                              <span>{plan.starting_price}</span>
+                            </span>
+                            {plan.original_price && plan.original_price > plan.starting_price && (
+                              <span className="text-[11px] line-through text-[#A69B91]">
+                                {plan.original_price} {isAr ? 'ر.س' : 'SAR'}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-[#7D7065] block font-medium mt-0.5">
                             {isAr ? 'لكل توصيلة' : 'Per Delivery'}
                           </span>
                         </div>
                       </div>
 
                       {/* Description */}
-                      <p className="text-xs sm:text-sm text-[#5C524B] leading-relaxed mb-6 line-clamp-3">
-                        {planDesc}
-                      </p>
+                      {planDesc && (
+                        <p className="text-xs text-[#5C524B] leading-relaxed mb-3 line-clamp-2">
+                          {planDesc}
+                        </p>
+                      )}
                     </div>
 
                     {/* CTAs (More Details & Subscribe Now) */}
-                    <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[#E8DFD3]">
+                    <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-[#E8DFD3] mt-2">
                       <Link
                         href={detailUrl}
                         className="w-full py-2.5 px-3 rounded-full border border-[#2D3F33] text-[#2D3F33] hover:bg-[#FAF7F2] font-bold text-xs sm:text-sm text-center transition-all active:scale-95 flex items-center justify-center"
@@ -253,7 +265,7 @@ export function FlowersSubscriptionDealsView({ locale }: FlowersSubscriptionDeal
 
       {/* 5. "How It Works?" Section (Matching Screenshot 1) */}
       <section className="bg-white border-y border-[#E8DFD3] py-14 sm:py-18">
-        <div className="max-w-[1280px] mx-auto px-4">
+        <div className="site-container">
           <div className="text-center max-w-xl mx-auto mb-12">
             <h2 className="text-2xl sm:text-4xl font-extrabold font-serif text-[#1E1915] mb-2 tracking-tight">
               {isAr ? 'كيف يعمل الاشتراك؟' : 'How It Works?'}

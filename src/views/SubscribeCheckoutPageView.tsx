@@ -13,6 +13,7 @@ import { useVerifyPaymentMutation, useGetShippingMethodsQuery } from '@/store/ap
 import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
 import { useCurrency } from '@/hooks/useCurrency';
 import { CurrencySymbol } from '@/components/common/CurrencySymbol';
+import { CheckoutPageSkeleton } from '@/components/checkout/CheckoutPageSkeleton';
 import { CountryCodePicker, ALL_COUNTRY_CODES } from '@/components/checkout/CountryCodePicker';
 import { HyperPayWidgetModal } from '@/components/checkout/HyperPayWidgetModal';
 import {
@@ -383,6 +384,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
 
   const [paymentMethod, setPaymentMethod] = useState<'mada' | 'credit_card' | 'paypal'>('mada');
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -396,40 +398,94 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
   const [checkoutSubscription] = useCheckoutSubscriptionMutation();
   const [verifyPayment] = useVerifyPaymentMutation();
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const hasVerifiedPaymentRef = useRef(false);
 
-  // Handle Return from HyperPay 3DS redirect
+  // Handle Return from HyperPay 3DS redirect & verification
   useEffect(() => {
-    const resourcePath = searchParams.get('resourcePath') || searchParams.get('resource_path');
-    const orderNumber = searchParams.get('order_number') || searchParams.get('id');
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const orderNum = params.get('order_number') || params.get('order_id');
+    const hyperpayId = params.get('id');
+    const token = params.get('token');
+    const resourcePath = params.get('resourcePath') || params.get('resource_path');
+    const isCancelled = params.get('cancelled') === '1';
+    const isFailed = params.get('failed') === '1';
+    const gateway = params.get('gateway') || 'hyperpay';
+    const brand = params.get('brand') || undefined;
+    const isPaymentReturn = Boolean(resourcePath || hyperpayId || token || params.get('payment_success') === '1');
 
-    if (resourcePath && orderNumber) {
-      setIsSubmitting(true);
+    if (isCancelled) {
+      setFormError(
+        isAr
+          ? 'تم إلغاء عملية الدفع. يمكنك إعادة المحاولة أو اختيار وسيلة دفع أخرى.'
+          : 'Payment was cancelled. You can try again or choose another payment method.'
+      );
+      return;
+    }
+
+    if (isFailed) {
+      setFormError(
+        isAr
+          ? 'فشلت عملية الدفع. يرجى التحقق من بيانات البطاقة أو المحاولة مرة أخرى.'
+          : 'Payment failed. Please check your card details and try again.'
+      );
+      return;
+    }
+
+    if ((orderNum || hyperpayId || token) && isPaymentReturn) {
+      if (hasVerifiedPaymentRef.current) return;
+      hasVerifiedPaymentRef.current = true;
+
+      setIsVerifyingPayment(true);
+
+      const cleanReturnUrl = () => {
+        if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      };
+
       verifyPayment({
-        orderId: orderNumber,
-        resourcePath,
-        gateway: 'hyperpay',
+        orderId: orderNum || hyperpayId || token!,
+        gateway,
+        referenceId: hyperpayId || token || undefined,
+        resourcePath: resourcePath || undefined,
+        brand,
       })
         .unwrap()
-        .then((res) => {
-          if (res?.status === 'success' || res?.is_paid) {
+        .then((res: any) => {
+          setIsVerifyingPayment(false);
+          cleanReturnUrl();
+
+          const isPaid = Boolean(res?.verification?.is_paid || res?.payment_status === 'paid' || res?.status === 'success');
+          if (isPaid) {
+            if (typeof window !== 'undefined') {
+              sessionStorage.removeItem('grass_direct_subscription');
+            }
             setCreatedSubscription({
-              subscription_number: `SUB-${orderNumber}`,
-              initial_order_number: orderNumber,
+              subscription_number: res?.order?.subscription?.subscription_number || res?.subscription?.subscription_number || `SUB-${(orderNum || 'ACTIVE').replace(/^SUB-(?:OR-)?/, '')}`,
+              initial_order_number: res?.order_number || orderNum || 'SUB-OR-COMPLETED',
             });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           } else {
             setFormError(
-              isAr ? 'لم تكتمل عملية الدفع أو تم رفض البطاقة. يرجى المحاولة مرة أخرى.' : 'Payment declined or canceled.'
+              res?.verification?.result_description ||
+              res?.verification?.message ||
+              (isAr ? 'لم تكتمل عملية الدفع أو تم رفض البطاقة. يرجى المحاولة مرة أخرى.' : 'Payment was declined or cancelled. Please try again.')
             );
           }
         })
-        .catch((err) => {
-          setFormError(err?.data?.message || 'Payment verification failed');
-        })
-        .finally(() => {
-          setIsSubmitting(false);
+        .catch((err: any) => {
+          setIsVerifyingPayment(false);
+          cleanReturnUrl();
+          setFormError(
+            err?.data?.message ||
+            err?.message ||
+            (isAr ? 'تعذر التحقق من الدفع، يرجى المحاولة مرة أخرى.' : 'Could not verify payment status. Please try again.')
+          );
         });
     }
-  }, [searchParams, verifyPayment, isAr]);
+  }, [isAr, verifyPayment]);
 
   const planName = subscriptionData
     ? (isAr ? subscriptionData.deal_name?.ar || subscriptionData.deal_name?.en : subscriptionData.deal_name?.en || subscriptionData.deal_name?.ar)
@@ -437,6 +493,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
   // Dynamic Shipping Methods and rates managed from Filament Admin
   const { data: shippingMethodsData } = useGetShippingMethodsQuery();
+  const isShippingReady = Boolean(shippingMethodsData);
   const shippingMethods = useMemo(() => shippingMethodsData?.data || [], [shippingMethodsData]);
   const activeShippingMethod = useMemo(
     () => shippingMethods.find((m) => m.is_active) || shippingMethods[0],
@@ -528,6 +585,10 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
       newErrors.recipientPhone = isAr ? 'يرجى إدخال رقم هاتف المستلم' : 'Phone number is required';
     }
 
+    if (!agreeTerms) {
+      newErrors.agreeTerms = isAr ? 'يرجى الموافقة على الشروط والأحكام للمتابعة' : 'Please agree to the terms and conditions to proceed';
+    }
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
@@ -546,6 +607,12 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
       let gatewayKey = 'hyperpay';
       if (paymentMethod === 'paypal') gatewayKey = 'paypal';
 
+      const combinedCardMessage = subscriptionData?.sender_name_on_card
+        ? (subscriptionData?.gift_message
+            ? `${subscriptionData.gift_message}\n(Sender / المرسل: ${subscriptionData.sender_name_on_card})`
+            : `(Sender / المرسل: ${subscriptionData.sender_name_on_card})`)
+        : (subscriptionData?.gift_message || undefined);
+
       const payload = {
         product_id: subscriptionData?.product_id || subscriptionData?.deal_id,
         quantity: 1,
@@ -561,7 +628,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
         city: 'Jeddah',
         district: '',
         location_link: shippingAddressLink || undefined,
-        card_message: subscriptionData?.gift_message || undefined,
+        card_message: combinedCardMessage,
         payment_gateway: gatewayKey,
         payment_brand: paymentMethod === 'mada' ? 'MADA' : (paymentMethod === 'credit_card' ? 'VISA MASTER' : undefined),
       };
@@ -686,7 +753,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Link
-              href={isAr ? '/account/subscriptions' : '/en/account/subscriptions'}
+              href={isAr ? '/account?tab=subscriptions' : '/en/account?tab=subscriptions'}
               className="flex-1 py-3 px-4 rounded-xl bg-[#8fae2a] hover:bg-[#7e9b25] text-white font-bold text-sm shadow-md transition-all text-center"
             >
               {isAr ? 'إدارة اشتراكاتي' : 'Manage Subscriptions'}
@@ -701,6 +768,10 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
         </div>
       </div>
     );
+  }
+
+  if (!isDataLoaded) {
+    return <CheckoutPageSkeleton locale={locale} />;
   }
 
   // ================= MAIN CHECKOUT FORM (Matching CheckoutPageView.tsx 1:1) =================
@@ -1209,30 +1280,32 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                   </div>
                 )}
 
-                <div className="flex justify-between items-center">
-                  <span>
-                    {activeShippingMethod
-                      ? (isAr
-                        ? (activeShippingMethod.name_ar || activeShippingMethod.name)
-                        : (activeShippingMethod.name_en || activeShippingMethod.name))
-                      : (isAr ? 'التوصيل داخل جدة' : 'Delivery Inside Jeddah')}
-                  </span>
-                  <span className="font-semibold text-emerald-600">
-                    {shippingFee === 0 ? (
-                      isAr ? 'توصيل مجاني' : 'Free Delivery'
-                    ) : (
-                      <div dir="ltr" className="text-end">
-                        <span className="flex items-center justify-end gap-1 text-gray-900">
-                          <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
-                          <span>{shippingFee} SAR</span>
-                        </span>
-                        <span className="text-[10.5px] text-gray-500 font-normal block">
-                          ${shippingFeeUsd} USD
-                        </span>
-                      </div>
-                    )}
-                  </span>
-                </div>
+                {isShippingReady && (
+                  <div className="flex justify-between items-center">
+                    <span>
+                      {activeShippingMethod
+                        ? (isAr
+                          ? (activeShippingMethod.name_ar || activeShippingMethod.name)
+                          : (activeShippingMethod.name_en || activeShippingMethod.name))
+                        : (isAr ? 'التوصيل داخل جدة' : 'Delivery Inside Jeddah')}
+                    </span>
+                    <span className="font-semibold text-emerald-600">
+                      {shippingFee === 0 ? (
+                        isAr ? 'توصيل مجاني' : 'Free Delivery'
+                      ) : (
+                        <div dir="ltr" className="text-end">
+                          <span className="flex items-center justify-end gap-1 text-gray-900">
+                            <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
+                            <span>{shippingFee} SAR</span>
+                          </span>
+                          <span className="text-[10.5px] text-gray-500 font-normal block">
+                            ${shippingFeeUsd} USD
+                          </span>
+                        </div>
+                      )}
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex justify-between items-center">
                   <span>
@@ -1293,7 +1366,13 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                     />
                     <span>{isAr ? 'بطاقة مدى البنكية' : 'mada debit card'}</span>
                   </div>
-                  <img src="/payments/mada-logo.svg" alt="mada" className="h-4 object-contain shrink-0" />
+                  <img
+                    src="/payments/mada-logo.svg"
+                    alt="mada"
+                    width={60}
+                    height={20}
+                    className="w-[60px] h-[20px] aspect-[3/1] object-contain shrink-0"
+                  />
                 </label>
 
                 {/* 2. Credit Cards Payment */}
@@ -1314,9 +1393,9 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                     <span>{isAr ? 'البطاقات الائتمانية' : 'Credit Cards Payment'}</span>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <img src="/payments/visa.svg" alt="Visa" className="h-3.5 object-contain" />
-                    <img src="/payments/mastercard.svg" alt="Mastercard" className="h-4 object-contain" />
-                    <img src="/payments/amex.svg" alt="Amex" className="h-4 object-contain" />
+                    <img src="/payments/visa.svg" alt="Visa" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
+                    <img src="/payments/mastercard.svg" alt="Mastercard" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
+                    <img src="/payments/amex.svg" alt="Amex" width={46} height={20} className="h-[20px] w-auto max-w-[46px] object-contain" />
                   </div>
                 </label>
 
@@ -1337,7 +1416,13 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                     />
                     <span>PayPal</span>
                   </div>
-                  <img src="/payments/paypal.svg" alt="PayPal" className="h-4 object-contain shrink-0" />
+                  <img
+                    src="/payments/paypal.svg"
+                    alt="PayPal"
+                    width={60}
+                    height={20}
+                    className="w-[60px] h-[20px] object-contain shrink-0"
+                  />
                 </label>
               </div>
 
@@ -1348,6 +1433,60 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                     ? 'سيتم استخدام بياناتك الشخصية لمعالجة طلبك، ودعم تجربتك في هذا الموقع كما هو موضح في سياسة الخصوصية.'
                     : 'Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.'}
                 </p>
+              </div>
+
+              {/* Terms and Conditions Checkbox */}
+              <div className="pt-1">
+                <label className="flex items-start gap-2.5 text-xs text-gray-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={agreeTerms}
+                    onChange={(e) => {
+                      setAgreeTerms(e.target.checked);
+                      if (e.target.checked && errors.agreeTerms) {
+                        setErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.agreeTerms;
+                          return next;
+                        });
+                      }
+                    }}
+                    className="mt-0.5 w-4 h-4 text-[#8fae2a] rounded border-gray-300 focus:ring-[#8fae2a] cursor-pointer"
+                  />
+                  <span className="leading-snug select-none">
+                    {isAr ? (
+                      <>
+                        <span>لقد قرأت ووافقت على </span>
+                        <Link
+                          href="/terms-conditions"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-bold text-[#546e3a] underline underline-offset-2 hover:text-[#3d5128]"
+                        >
+                          الشروط والأحكام الخاصة بالموقع
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <span>I have read and agree to the website </span>
+                        <Link
+                          href="/en/terms-conditions"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-bold text-[#546e3a] underline underline-offset-2 hover:text-[#3d5128]"
+                        >
+                          terms and conditions
+                        </Link>
+                      </>
+                    )}
+                    <span className="text-red-500 font-bold ms-1">*</span>
+                  </span>
+                </label>
+                {errors.agreeTerms && (
+                  <p className="text-[11px] text-red-500 mt-1">{errors.agreeTerms}</p>
+                )}
               </div>
 
               {/* PLACE ORDER Button matching standard Checkout */}
@@ -1380,8 +1519,54 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
           orderNumber={hyperPayConfig.orderNumber}
           amount={hyperPayConfig.amount}
           locale={locale}
+          returnUrl={
+            typeof window !== 'undefined'
+              ? `${window.location.origin}${locale === 'ar' ? '/subscribe-checkout' : '/en/subscribe-checkout'}?order_number=${encodeURIComponent(hyperPayConfig.orderNumber)}&gateway=hyperpay`
+              : undefined
+          }
           onClose={() => setHyperPayModalOpen(false)}
         />
+      )}
+
+      {/* 💳 Fullscreen Payment Verification Overlay (Stays visible until verification API returns) */}
+      {isVerifyingPayment && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-20 h-20 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-5 ring-8 ring-emerald-500/10">
+              <ShieldCheck className="w-10 h-10 animate-pulse text-[#546e3a]" />
+            </div>
+
+            {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('order_number') && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-[11px] font-mono font-bold text-gray-700 mb-3">
+                <span>{locale === 'ar' ? 'طلب اشتراك رقم:' : 'Subscription Order:'}</span>
+                <span className="text-[#546e3a]">
+                  {new URLSearchParams(window.location.search).get('order_number')}
+                </span>
+              </div>
+            )}
+
+            <h3 className="text-lg sm:text-xl font-black text-gray-900 mb-2">
+              {locale === 'ar'
+                ? 'جارٍ التحقق من عملية الدفع وتفعيل اشتراكك...'
+                : 'Verifying Payment & Activating Subscription...'}
+            </h3>
+
+            <p className="text-xs sm:text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">
+              {locale === 'ar'
+                ? 'يرجى الانتظار بضع لحظات بينما نتحقق من استلام الدفعة من بوابة الدفع وتأكيد اشتراكك. لا تقم بإغلاق الصفحة.'
+                : 'Please wait a moment while we securely verify your transaction with the payment gateway and activate your subscription. Do not close this page.'}
+            </p>
+
+            <div className="mt-6 flex items-center justify-center gap-2 text-xs font-semibold text-[#546e3a]">
+              <div className="w-3.5 h-3.5 border-2 border-[#546e3a] border-t-transparent rounded-full animate-spin" />
+              <span>{locale === 'ar' ? 'تأكيد آمن ومشفر 256-Bit SSL' : '256-Bit SSL Encrypted Verification'}</span>
+            </div>
+
+            <div className="mt-5 w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-[#8fae2a] h-full rounded-full animate-[pulse_1s_infinite] w-full" />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
