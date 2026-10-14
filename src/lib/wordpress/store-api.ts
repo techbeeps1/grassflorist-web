@@ -153,16 +153,20 @@ export function decodeHtmlEntities(text: string): string {
         return '';
       }
     })
-    .replace(/\s+/g, ' ')
+    .replace(/[^\S\r\n]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
 /**
- * Strips HTML tags and entities from raw API content
+ * Strips HTML tags and entities from raw API content while preserving line breaks
  */
 export function stripHtml(html: string): string {
   if (!html) return '';
-  const withoutTags = html.replace(/<[^>]*>/g, ' ');
+  const withoutTags = html
+    .replace(/<\/(p|div|li|tr|h[1-6])>/gi, '\n')
+    .replace(/<br\s*[\/]?>/gi, '\n')
+    .replace(/<[^>]*>/g, ' ');
   return decodeHtmlEntities(withoutTags);
 }
 

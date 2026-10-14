@@ -53,11 +53,7 @@ export function SubscriptionProductDetailView({ slug, locale }: SubscriptionProd
     '';
   const cleanDescription = (rawDescription || '').trim();
 
-  const hasDistinctDescription = Boolean(
-    cleanDescription &&
-    cleanDescription !== displayShortDescription &&
-    cleanDescription.toLowerCase() !== displayShortDescription.toLowerCase()
-  );
+  const hasDistinctDescription = Boolean(cleanDescription);
 
   const displayCategory = isAr ? 'اشتراكات الزهور' : 'FLOWER SUBSCRIPTIONS';
 
