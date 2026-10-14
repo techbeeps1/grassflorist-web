@@ -320,7 +320,7 @@ export function Footer({ locale }: FooterProps) {
 
               {/* Brand Description with line-height: 1.3 */}
               <p
-                className="text-xs sm:text-[13px] text-white/90 text-justify sm:text-start"
+                className="text-xs sm:text-[13px] text-white/90 text-start"
                 style={{ lineHeight: 1.3 }}
               >
                 {globalSettings?.footer?.about?.[locale] || dict.footer.aboutBrand}

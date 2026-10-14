@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+import { FormDropdown } from './FormDropdown';
 
 interface EventBookingFormProps {
   locale: Locale;
@@ -925,13 +926,30 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
             </div>
           </div>
 
-          {/* Step 2: Event Type Interactive Grid */}
+          {/* Step 2: Event Type Interactive Selection */}
           <div>
             <label className="block text-xs sm:text-sm font-bold text-[#201B18] mb-3">
               {isRtl ? '٢. نوع المناسبة والخدمة المطلوبة' : '2. Select Event Type & Service'}
               <span className="text-red-500 ms-1">*</span>
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-3.5">
+
+            {/* Mobile View: Luxury Dropdown Selector (< sm) */}
+            <div className="block sm:hidden">
+              <FormDropdown
+                value={formData.eventType}
+                onChange={(val) => setFormData({ ...formData, eventType: val })}
+                options={EVENT_TYPES.map((t) => ({
+                  id: t.id,
+                  name: t.name,
+                  icon: t.icon,
+                }))}
+                locale={locale}
+                placeholder={isRtl ? 'اختر نوع المناسبة والخدمة...' : 'Select Event Type & Service...'}
+              />
+            </div>
+
+            {/* Desktop / Tablet View: Grid Buttons (sm+) */}
+            <div className="hidden sm:grid sm:grid-cols-3 gap-2.5 sm:gap-3.5">
               {EVENT_TYPES.map((type) => {
                 const isSelected = formData.eventType === type.id;
                 return (
