@@ -8,7 +8,7 @@ import { Accordion } from '@/components/ui/Accordion';
 import { faqs as fallbackFaqs } from '@/data/faqs';
 import { generateFaqSchema } from '@/lib/schema';
 import { FAQItem } from '@/types/faq';
-import { Search, Sparkles, HelpCircle } from 'lucide-react';
+import { Search, HelpCircle } from 'lucide-react';
 
 interface FaqPageViewProps {
   locale: Locale;
@@ -77,7 +77,6 @@ export function FaqPageView({ locale, faqs: initialFaqs }: FaqPageViewProps) {
           {/* Header */}
           <div className="text-center my-8 md:my-12">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#435849] border border-[#EAE3D7] text-xs font-bold uppercase tracking-wider mb-3.5 shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-[#8CA841]" />
               <span>{locale === 'ar' ? 'مركز المساعدة والإرشادات' : 'HELP & FLORAL GUIDANCE'}</span>
             </div>
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-[#1E1915] mb-3 tracking-tight">

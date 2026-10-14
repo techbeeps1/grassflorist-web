@@ -3,7 +3,7 @@
 import React from 'react';
 import { type Locale, siteConfig } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
-import { Sparkles, MapPin, Phone } from 'lucide-react';
+import { MapPin, Phone } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setCityModalOpen } from '@/store/slices/uiSlice';
 import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
@@ -60,7 +60,6 @@ export function AnnouncementBar({ locale }: AnnouncementBarProps) {
 
         {/* Center message (Shown on desktop >= xl) */}
         <div className="hidden xl:flex items-center gap-2 text-center text-[#25211E]/90 font-medium truncate">
-          <Sparkles className="w-3.5 h-3.5 text-accent shrink-0" />
           <span className="truncate">{announcementText}</span>
         </div>
 

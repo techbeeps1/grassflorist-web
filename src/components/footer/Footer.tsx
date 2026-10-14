@@ -15,7 +15,6 @@ import {
   MapPin,
   Send,
   CheckCircle2,
-  Sparkles,
   ArrowUp,
   Loader2,
   Copy,
@@ -176,8 +175,12 @@ export function Footer({ locale }: FooterProps) {
           <div className="absolute top-0 end-0 w-96 h-96 bg-[#8CA841]/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 start-0 w-80 h-80 bg-[#D4C4B5]/20 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="site-container relative z-10">
-            <div className="max-w-4xl mx-auto bg-white rounded-3xl p-5 sm:p-8 md:p-12 border border-[#E8DFC0]/80 shadow-[0_10px_35px_rgba(40,30,20,0.04)] text-center flex flex-col items-center">
+        <div className="site-container relative z-10">
+          <div className="max-w-4xl mx-auto bg-white rounded-3xl p-5 sm:p-8 md:p-12 border border-[#E8DFC0]/80 shadow-[0_10px_35px_rgba(40,30,20,0.04)] text-center flex flex-col items-center">
+            {/* VIP Club Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF5EE] text-[#435849] border border-[#DDD3C6] text-[11px] font-bold uppercase tracking-wider mb-3.5 shadow-2xs">
+              <span>{locale === 'ar' ? 'نادي غراس للتميز والإهداء' : 'GRASS VIP BOTANICAL CLUB'}</span>
+            </div>
 
 
               {/* Headline & Subtitle */}
@@ -295,12 +298,12 @@ export function Footer({ locale }: FooterProps) {
       )}
 
       {/* 2. MAIN LUXURY DARK FOOTER (Floward-Style Structure & Hierarchy) */}
-      <footer className="bg-[#493D25] text-[#D1C9BE] pt-16 sm:pt-20 pb-10 sm:pb-12 border-t border-[#233227]">
+      <footer className="bg-[#493D25] text-[#D1C9BE] pt-10 sm:pt-14 pb-8 sm:pb-10 border-t border-[#233227]">
         <div className="site-container">
-          {/* Main Content Grid: Left Brand Block + Right Link Columns */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 pb-14 border-b border-white/10">
+          {/* Main Content Grid: Left Brand Block (5 cols) + Right Link Columns (7 cols) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 pb-8 sm:pb-10 border-b border-white/10">
             {/* Left Side: Brand Logo, Bio, Contact & Social Media */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className="lg:col-span-5 space-y-3.5">
               {/* Brand Logo */}
               <Link href={getUrl('/')} className="inline-flex items-center group">
                 <div className="p-2.5 bg-white rounded-2xl shadow-md border border-white/20 transition-transform group-hover:scale-105 shrink-0">
@@ -315,13 +318,16 @@ export function Footer({ locale }: FooterProps) {
                 </div>
               </Link>
 
-              {/* Brand Description */}
-              <p className="text-sm text-white leading-relaxed max-w-sm">
+              {/* Brand Description with line-height: 1.3 */}
+              <p
+                className="text-xs sm:text-[13px] text-white/90 text-justify sm:text-start"
+                style={{ lineHeight: 1.3 }}
+              >
                 {globalSettings?.footer?.about?.[locale] || dict.footer.aboutBrand}
               </p>
 
               {/* Contact Information */}
-              <div className="space-y-2.5 text-sm text-white pt-1">
+              <div className="space-y-2 text-xs sm:text-sm text-white/90 pt-0.5">
                 <div className="flex items-start gap-2.5">
                   <MapPin className="w-4 h-4 text-[#99C552] shrink-0 mt-0.5" />
                   <span>
@@ -351,9 +357,9 @@ export function Footer({ locale }: FooterProps) {
                 </div>
               </div>
 
-              {/* Social Media Circular Badges (Floward Style) */}
-              <div className="space-y-2.5 pt-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-white/90 block">
+              {/* Social Media Circular Badges */}
+              <div className="space-y-1.5 pt-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-white/85 block">
                   {locale === 'ar' ? 'تابعنا على وسائل التواصل' : 'Social Media'}
                 </span>
                 <div className="flex items-center gap-2.5 flex-wrap">
@@ -435,9 +441,9 @@ export function Footer({ locale }: FooterProps) {
               </div>
             </div>
 
-            {/* Right Side: 3 Organized Columns of Links + Bottom Location & Language Pills */}
-            <div className="lg:col-span-8 flex flex-col justify-between">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            {/* Right Side: 3 Organized Columns of Links (7 cols) + Bottom Location & Language Pills */}
+            <div className="lg:col-span-7 flex flex-col justify-between">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 lg:gap-6 xl:gap-8">
                 {/* Column 1: Categories / Explore */}
                 <div className="space-y-3.5">
                   <h4 className=" text-lg font-bold uppercase tracking-widest text-white">
@@ -655,8 +661,8 @@ export function Footer({ locale }: FooterProps) {
                 </div>
               </div>
 
-              {/* Bottom Right Control Bar: Delivery Badge + Language Switcher (Floward Style) */}
-              <div className="pt-8 sm:pt-10 flex items-center justify-start sm:justify-end gap-3 flex-wrap">
+              {/* Bottom Right Control Bar: Delivery Badge + Language Switcher */}
+              <div className="pt-6 sm:pt-8 flex items-center justify-start sm:justify-end gap-3 flex-wrap">
                 {/* Delivery City Pill */}
                 <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs font-semibold text-white/90 shadow-2xs backdrop-blur-xs">
                   <span>

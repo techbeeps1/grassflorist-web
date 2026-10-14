@@ -44,7 +44,6 @@ import {
   ChevronRight,
   ChevronLeft,
   X,
-  Sparkles,
   Copy,
   Gift,
   Music,

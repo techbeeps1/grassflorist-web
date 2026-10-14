@@ -16,7 +16,6 @@ import {
   Gift,
   ArrowRight,
   ArrowLeft,
-  Sparkles,
   Maximize2,
   X,
   RotateCw,
@@ -247,7 +246,6 @@ export function SubscriptionDealDetailView({ slug, locale }: SubscriptionDealDet
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E8DFD3] shadow-xs space-y-4">
               <div className="flex items-center gap-2">
                 <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold inline-flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                   <span>{isAr ? 'اشتراك زهور دوري مباشر' : 'Direct Recurring Subscription'}</span>
                 </span>
                 {deal.localized_badge && (

@@ -15,7 +15,6 @@ import {
   Clock,
   RotateCw,
   Truck,
-  Sparkles,
   Loader2,
   AlertCircle,
 } from 'lucide-react';

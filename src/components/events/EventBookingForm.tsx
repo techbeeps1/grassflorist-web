@@ -11,7 +11,7 @@ import {
   Phone,
   Mail,
   MessageSquare,
-  Sparkles,
+  PartyPopper,
   CheckCircle2,
   Send,
   Users,
@@ -45,7 +45,7 @@ const EVENT_TYPES: EventTypeOption[] = [
   { id: 'Hall wedding', name: { en: 'Wedding Hall Decoration', ar: 'تنسيق مناسبة في قاعة' }, icon: Crown },
   { id: 'Milkah decoration', name: { en: 'Milkah Ceremony Trays & Engagement Gifts', ar: 'تنسيق عربيات الملكة وهدايا الخطبة' }, icon: Heart },
   { id: 'Flower supply', name: { en: 'Fresh Flower Supply for Hotels & Corporate Clients', ar: 'توريد الورد الطبيعي للشركات والفنادق' }, icon: Building2 },
-  { id: 'Opening ceremony', name: { en: 'Grand Opening Decoration', ar: 'تنسيق حفل افتتاح' }, icon: Sparkles },
+  { id: 'Opening ceremony', name: { en: 'Grand Opening Decoration', ar: 'تنسيق حفل افتتاح' }, icon: PartyPopper },
   { id: 'Corporate event', name: { en: 'Corporate Event Decoration', ar: 'ديكورات مناسبات الشركات' }, icon: Briefcase },
   { id: 'Other inquiries', name: { en: 'Other Inquiries', ar: 'استفسارات أخرى' }, icon: MessageSquare },
 ];
@@ -827,40 +827,10 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 relative z-10 text-start">
-          {/* Step 1: Event Type Interactive Grid */}
+          {/* Step 1: Contact Details */}
           <div>
             <label className="block text-xs sm:text-sm font-bold text-[#201B18] mb-3">
-              {isRtl ? '١. نوع المناسبة والخدمة المطلوبة' : '1. Select Event Type & Service'}
-              <span className="text-red-500 ms-1">*</span>
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-3.5">
-              {EVENT_TYPES.map((type) => {
-                const isSelected = formData.eventType === type.id;
-                return (
-                  <button
-                    key={type.id}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, eventType: type.id })}
-                    className={cn(
-                      'flex items-center justify-center text-center p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer select-none',
-                      isSelected
-                        ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-sm scale-[1.01]'
-                        : 'bg-[#FAF8F5] hover:bg-white text-[#201B18] border-[#E8DFC0] hover:border-[#435849]/50'
-                    )}
-                  >
-                    <span className="text-xs sm:text-sm font-bold leading-tight">
-                      {type.name[locale]}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Step 2: Contact Details */}
-          <div>
-            <label className="block text-xs sm:text-sm font-bold text-[#201B18] mb-3">
-              {isRtl ? '٢. معلومات التواصل الخاصة بك' : '2. Your Contact Information'}
+              {isRtl ? '١. معلومات التواصل الخاصة بك' : '1. Your Contact Information'}
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
@@ -952,6 +922,36 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                 </div>
                 {errors.email && <p className="text-red-500 text-[11px] mt-1">{errors.email}</p>}
               </div>
+            </div>
+          </div>
+
+          {/* Step 2: Event Type Interactive Grid */}
+          <div>
+            <label className="block text-xs sm:text-sm font-bold text-[#201B18] mb-3">
+              {isRtl ? '٢. نوع المناسبة والخدمة المطلوبة' : '2. Select Event Type & Service'}
+              <span className="text-red-500 ms-1">*</span>
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-3.5">
+              {EVENT_TYPES.map((type) => {
+                const isSelected = formData.eventType === type.id;
+                return (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, eventType: type.id })}
+                    className={cn(
+                      'flex items-center justify-center text-center p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer select-none',
+                      isSelected
+                        ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-sm scale-[1.01]'
+                        : 'bg-[#FAF8F5] hover:bg-white text-[#201B18] border-[#E8DFC0] hover:border-[#435849]/50'
+                    )}
+                  >
+                    <span className="text-xs sm:text-sm font-bold leading-tight">
+                      {type.name[locale]}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -1586,7 +1586,6 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                   {/* Do You Have a Specific Theme in Mind? */}
                   <div>
                     <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
-                      <Sparkles className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
                       {isRtl
                         ? 'هل فيه ثيم معين حابة يكون عليه التنسيق؟'
                         : 'Do You Have a Specific Theme in Mind?'}
@@ -2328,7 +2327,6 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                   {/* Do You Have a Specific Theme in Mind? */}
                   <div>
                     <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
-                      <Sparkles className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
                       {isRtl
                         ? 'هل فيه ثيم معين حابة يكون عليه التنسيق؟'
                         : 'Do You Have a Specific Theme in Mind?'}
@@ -2646,7 +2644,6 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                   {/* Do You Have a Specific Theme in Mind? */}
                   <div>
                     <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
-                      <Sparkles className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
                       {isRtl
                         ? 'هل فيه ثيم معين حابة يكون عليه التنسيق؟'
                         : 'Do You Have a Specific Theme in Mind?'}

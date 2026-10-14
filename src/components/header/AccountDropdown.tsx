@@ -15,7 +15,7 @@ import {
   Heart,
   ChevronDown,
   UserCheck,
-  Sparkles,
+  UserPlus,
 } from 'lucide-react';
 
 interface AccountDropdownProps {
@@ -104,7 +104,7 @@ export function AccountDropdown({ locale }: AccountDropdownProps) {
                 onClick={() => setIsOpen(false)}
                 className="w-full flex items-center gap-2.5 p-2.5 rounded-xl text-[#435849] hover:bg-[#FAF8F5] text-xs font-bold transition-colors"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <UserPlus className="w-3.5 h-3.5" />
                 <span>{dict.auth.createAccount}</span>
               </Link>
             </div>

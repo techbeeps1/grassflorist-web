@@ -7,7 +7,6 @@ import { PriceDisplay } from '@/components/common/CurrencySymbol';
 import {
   Calendar,
   Clock,
-  Sparkles,
   CheckCircle2,
   HelpCircle,
   Truck,
