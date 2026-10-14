@@ -107,23 +107,18 @@ export function MobileNavDrawer({ locale }: MobileNavDrawerProps) {
         <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD5]">
           {isAuthenticated && user && user.name ? (
             <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#2D3F33] text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs">
-                    {user.name.charAt(0) || 'G'}
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-xs font-black text-[#201B18] block truncate max-w-[150px]">
-                      {user.name}
-                    </span>
-                    <span className="text-[10px] text-[#7D7065] block truncate max-w-[150px]">
-                      {user.email}
-                    </span>
-                  </div>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-[#2D3F33] text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs shrink-0">
+                  {user.name.charAt(0) || 'G'}
                 </div>
-                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#8CA841]/20 text-[#2D3F33]">
-                  VIP
-                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-black text-[#201B18] block truncate">
+                    {user.name}
+                  </span>
+                  <span className="text-[10px] text-[#7D7065] block truncate">
+                    {user.email}
+                  </span>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#E8DFD5]/60">
                 <Link

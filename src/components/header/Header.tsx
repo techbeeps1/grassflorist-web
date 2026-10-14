@@ -37,17 +37,8 @@ export function Header({ locale }: HeaderProps) {
       <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md shadow-xs transition-shadow">
         <div className="site-container py-2 sm:py-2.5">
           <div className="flex items-center justify-between gap-2.5 sm:gap-4 lg:gap-6">
-            {/* Left: Hamburger (shown on < xl) + Brand Logo */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              {/* Luxury Circular Hamburger Menu Button */}
-              <button
-                onClick={() => dispatch(setMobileMenuOpen(true))}
-                className="xl:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[#DDD3C6] bg-[#FAF8F5] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-2xs hover:scale-105 active:scale-95 shrink-0 group"
-                aria-label="Open mobile and tablet menu"
-              >
-                <Menu className="w-4 h-4 sm:w-[18px] sm:h-[18px] stroke-[2.2] text-[#1E1915] group-hover:text-white transition-colors" />
-              </button>
-
+            {/* Left: Brand Logo */}
+            <div className="flex items-center shrink-0">
               <Link
                 href={homeUrl}
                 className="flex items-center select-none shrink-0"
@@ -70,8 +61,19 @@ export function Header({ locale }: HeaderProps) {
               <SearchBar locale={locale} />
             </div>
 
-            {/* Right: Actions (Language Switcher, Wishlist, Cart, Account) */}
-            <HeaderActions locale={locale} />
+            {/* Right: Actions (Language Switcher, Wishlist, Cart, Account) + Hamburger Menu (< xl) */}
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <HeaderActions locale={locale} />
+
+              {/* Luxury Circular Hamburger Menu Button */}
+              <button
+                onClick={() => dispatch(setMobileMenuOpen(true))}
+                className="xl:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[#DDD3C6] bg-[#FAF8F5] hover:bg-[#2D3F33] text-[#1E1915] hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-2xs hover:scale-105 active:scale-95 shrink-0 group ms-0.5 sm:ms-1"
+                aria-label="Open mobile and tablet menu"
+              >
+                <Menu className="w-4 h-4 sm:w-[18px] sm:h-[18px] stroke-[2.2] text-[#1E1915] group-hover:text-white transition-colors" />
+              </button>
+            </div>
           </div>
 
           {/* Mobile Search Bar (Only on small mobile screens < md) */}

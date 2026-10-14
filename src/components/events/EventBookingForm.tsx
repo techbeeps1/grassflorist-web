@@ -827,40 +827,10 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 relative z-10 text-start">
-          {/* Step 1: Event Type Interactive Grid */}
+          {/* Step 1: Contact Details */}
           <div>
             <label className="block text-xs sm:text-sm font-bold text-[#201B18] mb-3">
-              {isRtl ? '١. نوع المناسبة والخدمة المطلوبة' : '1. Select Event Type & Service'}
-              <span className="text-red-500 ms-1">*</span>
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-3.5">
-              {EVENT_TYPES.map((type) => {
-                const isSelected = formData.eventType === type.id;
-                return (
-                  <button
-                    key={type.id}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, eventType: type.id })}
-                    className={cn(
-                      'flex items-center justify-center text-center p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer select-none',
-                      isSelected
-                        ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-sm scale-[1.01]'
-                        : 'bg-[#FAF8F5] hover:bg-white text-[#201B18] border-[#E8DFC0] hover:border-[#435849]/50'
-                    )}
-                  >
-                    <span className="text-xs sm:text-sm font-bold leading-tight">
-                      {type.name[locale]}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Step 2: Contact Details */}
-          <div>
-            <label className="block text-xs sm:text-sm font-bold text-[#201B18] mb-3">
-              {isRtl ? '٢. معلومات التواصل الخاصة بك' : '2. Your Contact Information'}
+              {isRtl ? '١. معلومات التواصل الخاصة بك' : '1. Your Contact Information'}
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
@@ -952,6 +922,36 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                 </div>
                 {errors.email && <p className="text-red-500 text-[11px] mt-1">{errors.email}</p>}
               </div>
+            </div>
+          </div>
+
+          {/* Step 2: Event Type Interactive Grid */}
+          <div>
+            <label className="block text-xs sm:text-sm font-bold text-[#201B18] mb-3">
+              {isRtl ? '٢. نوع المناسبة والخدمة المطلوبة' : '2. Select Event Type & Service'}
+              <span className="text-red-500 ms-1">*</span>
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-3.5">
+              {EVENT_TYPES.map((type) => {
+                const isSelected = formData.eventType === type.id;
+                return (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, eventType: type.id })}
+                    className={cn(
+                      'flex items-center justify-center text-center p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer select-none',
+                      isSelected
+                        ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-sm scale-[1.01]'
+                        : 'bg-[#FAF8F5] hover:bg-white text-[#201B18] border-[#E8DFC0] hover:border-[#435849]/50'
+                    )}
+                  >
+                    <span className="text-xs sm:text-sm font-bold leading-tight">
+                      {type.name[locale]}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
