@@ -19,7 +19,7 @@ export function generateOrganizationSchema() {
     priceRange: '$$$',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: '4366 Al Kayyal Street, Al-Rawdah District',
+      streetAddress: '4344 Al Kayal, Al-Rawdah, 4366',
       addressLocality: 'Jeddah',
       addressRegion: 'Makkah Province',
       postalCode: '23434',

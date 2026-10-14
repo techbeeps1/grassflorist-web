@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { ContactPageView } from '@/views/ContactPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 import { getContactPageData } from '@/lib/wordpress/store-api';
+import { siteConfig } from '@/config/site';
 
 export const revalidate = 60;
 
@@ -26,6 +27,7 @@ export default async function EnglishContactPage() {
     if (contactData.title) {
       contactData.title = contactData.title.replace(/فلوريل/g, 'غراس').replace('Connect with Our Concierge', 'Contact the Grass Florist Team');
     }
+    contactData.address = siteConfig.locations[0].address.en;
   }
   return <ContactPageView locale="en" contactData={contactData} />;
 }

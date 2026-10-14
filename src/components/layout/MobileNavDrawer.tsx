@@ -10,7 +10,7 @@ import { mainNavItems } from '@/config/navigation';
 import { type DynamicNavItem } from '@/lib/wordpress/store-api';
 import { siteConfig, type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, User, LogIn, UserPlus, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CurrencySwitcher } from '@/components/common/CurrencySwitcher';
 
@@ -21,6 +21,7 @@ interface MobileNavDrawerProps {
 export function MobileNavDrawer({ locale }: MobileNavDrawerProps) {
   const [items, setItems] = useState<DynamicNavItem[]>((mainNavItems as unknown) as DynamicNavItem[]);
   const isOpen = useAppSelector((state) => state.ui.isMobileMenuOpen);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const dict = getDictionary(locale);
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
@@ -101,7 +102,81 @@ export function MobileNavDrawer({ locale }: MobileNavDrawerProps) {
         </Link>
       }
     >
-      <div className="space-y-6 pt-1">
+      <div className="space-y-5 pt-1">
+        {/* User Account / Login & Register Banner */}
+        <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD5]">
+          {isAuthenticated && user && user.name ? (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#2D3F33] text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs">
+                    {user.name.charAt(0) || 'G'}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-black text-[#201B18] block truncate max-w-[150px]">
+                      {user.name}
+                    </span>
+                    <span className="text-[10px] text-[#7D7065] block truncate max-w-[150px]">
+                      {user.email}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#8CA841]/20 text-[#2D3F33]">
+                  VIP
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#E8DFD5]/60">
+                <Link
+                  href={locale === 'ar' ? '/account?tab=orders' : '/en/account?tab=orders'}
+                  onClick={handleClose}
+                  className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white rounded-xl border border-[#DDD3C6] text-[11px] font-bold text-[#2D3F33] hover:bg-[#FAF8F5] transition-colors"
+                >
+                  <Package className="w-3.5 h-3.5 text-[#8CA841]" />
+                  <span>{locale === 'ar' ? 'طلباتي' : 'Orders'}</span>
+                </Link>
+                <Link
+                  href={locale === 'ar' ? '/account' : '/en/account'}
+                  onClick={handleClose}
+                  className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#2D3F33] rounded-xl text-white text-[11px] font-bold hover:bg-[#1E2E23] transition-colors shadow-xs"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>{locale === 'ar' ? 'حسابي' : 'Account'}</span>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-extrabold text-[#201B18]">
+                <User className="w-4 h-4 text-[#8CA841]" />
+                <span>{locale === 'ar' ? 'حسابك في غراس فلوريست' : 'Your Grass Account'}</span>
+              </div>
+              <p className="text-[11px] text-[#7D7065] leading-snug">
+                {locale === 'ar'
+                  ? 'سجل دخولك لتتبع طلباتك والوصول إلى مفضلتك'
+                  : 'Sign in to track orders and access your saved wishlist'}
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Link
+                  href={locale === 'ar' ? '/login' : '/en/login'}
+                  onClick={handleClose}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-[#2D3F33] rounded-xl text-white text-xs font-bold hover:bg-[#1E2E23] transition-colors shadow-xs"
+                >
+                  <LogIn className="w-3.5 h-3.5 text-[#8CA841]" />
+                  <span>{locale === 'ar' ? 'تسجيل الدخول' : 'Sign In'}</span>
+                </Link>
+                <Link
+                  href={locale === 'ar' ? '/register' : '/en/register'}
+                  onClick={handleClose}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-white rounded-xl border border-[#DDD3C6] text-xs font-bold text-[#2D3F33] hover:bg-[#FAF8F5] transition-colors"
+                >
+                  <UserPlus className="w-3.5 h-3.5 text-[#2D3F33]" />
+                  <span>{locale === 'ar' ? 'حساب جديد' : 'Sign Up'}</span>
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Category Navigation Accordion */}
         <div>
           <div className="text-xs font-bold uppercase tracking-wider text-text-muted mb-3 px-1">

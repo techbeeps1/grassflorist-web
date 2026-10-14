@@ -31,9 +31,8 @@ export function WhatsAppFloatingButton({ locale = 'ar' }: WhatsAppFloatingButton
 
   const tooltipText = locale === 'ar' ? 'تواصل معنا عبر واتساب' : 'Chat on WhatsApp';
 
-  // Aligned with the scroll-to-top button:
-  // en: right side (end-4 sm:end-6) | ar: left side (end-4 sm:end-6)
-  const positionClass = 'bottom-5 end-4 sm:bottom-6 sm:end-6';
+  // Aligned above mobile bottom bar on mobile (<md), standard on desktop:
+  const positionClass = 'bottom-20 end-4 md:bottom-6 md:end-6';
 
   const tooltipPositionClass = isRtl
     ? 'left-13 sm:left-14'

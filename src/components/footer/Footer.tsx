@@ -329,10 +329,9 @@ export function Footer({ locale }: FooterProps) {
                 <div className="flex items-start gap-2.5">
                   <MapPin className="w-4 h-4 text-[#99C552] shrink-0 mt-0.5" />
                   <span>
-                    {globalSettings?.contact?.address?.[locale] ||
-                      (locale === 'ar'
-                        ? '4366 شارع الكيال، حي الروضة، جدة 23434، المملكة العربية السعودية'
-                        : '4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia')}
+                    {locale === 'ar'
+                      ? siteConfig.locations[0].address.ar
+                      : siteConfig.locations[0].address.en}
                   </span>
                 </div>
                 <div className="flex items-center gap-2.5">
@@ -732,12 +731,12 @@ export function Footer({ locale }: FooterProps) {
         </div>
       </footer>
 
-      {/* Floating Fixed Scroll-To-Top Button */}
+      {/* Floating Fixed Scroll-To-Top Button (Stacked cleanly above WhatsApp on mobile & desktop) */}
       <button
         type="button"
         onClick={scrollToTop}
         aria-label={locale === 'ar' ? 'الرجوع للأعلى' : 'Back to top'}
-        className={`fixed bottom-17 end-4 sm:bottom-20 sm:end-6 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#1E2E23]/95 hover:bg-[#99C552] text-white hover:text-[#121B14] border border-white/20 flex items-center justify-center transition-all duration-300 shadow-2xl cursor-pointer hover:scale-110 active:scale-95 backdrop-blur-md ${showScrollTop
+        className={`fixed bottom-[134px] end-4 md:bottom-20 md:end-6 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#1E2E23]/95 hover:bg-[#99C552] text-white hover:text-[#121B14] border border-white/20 flex items-center justify-center transition-all duration-300 shadow-2xl cursor-pointer hover:scale-110 active:scale-95 backdrop-blur-md ${showScrollTop
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'opacity-0 translate-y-4 pointer-events-none'
           }`}

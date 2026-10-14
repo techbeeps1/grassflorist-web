@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { ContactPageView } from '@/views/ContactPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 import { getContactPageData } from '@/lib/wordpress/store-api';
+import { siteConfig } from '@/config/site';
 
 export const revalidate = 60;
 
@@ -28,6 +29,7 @@ export default async function ArabicContactPage() {
     if (contactData.title) {
       contactData.title = contactData.title.replace(/فلوريل/g, 'غراس').replace('تواصل مع خدمة العملاء', 'تواصل مع فريق غراس');
     }
+    contactData.address = siteConfig.locations[0].address.ar;
   }
   return <ContactPageView locale="ar" contactData={contactData} />;
 }
