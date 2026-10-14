@@ -171,9 +171,9 @@ export function Footer({ locale }: FooterProps) {
           aria-label="Newsletter Subscription"
           className="w-full bg-[#FAF7F2] border-t border-[#EAE2D5] py-14 sm:py-16 relative overflow-hidden"
         >
-        {/* Subtle Decorative Background Elements */}
-        <div className="absolute top-0 end-0 w-96 h-96 bg-[#8CA841]/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 start-0 w-80 h-80 bg-[#D4C4B5]/20 rounded-full blur-3xl pointer-events-none" />
+          {/* Subtle Decorative Background Elements */}
+          <div className="absolute top-0 end-0 w-96 h-96 bg-[#8CA841]/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 start-0 w-80 h-80 bg-[#D4C4B5]/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="site-container relative z-10">
           <div className="max-w-4xl mx-auto bg-white rounded-3xl p-5 sm:p-8 md:p-12 border border-[#E8DFC0]/80 shadow-[0_10px_35px_rgba(40,30,20,0.04)] text-center flex flex-col items-center">
@@ -182,119 +182,120 @@ export function Footer({ locale }: FooterProps) {
               <span>{locale === 'ar' ? 'نادي غراس للتميز والإهداء' : 'GRASS VIP BOTANICAL CLUB'}</span>
             </div>
 
-            {/* Headline & Subtitle */}
-            <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1E1915] leading-tight mb-2.5">
-              {dict.home.newsletterTitle}
-            </h2>
-            <p className="text-sm sm:text-base text-[#6B5E52] max-w-xl mx-auto leading-relaxed mb-6 sm:mb-8">
-              {dict.home.newsletterSubtitle}
-            </p>
 
-            {/* Newsletter Input Form */}
-            <div className="w-full max-w-xl">
-              {subscribed ? (
-                <div className="p-5 sm:p-6 bg-[#F4F8F4] border border-[#435849]/25 rounded-2xl shadow-xs text-center flex flex-col items-center gap-3 animate-fade-in">
-                  <div className="w-10 h-10 rounded-full bg-[#435849] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <CheckCircle2 className="w-6 h-6 text-[#A3E635]" />
+              {/* Headline & Subtitle */}
+              <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1E1915] leading-tight mb-2.5">
+                {dict.home.newsletterTitle}
+              </h2>
+              <p className="text-sm sm:text-base text-[#6B5E52] max-w-xl mx-auto leading-relaxed mb-6 sm:mb-8">
+                {dict.home.newsletterSubtitle}
+              </p>
+
+              {/* Newsletter Input Form */}
+              <div className="w-full max-w-xl">
+                {subscribed ? (
+                  <div className="p-5 sm:p-6 bg-[#F4F8F4] border border-[#435849]/25 rounded-2xl shadow-xs text-center flex flex-col items-center gap-3 animate-fade-in">
+                    <div className="w-10 h-10 rounded-full bg-[#435849] text-white flex items-center justify-center shrink-0 shadow-sm">
+                      <CheckCircle2 className="w-6 h-6 text-[#A3E635]" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#1E1915] text-base sm:text-lg">
+                        {locale === 'ar' ? 'مرحباً بك في نادي غراس للزهور!' : 'Welcome to Grass VIP Club!'}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-[#435849] font-medium mt-1">
+                        {feedbackMessage || dict.home.newsletterSuccess}
+                      </p>
+                    </div>
+                    {couponCode && (
+                      <div className="mt-2 flex items-center justify-center gap-2 bg-white px-4 py-2 rounded-xl border border-[#435849]/20 shadow-xs">
+                        <span className="text-xs text-[#7A6E61] font-medium">
+                          {locale === 'ar' ? 'كود الخصم الترحيبي:' : 'Welcome Coupon:'}
+                        </span>
+                        <span className="font-mono font-extrabold text-[#435849] text-sm tracking-wider">
+                          {couponCode}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={copyCouponCode}
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8CA841] hover:text-[#435849] ps-2 border-s border-gray-200 transition-colors cursor-pointer"
+                          title={locale === 'ar' ? 'نسخ الكود' : 'Copy Code'}
+                        >
+                          {copiedCoupon ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-green-600" />
+                              <span className="text-green-600">{locale === 'ar' ? 'تم النسخ!' : 'Copied!'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>{locale === 'ar' ? 'نسخ' : 'Copy'}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <h4 className="font-bold text-[#1E1915] text-base sm:text-lg">
-                      {locale === 'ar' ? 'مرحباً بك في نادي غراس للزهور!' : 'Welcome to Grass VIP Club!'}
-                    </h4>
-                    <p className="text-xs sm:text-sm text-[#435849] font-medium mt-1">
-                      {feedbackMessage || dict.home.newsletterSuccess}
-                    </p>
-                  </div>
-                  {couponCode && (
-                    <div className="mt-2 flex items-center justify-center gap-2 bg-white px-4 py-2 rounded-xl border border-[#435849]/20 shadow-xs">
-                      <span className="text-xs text-[#7A6E61] font-medium">
-                        {locale === 'ar' ? 'كود الخصم الترحيبي:' : 'Welcome Coupon:'}
-                      </span>
-                      <span className="font-mono font-extrabold text-[#435849] text-sm tracking-wider">
-                        {couponCode}
-                      </span>
+                ) : (
+                  <div className="w-full">
+                    <form
+                      onSubmit={handleSubscribe}
+                      className="relative flex items-center bg-[#FAF8F5] rounded-full p-1 sm:p-1.5 border border-[#D5C6B5] shadow-xs hover:border-[#435849]/50 focus-within:border-[#435849] focus-within:ring-3 focus-within:ring-[#435849]/15 transition-all w-full"
+                    >
+                      <div className="flex items-center flex-1 min-w-0 ps-3 sm:ps-4 pe-1">
+                        <Mail className="w-4 h-4 text-[#8C7A6B] shrink-0 me-2 opacity-80" />
+                        <input
+                          type="email"
+                          required
+                          disabled={isSubscribing}
+                          value={email}
+                          onChange={(e) => {
+                            setEmail(e.target.value);
+                            if (errorMessage) setErrorMessage(null);
+                          }}
+                          placeholder={locale === 'ar' ? 'أدخل بريدك الإلكتروني...' : 'Enter your email...'}
+                          className="w-full h-10 sm:h-11 text-xs sm:text-sm bg-transparent !border-0 !border-none !outline-none text-[#1E1915] placeholder:text-[#91857A] !shadow-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none disabled:opacity-50"
+                          style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
+                        />
+                      </div>
                       <button
-                        type="button"
-                        onClick={copyCouponCode}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8CA841] hover:text-[#435849] ps-2 border-s border-gray-200 transition-colors cursor-pointer"
-                        title={locale === 'ar' ? 'نسخ الكود' : 'Copy Code'}
+                        type="submit"
+                        disabled={isSubscribing || !email.trim()}
+                        className="group shrink-0 inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#435849] hover:bg-[#2D3F33] disabled:opacity-60 text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 whitespace-nowrap cursor-pointer"
                       >
-                        {copiedCoupon ? (
+                        {isSubscribing ? (
                           <>
-                            <Check className="w-3.5 h-3.5 text-green-600" />
-                            <span className="text-green-600">{locale === 'ar' ? 'تم النسخ!' : 'Copied!'}</span>
+                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            <span>{locale === 'ar' ? 'جاري الاشتراك...' : 'Subscribing...'}</span>
                           </>
                         ) : (
                           <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span>{locale === 'ar' ? 'نسخ' : 'Copy'}</span>
+                            <span>{dict.home.newsletterButton}</span>
+                            <span className="w-5 h-5 rounded-full bg-white/20 group-hover:bg-white/30 flex items-center justify-center shrink-0 transition-colors">
+                              <Send className="w-2.5 h-2.5 rtl:rotate-180" />
+                            </span>
                           </>
                         )}
                       </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="w-full">
-                  <form
-                    onSubmit={handleSubscribe}
-                    className="relative flex items-center bg-[#FAF8F5] rounded-full p-1 sm:p-1.5 border border-[#D5C6B5] shadow-xs hover:border-[#435849]/50 focus-within:border-[#435849] focus-within:ring-3 focus-within:ring-[#435849]/15 transition-all w-full"
-                  >
-                    <div className="flex items-center flex-1 min-w-0 ps-3 sm:ps-4 pe-1">
-                      <Mail className="w-4 h-4 text-[#8C7A6B] shrink-0 me-2 opacity-80" />
-                      <input
-                        type="email"
-                        required
-                        disabled={isSubscribing}
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          if (errorMessage) setErrorMessage(null);
-                        }}
-                        placeholder={locale === 'ar' ? 'أدخل بريدك الإلكتروني...' : 'Enter your email...'}
-                        className="w-full h-10 sm:h-11 text-xs sm:text-sm bg-transparent !border-0 !border-none !outline-none text-[#1E1915] placeholder:text-[#91857A] !shadow-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none disabled:opacity-50"
-                        style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={isSubscribing || !email.trim()}
-                      className="group shrink-0 inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#435849] hover:bg-[#2D3F33] disabled:opacity-60 text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 whitespace-nowrap cursor-pointer"
-                    >
-                      {isSubscribing ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin text-white" />
-                          <span>{locale === 'ar' ? 'جاري الاشتراك...' : 'Subscribing...'}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>{dict.home.newsletterButton}</span>
-                          <span className="w-5 h-5 rounded-full bg-white/20 group-hover:bg-white/30 flex items-center justify-center shrink-0 transition-colors">
-                            <Send className="w-2.5 h-2.5 rtl:rotate-180" />
-                          </span>
-                        </>
-                      )}
-                    </button>
-                  </form>
-                  {errorMessage && (
-                    <p className="text-xs text-red-600 font-medium mt-2 animate-fade-in text-center">
-                      {errorMessage}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+                    </form>
+                    {errorMessage && (
+                      <p className="text-xs text-red-600 font-medium mt-2 animate-fade-in text-center">
+                        {errorMessage}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
 
-            {/* Minimal Trust Perks Footer */}
-            <div className="flex items-center flex-wrap justify-center gap-4 sm:gap-6 mt-6 text-[11px] font-medium text-[#8C8075]">
-              <span>🔒 {locale === 'ar' ? 'بدون رسائل مزعجة، يمكنك إلغاء الاشتراك في أي وقت' : 'No spam, unsubscribe anytime'}</span>
-              <span className="hidden sm:inline">•</span>
-              <span>🌸 {locale === 'ar' ? 'نصائح حصرية للعناية بالزهور أسبوعياً' : 'Weekly floral care guides'}</span>
+              {/* Minimal Trust Perks Footer */}
+              <div className="flex items-center flex-wrap justify-center gap-4 sm:gap-6 mt-6 text-[11px] font-medium text-[#8C8075]">
+                <span>🔒 {locale === 'ar' ? 'بدون رسائل مزعجة، يمكنك إلغاء الاشتراك في أي وقت' : 'No spam, unsubscribe anytime'}</span>
+                <span className="hidden sm:inline">•</span>
+                <span>🌸 {locale === 'ar' ? 'نصائح حصرية للعناية بالزهور أسبوعياً' : 'Weekly floral care guides'}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-    )}
+        </section>
+      )}
 
       {/* 2. MAIN LUXURY DARK FOOTER (Floward-Style Structure & Hierarchy) */}
       <footer className="bg-[#493D25] text-[#D1C9BE] pt-10 sm:pt-14 pb-8 sm:pb-10 border-t border-[#233227]">
@@ -432,7 +433,7 @@ export function Footer({ locale }: FooterProps) {
                       className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-[#99C552] text-white hover:text-[#121B14] border border-white/15 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 shadow-xs"
                     >
                       <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.68 6.34 6.34 0 0 0 9.35 22a6.33 6.33 0 0 0 6.33-6.33V9.17a8.28 8.28 0 0 0 4.85 1.57v-3.5a4.84 4.84 0 0 1-.94-.55z"/>
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.68 6.34 6.34 0 0 0 9.35 22a6.33 6.33 0 0 0 6.33-6.33V9.17a8.28 8.28 0 0 0 4.85 1.57v-3.5a4.84 4.84 0 0 1-.94-.55z" />
                       </svg>
                     </a>
                   )}

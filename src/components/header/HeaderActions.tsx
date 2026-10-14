@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setCartDrawerOpen } from '@/store/slices/uiSlice';
 import { selectCartItemsCount, selectCartSubtotal } from '@/store/slices/cartSlice';
-import { selectWishlistCount } from '@/store/slices/wishlistSlice';
+import { useWishlist } from '@/hooks/useWishlist';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { AccountDropdown } from './AccountDropdown';
 import { type Locale } from '@/config/site';
@@ -20,7 +20,7 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
   const dispatch = useAppDispatch();
   const cartCount = useAppSelector(selectCartItemsCount);
   const cartSubtotal = useAppSelector(selectCartSubtotal);
-  const wishlistCount = useAppSelector(selectWishlistCount);
+  const { count: wishlistCount, isAuthenticated } = useWishlist(locale);
 
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
@@ -28,10 +28,12 @@ export function HeaderActions({ locale }: HeaderActionsProps) {
   }, []);
 
   const displayCartCount = mounted ? cartCount : 0;
-  const displayWishlistCount = mounted ? wishlistCount : 0;
+  const displayWishlistCount = mounted && isAuthenticated ? wishlistCount : 0;
   const displaySubtotal = mounted ? cartSubtotal : '0.00';
 
-  const wishlistUrl = locale === 'ar' ? '/wishlist' : '/en/wishlist';
+  const wishlistUrl = !isAuthenticated
+    ? (locale === 'ar' ? '/login?redirect=' + encodeURIComponent('/wishlist') : '/en/login?redirect=' + encodeURIComponent('/en/wishlist'))
+    : (locale === 'ar' ? '/wishlist' : '/en/wishlist');
 
   return (
     <div className="flex items-center gap-1 sm:gap-2 shrink-0">

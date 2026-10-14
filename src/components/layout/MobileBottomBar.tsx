@@ -63,7 +63,9 @@ export function MobileBottomBar({ locale }: MobileBottomBarProps) {
   const displayCartCount = mounted ? cartCount : 0;
 
   const homeUrl = locale === 'ar' ? '/' : '/en';
-  const wishlistUrl = locale === 'ar' ? '/wishlist' : '/en/wishlist';
+  const wishlistUrl = !isAuthenticated
+    ? (locale === 'ar' ? '/login?redirect=' + encodeURIComponent('/wishlist') : '/en/login?redirect=' + encodeURIComponent('/en/wishlist'))
+    : (locale === 'ar' ? '/wishlist' : '/en/wishlist');
   const loginUrl = locale === 'ar' ? '/login' : '/en/login';
   const registerUrl = locale === 'ar' ? '/register' : '/en/register';
   const accountUrl = locale === 'ar' ? '/account' : '/en/account';

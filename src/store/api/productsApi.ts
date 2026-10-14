@@ -1,13 +1,15 @@
 import { baseApi } from './baseApi';
 import { Product, ProductFilterState } from '@/types/product';
+import { Category } from '@/types/category';
+import { type Locale } from '@/config/site';
 import { products as fallbackProducts } from '@/data/products';
 import { getStoreProducts, getStoreProductBySlug } from '@/lib/wordpress/store-api';
 
 export const productsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getProducts: builder.query<
-      { products: Product[]; total: number },
-      ProductFilterState & { query?: string; page?: number; limit?: number }
+      { products: Product[]; categories?: Category[]; total: number },
+      ProductFilterState & { query?: string; page?: number; limit?: number; locale?: Locale }
     >({
       queryFn: async (params) => {
         try {
@@ -16,6 +18,7 @@ export const productsApi = baseApi.injectEndpoints({
             page: params.page || 1,
             search: params.query,
             category: params.category,
+            locale: params.locale,
           });
 
           let filtered = [...res.products];
@@ -36,9 +39,15 @@ export const productsApi = baseApi.injectEndpoints({
             filtered = filtered.filter((p) => p.rating >= (params.minRating || 0));
           }
 
-          return { data: { products: filtered, total: res.total || filtered.length } };
+          return {
+            data: {
+              products: filtered,
+              categories: res.categories || [],
+              total: res.total || filtered.length,
+            },
+          };
         } catch {
-          return { data: { products: fallbackProducts, total: fallbackProducts.length } };
+          return { data: { products: fallbackProducts, categories: [], total: fallbackProducts.length } };
         }
       },
       providesTags: ['Product'],

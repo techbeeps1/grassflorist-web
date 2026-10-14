@@ -19,6 +19,7 @@ import {
 } from '@/store/api/authApi';
 import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
 import { useGetShippingMethodsQuery } from '@/store/api/checkoutApi';
+import { useWishlist } from '@/hooks/useWishlist';
 import { Order } from '@/types/order';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
@@ -70,7 +71,7 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
   const dispatch = useAppDispatch();
 
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
-  const wishlistItems = useAppSelector((state) => state.wishlist.items);
+  const { items: wishlistItems } = useWishlist(locale);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000';
 
   const tabParam = searchParams.get('tab');
@@ -409,8 +410,8 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
         : (currentUser.name ? currentUser.name.split(' ').slice(1).join(' ') : '');
       const cleanPhone =
         currentUser.phone &&
-        currentUser.phone !== '9876543210' &&
-        currentUser.phone !== '0500000000'
+          currentUser.phone !== '9876543210' &&
+          currentUser.phone !== '0500000000'
           ? currentUser.phone
           : '';
       setFirstName(fName);
@@ -559,9 +560,7 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
                 <h1 className="text-xl sm:text-2xl font-black text-[#201B18] tracking-tight">
                   {[currentUser.firstName, currentUser.lastName && currentUser.lastName !== '.' ? currentUser.lastName : ''].filter(Boolean).join(' ') || currentUser.name}
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#8CA841]/20 text-[#435849] text-[10px] font-extrabold uppercase tracking-wide">
-                  VIP Club
-                </span>
+
               </div>
               <div className="flex flex-wrap items-center gap-2 mt-0.5">
                 <p className="text-xs sm:text-sm text-[#7D7065]">{currentUser.email}</p>
@@ -606,11 +605,10 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
           <div className="lg:col-span-4 bg-white rounded-2xl p-3 border border-[#E4D8CB] shadow-xs space-y-1">
             <button
               onClick={() => handleTabChange('profile')}
-              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeTab === 'profile'
+              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'profile'
                   ? 'bg-[#435849] text-white shadow-xs'
                   : 'text-[#4A4036] hover:bg-[#FAF7F2]'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <UserIcon className="w-4 h-4" />
@@ -621,11 +619,10 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
 
             <button
               onClick={() => handleTabChange('orders')}
-              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeTab === 'orders'
+              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'orders'
                   ? 'bg-[#435849] text-white shadow-xs'
                   : 'text-[#4A4036] hover:bg-[#FAF7F2]'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <Package className="w-4 h-4" />
@@ -634,11 +631,10 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
               <div className="flex items-center gap-2">
                 {userOrders.length > 0 && (
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                      activeTab === 'orders'
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === 'orders'
                         ? 'bg-white/20 text-white'
                         : 'bg-[#EBF1ED] text-[#435849]'
-                    }`}
+                      }`}
                   >
                     {userOrders.length}
                   </span>
@@ -650,11 +646,10 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
             {/* Subscriptions Tab */}
             <button
               onClick={() => handleTabChange('subscriptions')}
-              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeTab === 'subscriptions'
+              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'subscriptions'
                   ? 'bg-[#435849] text-white shadow-xs'
                   : 'text-[#4A4036] hover:bg-[#FAF7F2]'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <RotateCw className="w-4 h-4" />
@@ -665,11 +660,10 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
 
             <button
               onClick={() => handleTabChange('addresses')}
-              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeTab === 'addresses'
+              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'addresses'
                   ? 'bg-[#435849] text-white shadow-xs'
                   : 'text-[#4A4036] hover:bg-[#FAF7F2]'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <MapPin className="w-4 h-4" />
@@ -680,11 +674,10 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
 
             <button
               onClick={() => handleTabChange('security')}
-              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeTab === 'security'
+              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'security'
                   ? 'bg-[#435849] text-white shadow-xs'
                   : 'text-[#4A4036] hover:bg-[#FAF7F2]'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <KeyRound className="w-4 h-4" />
@@ -816,8 +809,8 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
                                 {isSendingVerification
                                   ? (locale === 'ar' ? 'جاري الإرسال...' : 'Sending...')
                                   : verificationSent
-                                  ? (locale === 'ar' ? 'إعادة الإرسال' : 'Resend Link')
-                                  : (locale === 'ar' ? 'تأكيد الآن' : 'Verify Now')}
+                                    ? (locale === 'ar' ? 'إعادة الإرسال' : 'Resend Link')
+                                    : (locale === 'ar' ? 'تأكيد الآن' : 'Verify Now')}
                               </span>
                             </button>
                           )}
@@ -989,12 +982,12 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
                       </span>
                       <p className="text-sm font-extrabold text-[#201B18]" dir="ltr">
                         {currentUser.phone &&
-                        currentUser.phone !== '9876543210' &&
-                        currentUser.phone !== '0500000000'
+                          currentUser.phone !== '9876543210' &&
+                          currentUser.phone !== '0500000000'
                           ? currentUser.phone
                           : locale === 'ar'
-                          ? 'غير مسجل'
-                          : 'Not added'}
+                            ? 'غير مسجل'
+                            : 'Not added'}
                       </p>
                     </div>
 

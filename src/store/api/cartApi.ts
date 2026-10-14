@@ -237,11 +237,12 @@ export const cartApi = baseApi.injectEndpoints({
 
     applyServerCoupon: builder.mutation<
       any,
-      string | { code: string; subtotal?: number }
+      string | { code: string; subtotal?: number; email?: string }
     >({
       query: (arg) => {
         const couponCode = typeof arg === 'string' ? arg : arg.code;
         const subtotal = typeof arg === 'object' ? arg.subtotal : undefined;
+        const email = typeof arg === 'object' ? arg.email : undefined;
         return {
           url: `/cart/coupon/${encodeURIComponent(couponCode)}`,
           method: 'POST',
@@ -249,6 +250,7 @@ export const cartApi = baseApi.injectEndpoints({
             session_id: getCartSessionId(),
             coupon_code: couponCode,
             subtotal,
+            email,
           },
         };
       },
