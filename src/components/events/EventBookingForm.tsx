@@ -16,9 +16,7 @@ import {
   Send,
   Users,
   Heart,
-  Cake,
   Gift,
-  GraduationCap,
   Baby,
   Briefcase,
   Flower2,
@@ -41,16 +39,52 @@ interface EventTypeOption {
 }
 
 const EVENT_TYPES: EventTypeOption[] = [
-  { id: 'Bridal bouquets', name: { en: 'Bridal Bouquets', ar: 'مسكات العرائس' }, icon: Flower2 },
-  { id: 'Hall wedding', name: { en: 'Hall Event Decoration', ar: 'تنسيق مناسبة في قاعة' }, icon: Crown },
-  { id: 'House wedding', name: { en: 'Home Event Decoration', ar: 'تنسيق مناسبة منزلية' }, icon: HomeIcon },
-  { id: 'Milkah decoration', name: { en: 'Milkah Ceremony Tray & Engagement Gifts', ar: 'تنسيق عربيات الملكة وهدايا الخطبة' }, icon: Heart },
   { id: 'Newborn welcome decorations', name: { en: 'Newborn Welcome Decorations', ar: 'استقبال مواليد' }, icon: Baby },
-  { id: 'Birthday party', name: { en: 'Birthday Party', ar: 'حفل عيد ميلاد' }, icon: Cake },
-  { id: 'Graduation event', name: { en: 'Graduation Event', ar: 'حفل تخرج' }, icon: GraduationCap },
-  { id: 'Corporate event', name: { en: 'Corporate Event', ar: 'فعالية شركات ومؤتمرات' }, icon: Briefcase },
-  { id: 'Flower supply', name: { en: 'Flower Supply', ar: 'توريد زهور وتنسيق دوري' }, icon: Sparkles },
-  { id: 'Cooperation', name: { en: 'Cooperation & B2B', ar: 'شراكة وتعاون تجاري' }, icon: Building2 },
+  { id: 'Bridal bouquets', name: { en: 'Bridal Bouquets', ar: 'مسكات العرائس' }, icon: Flower2 },
+  { id: 'House wedding', name: { en: 'Home Event Decoration', ar: 'تنسيق مناسبة منزلية' }, icon: HomeIcon },
+  { id: 'Hall wedding', name: { en: 'Hall Event Decoration', ar: 'تنسيق مناسبة في قاعة' }, icon: Crown },  
+  { id: 'Milkah decoration', name: { en: 'Milkah Ceremony Tray & Engagement Gifts', ar: 'تنسيق عربيات الملكة وهدايا الخطبة' }, icon: Heart }, 
+  { id: 'Flower supply', name: { en: 'Corporate & Hotel Flower Supply', ar: 'توريد الورد الطبيعي للشركات والفنادق' }, icon: Building2 }, 
+  { id: 'Opening ceremony', name: { en: 'Grand Opening Event', ar: 'تنسيق حفل افتتاح' }, icon: Sparkles },
+  { id: 'Corporate event', name: { en: 'Corporate Event', ar: 'فعالية شركات ومؤتمرات' }, icon: Briefcase },  
+  { id: 'Other inquiries', name: { en: 'Other Inquiries', ar: 'استفسارات أخرى' }, icon: MessageSquare },
+];
+
+const FLOWER_SUPPLY_TYPES = [
+  { id: 'Office Flower Arrangements', label: { en: 'Office Flower Arrangements', ar: 'باقات مكتبية' } },
+  { id: 'Reception Area Vases', label: { en: 'Reception Area Vases', ar: 'فازات استقبال' } },
+  { id: 'Recurring Floral Arrangements', label: { en: 'Recurring Floral Arrangements', ar: 'تنسيق دوري' } },
+  { id: 'Other Requirements', label: { en: 'Other Requirements', ar: 'أو أي احتياج آخر' } },
+];
+
+const SUPPLY_FREQUENCIES = [
+  { id: 'Daily', label: { en: 'Daily', ar: 'يومي' } },
+  { id: 'Weekly', label: { en: 'Weekly', ar: 'أسبوعي' } },
+  { id: 'For a Specific Event', label: { en: 'For a Specific Event', ar: 'لمناسبة معينة' } },
+];
+
+const CONTRACT_DURATIONS = [
+  { id: 'One-Time Order', label: { en: 'One-Time Order', ar: 'لمرة واحدة' } },
+  { id: 'Monthly', label: { en: 'Monthly', ar: 'شهري' } },
+  { id: 'Annually', label: { en: 'Annually', ar: 'سنوي' } },
+];
+
+const OPENING_TYPES = [
+  { id: 'Shop Opening', label: { en: 'Shop Opening', ar: 'افتتاح محل' } },
+  { id: 'Café Opening', label: { en: 'Café Opening', ar: 'افتتاح كافيه' } },
+  { id: 'Corporate Office Opening', label: { en: 'Corporate Office Opening', ar: 'افتتاح شركة' } },
+  { id: 'Hotel Opening', label: { en: 'Hotel Opening', ar: 'افتتاح فندق' } },
+  { id: 'Other', label: { en: 'Other', ar: 'أخرى' } },
+];
+
+const OPENING_DECOR_AREAS = [
+  { id: 'Entrance', label: { en: 'Entrance', ar: 'مدخل' } },
+  { id: 'Reception Area', label: { en: 'Reception Area', ar: 'استقبال' } },
+  { id: 'Tables', label: { en: 'Tables', ar: 'طاولات' } },
+  { id: 'Storefront or Building Façade', label: { en: 'Storefront or Building Façade', ar: 'واجهة' } },
+  { id: 'Photo Area', label: { en: 'Photo Area', ar: 'منطقة تصوير' } },
+  { id: 'Full Venue Decoration', label: { en: 'Full Venue Decoration', ar: 'تنسيق كامل' } },
+  { id: 'Other', label: { en: 'Other', ar: 'أخرى' } },
 ];
 
 const GUEST_RANGES = [
@@ -121,7 +155,7 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
     lastName: '',
     phone: '',
     email: '',
-    eventType: 'Hall wedding',
+    eventType: 'Newborn welcome decorations',
     location: '',
     hospitalName: '',
     decorationOption: 'Both',
@@ -137,6 +171,23 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
     homeEventOtherText: '',
     homeDecorAreas: ['Main Celebration Backdrop', 'Entrance'],
     homeTheme: '',
+    // Corporate & Hotel Flower Supply specific fields
+    companyName: '',
+    flowerSupplyTypes: [] as string[],
+    flowerSupplyOther: '',
+    supplyFrequency: '',
+    supplyQuantity: '',
+    contractDuration: '',
+    estimatedBudget: '',
+    purchasingContactName: '',
+    purchasingContactPhone: '',
+    // Grand Opening specific fields
+    openingType: 'Shop Opening',
+    openingTypeOther: '',
+    openingDecorAreas: ['Entrance', 'Storefront or Building Façade'],
+    openingDecorOther: '',
+    // Other Inquiries specific fields
+    inquiryDetails: '',
     date: '',
     guests: '50-150',
     message: '',
@@ -152,6 +203,20 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
   const isNewborn =
     formData.eventType === 'Newborn welcome decorations' ||
     formData.eventType === 'Baby reception';
+  const isFlowerSupply =
+    formData.eventType === 'Flower supply' ||
+    formData.eventType === 'Corporate flower supply' ||
+    formData.eventType === 'Corporate & Hotel Flower Supply';
+  const isOpening =
+    formData.eventType === 'Opening ceremony' ||
+    formData.eventType === 'Grand opening' ||
+    formData.eventType === 'Grand Opening' ||
+    formData.eventType === 'تنسيق حفل افتتاح';
+  const isOtherInquiry =
+    formData.eventType === 'Other inquiries' ||
+    formData.eventType === 'Cooperation' ||
+    formData.eventType === 'استفسارات أخرى' ||
+    formData.eventType === 'استفسارات اخرى';
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -188,6 +253,30 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
       if (formData.deliveryMethod === 'Delivery' && !formData.deliveryAddress.trim()) {
         errs.deliveryAddress = isRtl ? 'يرجى إدخال موقع أو عنوان التوصيل' : 'Delivery address is required';
       }
+    } else if (isFlowerSupply) {
+      if (!formData.companyName.trim()) {
+        errs.companyName = isRtl ? 'يرجى إدخال اسم الشركة أو الفندق' : 'Company or Hotel name is required';
+      }
+      if (!formData.location.trim()) {
+        errs.location = isRtl ? 'يرجى إدخال موقع المنشأة' : 'Location is required';
+      }
+      if (!formData.estimatedBudget.trim()) {
+        errs.estimatedBudget = isRtl ? 'يرجى إدخال الميزانية التقريبية' : 'Estimated budget is required';
+      }
+      if (!formData.purchasingContactName.trim()) {
+        errs.purchasingContactName = isRtl ? 'يرجى إدخال اسم المسؤول الخاص بالمشتريات' : "Contact person's name is required";
+      }
+      if (!formData.purchasingContactPhone.trim()) {
+        errs.purchasingContactPhone = isRtl ? 'يرجى إدخال رقم تواصل المشتريات' : 'Purchasing contact number is required';
+      }
+    } else if (isOpening) {
+      if (!formData.location.trim()) {
+        errs.location = isRtl ? 'يرجى إدخال موقع الحفل' : 'Event location is required';
+      }
+    } else if (isOtherInquiry) {
+      if (!formData.inquiryDetails.trim()) {
+        errs.inquiryDetails = isRtl ? 'يرجى كتابة تفاصيل استفسارك' : 'Please provide details about your inquiry';
+      }
     } else if (isHallEvent) {
       if (!formData.location.trim()) {
         errs.location = isRtl ? 'يرجى إدخال اسم القاعة وموقعها' : 'Venue name and location is required';
@@ -201,7 +290,7 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
         errs.location = isRtl ? 'يرجى إدخال موقع أو مدينة المناسبة' : 'Event location is required';
       }
     }
-    if (!formData.date) {
+    if (!isFlowerSupply && !isOtherInquiry && !formData.date) {
       errs.date = isMilkah
         ? (isRtl ? 'يرجى تحديد تاريخ الاستلام' : 'Required date is required')
         : (isRtl ? 'يرجى اختيار تاريخ المناسبة' : 'Event date is required');
@@ -226,7 +315,41 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
       finalLocation = formData.deliveryMethod === 'Delivery'
         ? (formData.deliveryAddress.trim() || (isRtl ? 'توصيل داخل جدة' : 'Delivery inside Jeddah'))
         : (isRtl ? 'استلام من فرع غراس فلوريست' : 'Pickup from Grass Florist Boutique');
+    } else if (isFlowerSupply) {
+      finalLocation = formData.companyName.trim()
+        ? `${formData.companyName.trim()} - ${formData.location.trim()}`
+        : formData.location.trim();
+    } else if (isOtherInquiry) {
+      finalLocation = formData.location.trim() || (isRtl ? 'استفسار عام / غير محدد' : 'General Inquiry / Unspecified');
     }
+
+    const flowerSupplyTypesLabel = formData.flowerSupplyTypes
+      .map(
+        (id) =>
+          FLOWER_SUPPLY_TYPES.find((t) => t.id === id)?.label[locale] || id
+      )
+      .join(isRtl ? '، ' : ', ');
+
+    const supplyFrequencyLabel =
+      SUPPLY_FREQUENCIES.find((f) => f.id === formData.supplyFrequency)?.label[locale] ||
+      (formData.supplyFrequency || (isRtl ? 'غير محدد' : 'Not specified'));
+
+    const contractDurationLabel =
+      CONTRACT_DURATIONS.find((d) => d.id === formData.contractDuration)?.label[locale] ||
+      (formData.contractDuration || (isRtl ? 'غير محدد' : 'Not specified'));
+
+    const openingTypeLabel =
+      OPENING_TYPES.find((t) => t.id === formData.openingType)?.label[locale] ||
+      (formData.openingType === 'Other' && formData.openingTypeOther
+        ? formData.openingTypeOther
+        : formData.openingType || (isRtl ? 'غير محدد' : 'Not specified'));
+
+    const openingDecorAreasLabel = formData.openingDecorAreas
+      .map(
+        (id) =>
+          OPENING_DECOR_AREAS.find((a) => a.id === id)?.label[locale] || id
+      )
+      .join(isRtl ? '، ' : ', ');
 
     const milkahServiceLabel =
       MILKAH_SERVICES.find((s) => s.id === formData.milkahService)?.label[locale] ||
@@ -239,8 +362,8 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
     const selectedDeliveryLabel =
       formData.deliveryMethod === 'Delivery'
         ? (isRtl
-            ? `توصيل (${formData.deliveryAddress || 'لم يحدد العنوان'})`
-            : `Delivery (${formData.deliveryAddress || 'Address not specified'})`)
+          ? `توصيل (${formData.deliveryAddress || 'لم يحدد العنوان'})`
+          : `Delivery (${formData.deliveryAddress || 'Address not specified'})`)
         : (isRtl ? 'استلام من الفرع' : 'Pickup from Boutique');
 
     const homeEventSubtypeLabel =
@@ -258,16 +381,16 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
 
     const enrichedMessage = isBridal
       ? [
-          formData.message.trim(),
-          `\n--- تفاصيل مسكة العروسة ---`,
-          `الألوان المفضلة: ${formData.bouquetColors || 'غير محدد'}`,
-          `حجم المسكة: ${formData.bouquetSize || 'غير محدد'}`,
-          `شكل المسكة: ${formData.bouquetStyle || 'غير محدد'}`,
-          `نوع الورد: ${formData.flowerType || 'غير محدد'}`,
-          `طريقة الاستلام: ${formData.deliveryMethod === 'Delivery' ? `توصيل (${formData.deliveryAddress || 'لم يحدد'})` : 'استلام من الفرع'}`,
-        ].filter(Boolean).join('\n')
+        formData.message.trim(),
+        `\n--- تفاصيل مسكة العروسة ---`,
+        `الألوان المفضلة: ${formData.bouquetColors || 'غير محدد'}`,
+        `حجم المسكة: ${formData.bouquetSize || 'غير محدد'}`,
+        `شكل المسكة: ${formData.bouquetStyle || 'غير محدد'}`,
+        `نوع الورد: ${formData.flowerType || 'غير محدد'}`,
+        `طريقة الاستلام: ${formData.deliveryMethod === 'Delivery' ? `توصيل (${formData.deliveryAddress || 'لم يحدد'})` : 'استلام من الفرع'}`,
+      ].filter(Boolean).join('\n')
       : isMilkah
-      ? [
+        ? [
           formData.message.trim(),
           `\n--- تفاصيل تنسيق عربيات الملكة وهدايا الخطبة ---`,
           `الخدمة المطلوبة: ${milkahServiceLabel}`,
@@ -275,38 +398,80 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
           `الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}`,
           `طريقة الاستلام: ${selectedDeliveryLabel}`,
         ].filter(Boolean).join('\n')
-      : isNewborn
-      ? [
-          formData.message.trim(),
-          `\n--- تفاصيل استقبال المواليد ---`,
-          `المستشفى: ${formData.hospitalName}`,
-          `التنسيق المرغوب: ${formData.decorationOption}`,
-          `نوع الورد: ${formData.flowerType}`,
-          `الألوان / الثيم: ${formData.themeColor || 'غير محدد'}`,
-        ].filter(Boolean).join('\n')
-      : isHallEvent
-      ? [
-          formData.message.trim(),
-          `\n--- تفاصيل تنسيق مناسبة في قاعة ---`,
-          `نوع المناسبة: ${homeEventSubtypeLabel}`,
-          `اسم القاعة وموقعها: ${formData.location}`,
-          `تفاصيل التنسيق المطلوب: ${homeDecorAreasLabel || 'غير محدد'}`,
-          `نوع الورد المفضل: ${formData.flowerType || 'غير محدد'}`,
-          `الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}`,
-          `الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}`,
-        ].filter(Boolean).join('\n')
-      : isHomeEvent
-      ? [
-          formData.message.trim(),
-          `\n--- تفاصيل تنسيق المناسبة المنزلية ---`,
-          `نوع المناسبة: ${homeEventSubtypeLabel}`,
-          `الموقع: ${formData.location}`,
-          `تفاصيل التنسيق المطلوب: ${homeDecorAreasLabel || 'غير محدد'}`,
-          `نوع الورد المفضل: ${formData.flowerType || 'غير محدد'}`,
-          `الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}`,
-          `الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}`,
-        ].filter(Boolean).join('\n')
-      : formData.message;
+        : isNewborn
+          ? [
+            formData.message.trim(),
+            `\n--- تفاصيل استقبال المواليد ---`,
+            `المستشفى: ${formData.hospitalName}`,
+            `التنسيق المرغوب: ${formData.decorationOption}`,
+            `نوع الورد: ${formData.flowerType}`,
+            `الألوان / الثيم: ${formData.themeColor || 'غير محدد'}`,
+          ].filter(Boolean).join('\n')
+          : isHallEvent
+            ? [
+              formData.message.trim(),
+              `\n--- تفاصيل تنسيق مناسبة في قاعة ---`,
+              `نوع المناسبة: ${homeEventSubtypeLabel}`,
+              `اسم القاعة وموقعها: ${formData.location}`,
+              `تفاصيل التنسيق المطلوب: ${homeDecorAreasLabel || 'غير محدد'}`,
+              `نوع الورد المفضل: ${formData.flowerType || 'غير محدد'}`,
+              `الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}`,
+              `الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}`,
+            ].filter(Boolean).join('\n')
+            : isHomeEvent
+              ? [
+                formData.message.trim(),
+                `\n--- تفاصيل تنسيق المناسبة المنزلية ---`,
+                `نوع المناسبة: ${homeEventSubtypeLabel}`,
+                `الموقع: ${formData.location}`,
+                `تفاصيل التنسيق المطلوب: ${homeDecorAreasLabel || 'غير محدد'}`,
+                `نوع الورد المفضل: ${formData.flowerType || 'غير محدد'}`,
+                `الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}`,
+                `الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}`,
+              ].filter(Boolean).join('\n')
+              : isFlowerSupply
+                ? [
+                  formData.message.trim(),
+                  `\n--- تفاصيل توريد الورد الطبيعي للشركات والفنادق ---`,
+                  `اسم الشركة / الفندق: ${formData.companyName}`,
+                  `الموقع: ${formData.location}`,
+                  `نوع التوريد: ${flowerSupplyTypesLabel || 'غير محدد'}`,
+                  formData.flowerSupplyTypes.includes('Other Requirements') && formData.flowerSupplyOther
+                    ? `تفاصيل الاحتياج الآخر: ${formData.flowerSupplyOther}`
+                    : '',
+                  `نوع الورد المطلوب: ${selectedFlowerLabel}`,
+                  `الكمية والتكرار المطلوب: ${supplyFrequencyLabel}${formData.supplyQuantity ? ` (${formData.supplyQuantity})` : ''}`,
+                  `مدة التعاقد: ${contractDurationLabel}`,
+                  `الميزانية التقريبية: ${formData.estimatedBudget}`,
+                  `اسم المسؤول: ${formData.purchasingContactName}`,
+                  `رقم تواصل المشتريات: ${formData.purchasingContactPhone}`,
+                ].filter(Boolean).join('\n')
+                : isOpening
+                  ? [
+                    formData.message.trim(),
+                    `\n--- تفاصيل حفل الافتتاح ---`,
+                    `الموقع: ${formData.location}`,
+                    `تاريخ الحفل: ${formData.date}`,
+                    `نوع الحفل: ${openingTypeLabel}`,
+                    formData.openingType === 'Other' && formData.openingTypeOther
+                      ? `تحديد نوع الحفل: ${formData.openingTypeOther}`
+                      : '',
+                    `نوع الورد المطلوب: ${selectedFlowerLabel}`,
+                    `تنسيق الزهور المطلوب: ${openingDecorAreasLabel || 'غير محدد'}`,
+                    formData.openingDecorAreas.includes('Other') && formData.openingDecorOther
+                      ? `تحديد مناطق التنسيق الأخرى: ${formData.openingDecorOther}`
+                      : '',
+                    `الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}`,
+                    `الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}`,
+                    `الميزانية التقريبية: ${formData.estimatedBudget || 'غير محدد'}`,
+                  ].filter(Boolean).join('\n')
+                  : isOtherInquiry
+                    ? [
+                      formData.message.trim(),
+                      `\n--- تفاصيل استفسارات أخرى ---`,
+                      `تفاصيل الاستفسار: ${formData.inquiryDetails}`,
+                    ].filter(Boolean).join('\n')
+                    : formData.message;
 
     try {
       const response = await fetch('/api/event-booking', {
@@ -316,6 +481,11 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
         },
         body: JSON.stringify({
           ...formData,
+          date: isFlowerSupply
+            ? (formData.date || (isRtl ? 'توريد دوري' : 'Recurring Supply'))
+            : isOtherInquiry
+              ? (formData.date || (isRtl ? 'استفسار عام' : 'General Inquiry'))
+              : formData.date,
           message: enrichedMessage,
           location: finalLocation,
           locale,
@@ -361,7 +531,7 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
       lastName: '',
       phone: '',
       email: '',
-      eventType: 'Hall wedding',
+      eventType: 'Newborn welcome decorations',
       location: '',
       hospitalName: '',
       decorationOption: 'Both',
@@ -377,6 +547,20 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
       homeEventOtherText: '',
       homeDecorAreas: ['Main Celebration Backdrop', 'Entrance'],
       homeTheme: '',
+      companyName: '',
+      flowerSupplyTypes: [],
+      flowerSupplyOther: '',
+      supplyFrequency: '',
+      supplyQuantity: '',
+      contractDuration: '',
+      estimatedBudget: '',
+      purchasingContactName: '',
+      purchasingContactPhone: '',
+      openingType: 'Shop Opening',
+      openingTypeOther: '',
+      openingDecorAreas: ['Entrance', 'Storefront or Building Façade'],
+      openingDecorOther: '',
+      inquiryDetails: '',
       date: '',
       guests: '50-150',
       message: '',
@@ -402,8 +586,8 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
     const selectedDeliveryLabel =
       formData.deliveryMethod === 'Delivery'
         ? (isRtl
-            ? `توصيل (${formData.deliveryAddress || 'لم يحدد العنوان'})`
-            : `Delivery (${formData.deliveryAddress || 'Address not specified'})`)
+          ? `توصيل (${formData.deliveryAddress || 'لم يحدد العنوان'})`
+          : `Delivery (${formData.deliveryAddress || 'Address not specified'})`)
         : (isRtl ? 'استلام من الفرع' : 'Pickup from Boutique');
 
     const homeEventSubtypeLabel =
@@ -423,29 +607,69 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
       MILKAH_SERVICES.find((s) => s.id === formData.milkahService)?.label[locale] ||
       (formData.milkahService || (isRtl ? 'غير محدد' : 'Not specified'));
 
+    const flowerSupplyTypesLabel = formData.flowerSupplyTypes
+      .map(
+        (id) =>
+          FLOWER_SUPPLY_TYPES.find((t) => t.id === id)?.label[locale] || id
+      )
+      .join(isRtl ? '، ' : ', ');
+
+    const supplyFrequencyLabel =
+      SUPPLY_FREQUENCIES.find((f) => f.id === formData.supplyFrequency)?.label[locale] ||
+      (formData.supplyFrequency || (isRtl ? 'غير محدد' : 'Not specified'));
+
+    const contractDurationLabel =
+      CONTRACT_DURATIONS.find((d) => d.id === formData.contractDuration)?.label[locale] ||
+      (formData.contractDuration || (isRtl ? 'غير محدد' : 'Not specified'));
+
+    const openingTypeLabel =
+      OPENING_TYPES.find((t) => t.id === formData.openingType)?.label[locale] ||
+      (formData.openingType === 'Other' && formData.openingTypeOther
+        ? formData.openingTypeOther
+        : formData.openingType || (isRtl ? 'غير محدد' : 'Not specified'));
+
+    const openingDecorAreasLabel = formData.openingDecorAreas
+      .map(
+        (id) =>
+          OPENING_DECOR_AREAS.find((a) => a.id === id)?.label[locale] || id
+      )
+      .join(isRtl ? '، ' : ', ');
+
     const text = isBridal
       ? (isRtl
         ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتفاصيل مسكة عروسة:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- تاريخ المناسبة: ${formData.date}\n- الألوان المفضلة للمسكة: ${formData.bouquetColors || 'غير محدد'}\n- حجم المسكة: ${selectedBouquetSizeLabel}\n- شكل المسكة: ${selectedBouquetStyleLabel}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- طريقة الاستلام: ${selectedDeliveryLabel}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
         : `Hello Grass Florist, I would like to inquire about a Bridal Bouquet:\n- Name: ${formData.firstName} ${formData.lastName}\n- Event Date: ${formData.date}\n- Preferred Colors: ${formData.bouquetColors || 'Not specified'}\n- Bouquet Size: ${selectedBouquetSizeLabel}\n- Bouquet Style: ${selectedBouquetStyleLabel}\n- Preferred Flower Type: ${selectedFlowerLabel}\n- Collection / Delivery: ${selectedDeliveryLabel}\n- Additional Requests: ${formData.message || 'None'}`)
       : isMilkah
-      ? (isRtl
-        ? `مرحباً غراس فلوريست، أود الاستفسار عن تنسيق عربيات الملكة وهدايا الخطبة:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- تاريخ الاستلام: ${formData.date}\n- الخدمة المطلوبة: ${milkahServiceLabel}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}\n- طريقة الاستلام: ${selectedDeliveryLabel}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
-        : `Hello Grass Florist, I would like to inquire about Milkah Ceremony Tray & Engagement Gifts:\n- Name: ${formData.firstName} ${formData.lastName}\n- Required Date: ${formData.date}\n- Service Needed: ${milkahServiceLabel}\n- Preferred Flower Type: ${selectedFlowerLabel}\n- Preferred Colors: ${formData.themeColor || 'Not specified'}\n- Collection / Delivery: ${selectedDeliveryLabel}\n- Additional Requests: ${formData.message || 'None'}`)
-      : isNewborn
-      ? (isRtl
-        ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق استقبال مواليد:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- المستشفى: ${formData.hospitalName || formData.location}\n- تاريخ المناسبة: ${formData.date}\n- تفاصيل التنسيق المرغوب: ${selectedDecorLabel}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان أو الثيم: ${formData.themeColor || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
-        : `Hello Grass Florist, I would like to inquire about Newborn Welcome Decorations:\n- Name: ${formData.firstName} ${formData.lastName}\n- Hospital: ${formData.hospitalName || formData.location}\n- Event Date: ${formData.date}\n- Decoration Preference: ${selectedDecorLabel}\n- Flower Type: ${selectedFlowerLabel}\n- Colors / Theme: ${formData.themeColor || 'Not specified'}\n- Additional Requests: ${formData.message || 'None'}`)
-      : isHallEvent
-      ? (isRtl
-        ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق مناسبة في قاعة:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- نوع المناسبة: ${homeEventSubtypeLabel}\n- تاريخ المناسبة: ${formData.date}\n- اسم القاعة وموقعها: ${formData.location}\n- تفاصيل التنسيق المرغوب: ${homeDecorAreasLabel || 'غير محدد'}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}\n- الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
-        : `Hello Grass Florist, I would like to inquire about Hall Event Decoration:\n- Name: ${formData.firstName} ${formData.lastName}\n- Type of Event: ${homeEventSubtypeLabel}\n- Event Date: ${formData.date}\n- Venue Name and Location: ${formData.location}\n- Decoration Preference: ${homeDecorAreasLabel || 'Not specified'}\n- Flower Type: ${selectedFlowerLabel}\n- Preferred Colors: ${formData.themeColor || 'Not specified'}\n- Specific Theme: ${formData.homeTheme || 'Not specified'}\n- Additional Requests: ${formData.message || 'None'}`)
-      : isHomeEvent
-      ? (isRtl
-        ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق مناسبة منزلية:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- نوع المناسبة: ${homeEventSubtypeLabel}\n- تاريخ المناسبة: ${formData.date}\n- موقع المناسبة: ${formData.location}\n- تفاصيل التنسيق المرغوب: ${homeDecorAreasLabel || 'غير محدد'}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}\n- الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
-        : `Hello Grass Florist, I would like to inquire about Home Event Decoration:\n- Name: ${formData.firstName} ${formData.lastName}\n- Type of Event: ${homeEventSubtypeLabel}\n- Event Date: ${formData.date}\n- Event Location: ${formData.location}\n- Decoration Preference: ${homeDecorAreasLabel || 'Not specified'}\n- Flower Type: ${selectedFlowerLabel}\n- Preferred Colors: ${formData.themeColor || 'Not specified'}\n- Specific Theme: ${formData.homeTheme || 'Not specified'}\n- Additional Requests: ${formData.message || 'None'}`)
-      : (isRtl
-        ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنظيم مناسبة:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- نوع المناسبة: ${selectedEventObj?.name.ar || formData.eventType}\n- التاريخ: ${formData.date}\n- الموقع: ${formData.location}\n- عدد الضيوف: ${formData.guests}\n- الملاحظات: ${formData.message || 'لا يوجد'}`
-        : `Hello Grass Florist, I would like to inquire about booking an event:\n- Name: ${formData.firstName} ${formData.lastName}\n- Event Type: ${selectedEventObj?.name.en || formData.eventType}\n- Date: ${formData.date}\n- Location: ${formData.location}\n- Guests: ${formData.guests}\n- Notes: ${formData.message || 'None'}`);
+        ? (isRtl
+          ? `مرحباً غراس فلوريست، أود الاستفسار عن تنسيق عربيات الملكة وهدايا الخطبة:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- تاريخ الاستلام: ${formData.date}\n- الخدمة المطلوبة: ${milkahServiceLabel}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}\n- طريقة الاستلام: ${selectedDeliveryLabel}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
+          : `Hello Grass Florist, I would like to inquire about Milkah Ceremony Tray & Engagement Gifts:\n- Name: ${formData.firstName} ${formData.lastName}\n- Required Date: ${formData.date}\n- Service Needed: ${milkahServiceLabel}\n- Preferred Flower Type: ${selectedFlowerLabel}\n- Preferred Colors: ${formData.themeColor || 'Not specified'}\n- Collection / Delivery: ${selectedDeliveryLabel}\n- Additional Requests: ${formData.message || 'None'}`)
+        : isNewborn
+          ? (isRtl
+            ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق استقبال مواليد:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- المستشفى: ${formData.hospitalName || formData.location}\n- تاريخ المناسبة: ${formData.date}\n- تفاصيل التنسيق المرغوب: ${selectedDecorLabel}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان أو الثيم: ${formData.themeColor || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
+            : `Hello Grass Florist, I would like to inquire about Newborn Welcome Decorations:\n- Name: ${formData.firstName} ${formData.lastName}\n- Hospital: ${formData.hospitalName || formData.location}\n- Event Date: ${formData.date}\n- Decoration Preference: ${selectedDecorLabel}\n- Flower Type: ${selectedFlowerLabel}\n- Colors / Theme: ${formData.themeColor || 'Not specified'}\n- Additional Requests: ${formData.message || 'None'}`)
+          : isHallEvent
+            ? (isRtl
+              ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق مناسبة في قاعة:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- نوع المناسبة: ${homeEventSubtypeLabel}\n- تاريخ المناسبة: ${formData.date}\n- اسم القاعة وموقعها: ${formData.location}\n- تفاصيل التنسيق المرغوب: ${homeDecorAreasLabel || 'غير محدد'}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}\n- الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
+              : `Hello Grass Florist, I would like to inquire about Hall Event Decoration:\n- Name: ${formData.firstName} ${formData.lastName}\n- Type of Event: ${homeEventSubtypeLabel}\n- Event Date: ${formData.date}\n- Venue Name and Location: ${formData.location}\n- Decoration Preference: ${homeDecorAreasLabel || 'Not specified'}\n- Flower Type: ${selectedFlowerLabel}\n- Preferred Colors: ${formData.themeColor || 'Not specified'}\n- Specific Theme: ${formData.homeTheme || 'Not specified'}\n- Additional Requests: ${formData.message || 'None'}`)
+            : isHomeEvent
+              ? (isRtl
+                ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق مناسبة منزلية:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- نوع المناسبة: ${homeEventSubtypeLabel}\n- تاريخ المناسبة: ${formData.date}\n- موقع المناسبة: ${formData.location}\n- تفاصيل التنسيق المرغوب: ${homeDecorAreasLabel || 'غير محدد'}\n- نوع الورد المفضل: ${selectedFlowerLabel}\n- الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}\n- الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
+                : `Hello Grass Florist, I would like to inquire about Home Event Decoration:\n- Name: ${formData.firstName} ${formData.lastName}\n- Type of Event: ${homeEventSubtypeLabel}\n- Event Date: ${formData.date}\n- Event Location: ${formData.location}\n- Decoration Preference: ${homeDecorAreasLabel || 'Not specified'}\n- Flower Type: ${selectedFlowerLabel}\n- Preferred Colors: ${formData.themeColor || 'Not specified'}\n- Specific Theme: ${formData.homeTheme || 'Not specified'}\n- Additional Requests: ${formData.message || 'None'}`)
+              : isFlowerSupply
+                ? (isRtl
+                  ? `مرحباً غراس فلوريست، أود الاستفسار عن خدمة توريد الورد الطبيعي للشركات والفنادق:\n- اسم الشركة / الفندق: ${formData.companyName}\n- الموقع: ${formData.location}\n- نوع التوريد: ${flowerSupplyTypesLabel || 'غير محدد'}${formData.flowerSupplyTypes.includes('Other Requirements') && formData.flowerSupplyOther ? `\n- تفاصيل الاحتياج الآخر: ${formData.flowerSupplyOther}` : ''}\n- نوع الورد المطلوب: ${selectedFlowerLabel}\n- التكرار والكمية: ${supplyFrequencyLabel}${formData.supplyQuantity ? ` (${formData.supplyQuantity})` : ''}\n- مدة التعاقد: ${contractDurationLabel}\n- الميزانية التقريبية: ${formData.estimatedBudget}\n- اسم المسؤول: ${formData.purchasingContactName}\n- رقم تواصل المشتريات: ${formData.purchasingContactPhone}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
+                  : `Hello Grass Florist, I would like to inquire about Corporate & Hotel Flower Supply:\n- Company / Hotel Name: ${formData.companyName}\n- Location: ${formData.location}\n- Supply Type: ${flowerSupplyTypesLabel || 'Not specified'}${formData.flowerSupplyTypes.includes('Other Requirements') && formData.flowerSupplyOther ? `\n- Other Requirements: ${formData.flowerSupplyOther}` : ''}\n- Preferred Flower Type: ${selectedFlowerLabel}\n- Frequency & Quantity: ${supplyFrequencyLabel}${formData.supplyQuantity ? ` (${formData.supplyQuantity})` : ''}\n- Contract Duration: ${contractDurationLabel}\n- Estimated Budget: ${formData.estimatedBudget}\n- Contact Person: ${formData.purchasingContactName}\n- Purchasing Dept Phone: ${formData.purchasingContactPhone}\n- Additional Requests: ${formData.message || 'None'}`)
+                : isOpening
+                  ? (isRtl
+                    ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنسيق حفل افتتاح:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- موقع الحفل: ${formData.location}\n- تاريخ الحفل: ${formData.date}\n- نوع الحفل: ${openingTypeLabel}${formData.openingType === 'Other' && formData.openingTypeOther ? ` (${formData.openingTypeOther})` : ''}\n- نوع الورد المطلوب: ${selectedFlowerLabel}\n- مناطق تنسيق الزهور: ${openingDecorAreasLabel || 'غير محدد'}${formData.openingDecorAreas.includes('Other') && formData.openingDecorOther ? `\n- مناطق أخرى: ${formData.openingDecorOther}` : ''}\n- الألوان المفضلة للورد والتنسيق: ${formData.themeColor || 'غير محدد'}\n- الثيم المطلوب: ${formData.homeTheme || 'غير محدد'}\n- الميزانية التقريبية: ${formData.estimatedBudget || 'غير محدد'}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
+                    : `Hello Grass Florist, I would like to inquire about Grand Opening Event Styling:\n- Name: ${formData.firstName} ${formData.lastName}\n- Event Location: ${formData.location}\n- Event Date: ${formData.date}\n- Type of Opening: ${openingTypeLabel}${formData.openingType === 'Other' && formData.openingTypeOther ? ` (${formData.openingTypeOther})` : ''}\n- Preferred Flower Type: ${selectedFlowerLabel}\n- Required Decoration Areas: ${openingDecorAreasLabel || 'Not specified'}${formData.openingDecorAreas.includes('Other') && formData.openingDecorOther ? `\n- Other Areas: ${formData.openingDecorOther}` : ''}\n- Preferred Colors: ${formData.themeColor || 'Not specified'}\n- Specific Theme: ${formData.homeTheme || 'Not specified'}\n- Estimated Budget: ${formData.estimatedBudget || 'Not specified'}\n- Additional Requests: ${formData.message || 'None'}`)
+                  : isOtherInquiry
+                    ? (isRtl
+                      ? `مرحباً غراس فلوريست، أود تقديم استفسار:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- تفاصيل الاستفسار: ${formData.inquiryDetails}\n- تفاصيل أو طلبات إضافية: ${formData.message || 'لا يوجد'}`
+                      : `Hello Grass Florist, I would like to make an inquiry:\n- Name: ${formData.firstName} ${formData.lastName}\n- Inquiry Details: ${formData.inquiryDetails}\n- Additional Requests: ${formData.message || 'None'}`)
+                    : (isRtl
+                      ? `مرحباً غراس فلوريست، أود الاستفسار عن حجز وتنظيم مناسبة:\n- الاسم: ${formData.firstName} ${formData.lastName}\n- نوع المناسبة: ${selectedEventObj?.name.ar || formData.eventType}\n- التاريخ: ${formData.date}\n- الموقع: ${formData.location}\n- عدد الضيوف: ${formData.guests}\n- الملاحظات: ${formData.message || 'لا يوجد'}`
+                      : `Hello Grass Florist, I would like to inquire about booking an event:\n- Name: ${formData.firstName} ${formData.lastName}\n- Event Type: ${selectedEventObj?.name.en || formData.eventType}\n- Date: ${formData.date}\n- Location: ${formData.location}\n- Guests: ${formData.guests}\n- Notes: ${formData.message || 'None'}`);
 
     return `https://wa.me/966555134211?text=${encodeURIComponent(text)}`;
   };
@@ -642,10 +866,16 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
               {isBridal
                 ? (isRtl ? '٣. تفاصيل مسكة العروسة' : '3. Bridal Bouquet Details')
                 : isMilkah
-                ? (isRtl ? '٣. تفاصيل تنسيق عربيات الملكة وهدايا الخطبة' : '3. Milkah Ceremony Tray & Engagement Gift Details')
-                : isHallOrHome
-                ? (isRtl ? '٣. تفاصيل وموقع المناسبة' : '3. Event Details & Location')
-                : (isRtl ? '٣. تفاصيل وموقع المناسبة' : '3. Event Logistics & Venue')}
+                  ? (isRtl ? '٣. تفاصيل تنسيق عربيات الملكة وهدايا الخطبة' : '3. Milkah Ceremony Tray & Engagement Gift Details')
+                  : isFlowerSupply
+                    ? (isRtl ? '٣. تفاصيل توريد الورد الطبيعي للشركات والفنادق' : '3. Corporate & Hotel Flower Supply Details')
+                    : isOpening
+                      ? (isRtl ? '٣. تفاصيل وموقع حفل الافتتاح' : '3. Grand Opening Event Details')
+                      : isOtherInquiry
+                        ? (isRtl ? '٣. تفاصيل استفسارات أخرى' : '3. Other Inquiries')
+                        : isHallOrHome
+                          ? (isRtl ? '٣. تفاصيل وموقع المناسبة' : '3. Event Details & Location')
+                          : (isRtl ? '٣. تفاصيل وموقع المناسبة' : '3. Event Logistics & Venue')}
             </label>
 
             {isBridal ? (
@@ -1142,11 +1372,11 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                         placeholder={
                           isHallEvent
                             ? (isRtl
-                                ? 'مثال: جدة - فندق هيلتون / قاعة ليلتي'
-                                : 'e.g. Jeddah - Hilton Hotel / Laylaty Ballroom')
+                              ? 'مثال: جدة - فندق هيلتون / قاعة ليلتي'
+                              : 'e.g. Jeddah - Hilton Hotel / Laylaty Ballroom')
                             : (isRtl
-                                ? 'مثال: جدة، حي الروضة / فيلا خاصة'
-                                : 'e.g. Jeddah, Al Rawdah / Private Villa')
+                              ? 'مثال: جدة، حي الروضة / فيلا خاصة'
+                              : 'e.g. Jeddah, Al Rawdah / Private Villa')
                         }
                         className={cn(
                           'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
@@ -1180,8 +1410,8 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                             const exists = formData.homeDecorAreas.includes(area.id);
                             const updated = exists
                               ? (formData.homeDecorAreas.length > 1
-                                  ? formData.homeDecorAreas.filter((a) => a !== area.id)
-                                  : formData.homeDecorAreas)
+                                ? formData.homeDecorAreas.filter((a) => a !== area.id)
+                                : formData.homeDecorAreas)
                               : [...formData.homeDecorAreas, area.id];
                             setFormData({ ...formData, homeDecorAreas: updated });
                           }}
@@ -1424,6 +1654,662 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                       className="w-full px-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849] text-xs sm:text-sm text-[#201B18] transition-all outline-none"
                     />
                   </div>
+                </div>
+              </>
+            ) : isFlowerSupply ? (
+              <>
+                {/* Corporate & Hotel Flower Supply Specific Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5">
+                  {/* Company or Hotel Name */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      {isRtl ? 'اسم الشركة أو الفندق' : 'Company or Hotel Name'}
+                      <span className="text-red-500 ms-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <Building2 className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                      <input
+                        type="text"
+                        value={formData.companyName}
+                        onChange={(e) => {
+                          setFormData({ ...formData, companyName: e.target.value });
+                          if (errors.companyName) setErrors({ ...errors, companyName: '' });
+                        }}
+                        placeholder={
+                          isRtl
+                            ? 'مثال: شركة أرامكو / فندق الريتز كارلتون'
+                            : 'e.g. Aramco / The Ritz-Carlton'
+                        }
+                        className={cn(
+                          'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
+                          errors.companyName
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                        )}
+                      />
+                    </div>
+                    {errors.companyName && (
+                      <p className="text-red-500 text-[11px] mt-1">{errors.companyName}</p>
+                    )}
+                  </div>
+
+                  {/* Location */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      {isRtl ? 'الموقع' : 'Location'}
+                      <span className="text-red-500 ms-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                      <input
+                        type="text"
+                        value={formData.location}
+                        onChange={(e) => {
+                          setFormData({ ...formData, location: e.target.value });
+                          if (errors.location) setErrors({ ...errors, location: '' });
+                        }}
+                        placeholder={
+                          isRtl
+                            ? 'مثال: جدة، طريق الملك عبد العزيز'
+                            : 'e.g. Jeddah, King Abdulaziz Road'
+                        }
+                        className={cn(
+                          'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
+                          errors.location
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                        )}
+                      />
+                    </div>
+                    {errors.location && (
+                      <p className="text-red-500 text-[11px] mt-1">{errors.location}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Type of Flower Supply (Optional) */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-2">
+                    {isRtl ? 'نوع التوريد (optional)' : 'Type of Flower Supply (Optional)'}
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {FLOWER_SUPPLY_TYPES.map((type) => {
+                      const isSelected = formData.flowerSupplyTypes.includes(type.id);
+                      return (
+                        <button
+                          key={type.id}
+                          type="button"
+                          onClick={() => {
+                            const exists = formData.flowerSupplyTypes.includes(type.id);
+                            const updated = exists
+                              ? formData.flowerSupplyTypes.filter((t) => t !== type.id)
+                              : [...formData.flowerSupplyTypes, type.id];
+                            setFormData({ ...formData, flowerSupplyTypes: updated });
+                          }}
+                          className={cn(
+                            'py-3 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
+                            isSelected
+                              ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-xs'
+                              : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white hover:border-[#435849]/50'
+                          )}
+                        >
+                          {type.label[locale]}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* If "Other Requirements" is selected */}
+                  {formData.flowerSupplyTypes.includes('Other Requirements') && (
+                    <div className="mt-3 animate-fade-in">
+                      <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                        {isRtl
+                          ? 'إذا كان احتياج آخر يرجى ذكر الاحتياج؟'
+                          : 'If you selected "Other," please describe your requirements:'}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.flowerSupplyOther}
+                        onChange={(e) =>
+                          setFormData({ ...formData, flowerSupplyOther: e.target.value })
+                        }
+                        placeholder={
+                          isRtl
+                            ? 'يرجى كتابة تفاصيل الاحتياج المطلوب...'
+                            : 'Please describe your requirements...'
+                        }
+                        className="w-full px-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849] text-xs sm:text-sm text-[#201B18] transition-all outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Preferred Flower Type (Optional) */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-2">
+                    {isRtl ? 'نوع الورد المطلوب؟ (optional)' : 'Preferred Flower Type (Optional)'}
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {FLOWER_TYPES.map((flower) => {
+                      const isSelected = formData.flowerType === flower.id;
+                      return (
+                        <button
+                          key={flower.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              flowerType: isSelected ? '' : flower.id,
+                            })
+                          }
+                          className={cn(
+                            'py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
+                            isSelected
+                              ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-xs'
+                              : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white hover:border-[#435849]/50'
+                          )}
+                        >
+                          {flower.label[locale]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Estimated Quantity and Required Frequency (Optional) */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-2">
+                    {isRtl
+                      ? 'الكمية التقريبية والتكرار المطلوب (optional)'
+                      : 'Estimated Quantity and Required Frequency (Optional)'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-2.5 mb-3">
+                    {SUPPLY_FREQUENCIES.map((freq) => {
+                      const isSelected = formData.supplyFrequency === freq.id;
+                      return (
+                        <button
+                          key={freq.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              supplyFrequency: isSelected ? '' : freq.id,
+                            })
+                          }
+                          className={cn(
+                            'py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
+                            isSelected
+                              ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-xs'
+                              : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white hover:border-[#435849]/50'
+                          )}
+                        >
+                          {freq.label[locale]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      value={formData.supplyQuantity}
+                      onChange={(e) =>
+                        setFormData({ ...formData, supplyQuantity: e.target.value })
+                      }
+                      placeholder={
+                        isRtl
+                          ? 'الكمية التقريبية (مثال: ١٠ فازات مكتبية، ٤ فازات استقبال...)'
+                          : 'Estimated quantity (e.g. 10 desk arrangements, 4 reception vases...)'
+                      }
+                      className="w-full px-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849] text-xs sm:text-sm text-[#201B18] transition-all outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Contract Duration (Optional) */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-2">
+                    {isRtl ? 'مدة التعاقد (optional)' : 'Contract Duration (Optional)'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {CONTRACT_DURATIONS.map((duration) => {
+                      const isSelected = formData.contractDuration === duration.id;
+                      return (
+                        <button
+                          key={duration.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              contractDuration: isSelected ? '' : duration.id,
+                            })
+                          }
+                          className={cn(
+                            'py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
+                            isSelected
+                              ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-xs'
+                              : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white hover:border-[#435849]/50'
+                          )}
+                        >
+                          {duration.label[locale]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Estimated Budget */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                    {isRtl ? 'الميزانية التقريبية؟' : 'Estimated Budget'}
+                    <span className="text-red-500 ms-1">*</span>
+                  </label>
+                  <div className="relative">
+                    <Briefcase className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                    <input
+                      type="text"
+                      value={formData.estimatedBudget}
+                      onChange={(e) => {
+                        setFormData({ ...formData, estimatedBudget: e.target.value });
+                        if (errors.estimatedBudget) setErrors({ ...errors, estimatedBudget: '' });
+                      }}
+                      placeholder={
+                        isRtl
+                          ? 'مثال: ٥,٠٠٠ - ١٥,٠٠٠ ريال'
+                          : 'e.g. 5,000 - 15,000 SAR'
+                      }
+                      className={cn(
+                        'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
+                        errors.estimatedBudget
+                          ? 'border-red-400 ring-1 ring-red-400'
+                          : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                      )}
+                    />
+                  </div>
+                  {errors.estimatedBudget && (
+                    <p className="text-red-500 text-[11px] mt-1">{errors.estimatedBudget}</p>
+                  )}
+                </div>
+
+                {/* Contact Person's Name and Purchasing Department Contact Number */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-2">
+                  {/* Contact Person's Name */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      {isRtl ? 'اسم المسؤول الخاص بالمشتريات' : "Contact Person's Name (Purchasing)"}
+                      <span className="text-red-500 ms-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                      <input
+                        type="text"
+                        value={formData.purchasingContactName}
+                        onChange={(e) => {
+                          setFormData({ ...formData, purchasingContactName: e.target.value });
+                          if (errors.purchasingContactName) setErrors({ ...errors, purchasingContactName: '' });
+                        }}
+                        placeholder={isRtl ? 'اسم مسؤول المشتريات' : 'e.g. Procurement Officer'}
+                        className={cn(
+                          'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
+                          errors.purchasingContactName
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                        )}
+                      />
+                    </div>
+                    {errors.purchasingContactName && (
+                      <p className="text-red-500 text-[11px] mt-1">{errors.purchasingContactName}</p>
+                    )}
+                  </div>
+
+                  {/* Purchasing Department Contact Number */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      {isRtl ? 'رقم التواصل الخاص بالمشتريات' : 'Purchasing Dept. Contact Number'}
+                      <span className="text-red-500 ms-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                      <input
+                        type="tel"
+                        dir="ltr"
+                        value={formData.purchasingContactPhone}
+                        onChange={(e) => {
+                          setFormData({ ...formData, purchasingContactPhone: e.target.value });
+                          if (errors.purchasingContactPhone) setErrors({ ...errors, purchasingContactPhone: '' });
+                        }}
+                        placeholder="+966 5X XXX XXXX"
+                        className={cn(
+                          'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none text-start',
+                          errors.purchasingContactPhone
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                        )}
+                      />
+                    </div>
+                    {errors.purchasingContactPhone && (
+                      <p className="text-red-500 text-[11px] mt-1">{errors.purchasingContactPhone}</p>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : isOpening ? (
+              <>
+                {/* Grand Opening Specific Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5">
+                  {/* Event Location */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      {isRtl ? 'موقع الحفل؟' : 'Event Location'}
+                      <span className="text-red-500 ms-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                      <input
+                        type="text"
+                        value={formData.location}
+                        onChange={(e) => {
+                          setFormData({ ...formData, location: e.target.value });
+                          if (errors.location) setErrors({ ...errors, location: '' });
+                        }}
+                        placeholder={
+                          isRtl
+                            ? 'مثال: جدة، حي الزهراء - طريق الملك'
+                            : 'e.g. Jeddah, Al Zahra - King Road'
+                        }
+                        className={cn(
+                          'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
+                          errors.location
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                        )}
+                      />
+                    </div>
+                    {errors.location && (
+                      <p className="text-red-500 text-[11px] mt-1">{errors.location}</p>
+                    )}
+                  </div>
+
+                  {/* Event Date */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      {isRtl ? 'التاريخ؟ (DATE)' : 'Event Date'}
+                      <span className="text-red-500 ms-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <Calendar className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                      <input
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        value={formData.date}
+                        onChange={(e) => {
+                          setFormData({ ...formData, date: e.target.value });
+                          if (errors.date) setErrors({ ...errors, date: '' });
+                        }}
+                        className={cn(
+                          'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none',
+                          errors.date
+                            ? 'border-red-400 ring-1 ring-red-400'
+                            : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                        )}
+                      />
+                    </div>
+                    {errors.date && (
+                      <p className="text-red-500 text-[11px] mt-1">{errors.date}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Type of Opening (Optional) */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-2">
+                    {isRtl ? 'نوع الحفل (optional)' : 'Type of Opening (Optional)'}
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                    {OPENING_TYPES.map((type) => {
+                      const isSelected = formData.openingType === type.id;
+                      return (
+                        <button
+                          key={type.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              openingType: isSelected ? '' : type.id,
+                            })
+                          }
+                          className={cn(
+                            'py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
+                            isSelected
+                              ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-xs'
+                              : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white hover:border-[#435849]/50'
+                          )}
+                        >
+                          {type.label[locale]}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* If "Other" is selected */}
+                  {formData.openingType === 'Other' && (
+                    <div className="mt-3 animate-fade-in">
+                      <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                        {isRtl
+                          ? 'إذا كان احتياج آخر يرجى ذكر الاحتياج؟'
+                          : 'If you selected "Other," please specify the type of event:'}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.openingTypeOther}
+                        onChange={(e) =>
+                          setFormData({ ...formData, openingTypeOther: e.target.value })
+                        }
+                        placeholder={
+                          isRtl
+                            ? 'يرجى تحديد نوع الحفل أو الافتتاح...'
+                            : 'Please specify the type of opening...'
+                        }
+                        className="w-full px-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849] text-xs sm:text-sm text-[#201B18] transition-all outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Preferred Flower Type (Optional) */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-2">
+                    {isRtl ? 'نوع الورد المطلوب؟ (optional)' : 'Preferred Flower Type (Optional)'}
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {FLOWER_TYPES.map((flower) => {
+                      const isSelected = formData.flowerType === flower.id;
+                      return (
+                        <button
+                          key={flower.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              flowerType: isSelected ? '' : flower.id,
+                            })
+                          }
+                          className={cn(
+                            'py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
+                            isSelected
+                              ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-xs'
+                              : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white hover:border-[#435849]/50'
+                          )}
+                        >
+                          {flower.label[locale]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Required Floral Decoration Areas (Select All That Apply) */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-2">
+                    {isRtl
+                      ? 'نوع تنسيق الزهور المطلوب؟ (اختيار متعدد)'
+                      : 'Required Floral Decoration Areas (Select All That Apply)'}
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {OPENING_DECOR_AREAS.map((area) => {
+                      const isSelected = formData.openingDecorAreas.includes(area.id);
+                      return (
+                        <button
+                          key={area.id}
+                          type="button"
+                          onClick={() => {
+                            const exists = formData.openingDecorAreas.includes(area.id);
+                            const updated = exists
+                              ? formData.openingDecorAreas.filter((a) => a !== area.id)
+                              : [...formData.openingDecorAreas, area.id];
+                            setFormData({ ...formData, openingDecorAreas: updated });
+                          }}
+                          className={cn(
+                            'py-3 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center',
+                            isSelected
+                              ? 'bg-[#2D3F33] text-white border-[#2D3F33] shadow-xs'
+                              : 'bg-[#FAF8F5] text-[#5A5049] border-[#E4DACD] hover:bg-white hover:border-[#435849]/50'
+                          )}
+                        >
+                          {area.label[locale]}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* If "Other" is selected in decor areas */}
+                  {formData.openingDecorAreas.includes('Other') && (
+                    <div className="mt-3 animate-fade-in">
+                      <input
+                        type="text"
+                        value={formData.openingDecorOther}
+                        onChange={(e) =>
+                          setFormData({ ...formData, openingDecorOther: e.target.value })
+                        }
+                        placeholder={
+                          isRtl
+                            ? 'يرجى كتابة تفاصيل مناطق التنسيق الأخرى...'
+                            : 'Please describe other decoration areas...'
+                        }
+                        className="w-full px-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849] text-xs sm:text-sm text-[#201B18] transition-all outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Colors & Theme (2 columns grid) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5">
+                  {/* Preferred Flower & Decoration Colors */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      <Palette className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
+                      {isRtl
+                        ? 'الألوان المفضلة للورد والتنسيق؟'
+                        : 'Preferred Flower and Decoration Colors'}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={formData.themeColor}
+                        onChange={(e) =>
+                          setFormData({ ...formData, themeColor: e.target.value })
+                        }
+                        placeholder={
+                          isRtl
+                            ? 'مثال: أبيض، أخضر، ذهبي، درجات ألوان الهوية...'
+                            : 'e.g. White, greenery, gold, brand identity colors...'
+                        }
+                        className="w-full px-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849] text-xs sm:text-sm text-[#201B18] transition-all outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Do You Have a Specific Theme in Mind? */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                      <Sparkles className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
+                      {isRtl
+                        ? 'هل فيه ثيم معين حابة يكون عليه التنسيق؟'
+                        : 'Do You Have a Specific Theme in Mind?'}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={formData.homeTheme}
+                        onChange={(e) =>
+                          setFormData({ ...formData, homeTheme: e.target.value })
+                        }
+                        placeholder={
+                          isRtl
+                            ? 'مثال: مودرن فاخر، رسمي، استوائي، مستوحى من هوية البراند...'
+                            : 'e.g. Modern luxury, formal corporate, brand-inspired...'
+                        }
+                        className="w-full px-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849] text-xs sm:text-sm text-[#201B18] transition-all outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Estimated Budget */}
+                <div className="mb-2">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                    {isRtl ? 'الميزانية التقريبية؟' : 'Estimated Budget'}
+                  </label>
+                  <div className="relative">
+                    <Briefcase className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8A7E74]" />
+                    <input
+                      type="text"
+                      value={formData.estimatedBudget}
+                      onChange={(e) =>
+                        setFormData({ ...formData, estimatedBudget: e.target.value })
+                      }
+                      placeholder={
+                        isRtl
+                          ? 'مثال: ١٠,٠٠٠ - ٣٠,٠٠٠ ريال'
+                          : 'e.g. 10,000 - 30,000 SAR'
+                      }
+                      className="w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849] text-xs sm:text-sm text-[#201B18] transition-all outline-none"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : isOtherInquiry ? (
+              <>
+                {/* Other Inquiries Specific Fields */}
+                <div className="mb-2">
+                  <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
+                    {isRtl ? 'ما الذي يمكننا مساعدتك فيه؟' : 'How Can We Help You?'}
+                    <span className="text-red-500 ms-1">*</span>
+                  </label>
+                  <div className="relative">
+                    <MessageSquare className="w-4 h-4 absolute start-3.5 top-3.5 text-[#8A7E74]" />
+                    <textarea
+                      rows={5}
+                      value={formData.inquiryDetails}
+                      onChange={(e) => {
+                        setFormData({ ...formData, inquiryDetails: e.target.value });
+                        if (errors.inquiryDetails) setErrors({ ...errors, inquiryDetails: '' });
+                      }}
+                      placeholder={
+                        isRtl
+                          ? 'اكتب تفاصيل استفسارك هنا...'
+                          : 'Please provide details about your inquiry below...'
+                      }
+                      className={cn(
+                        'w-full ps-10 pe-4 py-3 bg-[#FAF8F5] focus:bg-white rounded-xl border text-xs sm:text-sm text-[#201B18] transition-all outline-none resize-none',
+                        errors.inquiryDetails
+                          ? 'border-red-400 ring-1 ring-red-400'
+                          : 'border-[#E4DACD] focus:border-[#435849] focus:ring-1 focus:ring-[#435849]'
+                      )}
+                    />
+                  </div>
+                  {errors.inquiryDetails && (
+                    <p className="text-red-500 text-[11px] mt-1">{errors.inquiryDetails}</p>
+                  )}
                 </div>
               </>
             ) : (
