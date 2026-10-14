@@ -13,7 +13,15 @@ import {
   ArrowLeft,
   ChevronRight,
   ChevronLeft,
-  Leaf,
+  Heart,
+  Cake,
+  Gift,
+  GraduationCap,
+  Baby,
+  Briefcase,
+  Flower2,
+  Sun,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,8 +30,43 @@ interface MegaMenuProps {
   navItems?: DynamicNavItem[];
 }
 
-// Unified luxury botanical icon matching Grass Florist brand across all categories
-const getOccasionIcon = (_iconNameOrId?: string) => Leaf;
+// Icon mapper for Occasions & subcategories
+const getOccasionIcon = (iconNameOrId?: string) => {
+  switch (iconNameOrId) {
+    case 'heart':
+    case 'love':
+    case 'for-mother':
+    case 'for-her':
+      return Heart;
+    case 'sun':
+    case 'get-well':
+      return Sun;
+    case 'flower':
+    case 'i-am-sorry':
+    case 'hand-bouquet':
+      return Flower2;
+    case 'cake':
+    case 'birthday':
+      return Cake;
+    case 'gift':
+    case 'for-him':
+      return Gift;
+    case 'graduation-cap':
+    case 'graduation':
+      return GraduationCap;
+    case 'baby':
+    case 'new-baby':
+      return Baby;
+    case 'shield':
+    case 'for-father':
+      return Shield;
+    case 'briefcase':
+    case 'new-job':
+      return Briefcase;
+    default:
+      return Flower2;
+  }
+};
 
 export function MegaMenu({ locale, navItems }: MegaMenuProps) {
   const [items, setItems] = useState<DynamicNavItem[]>((navItems as DynamicNavItem[]) || (mainNavItems as unknown as DynamicNavItem[]));
@@ -210,8 +253,8 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                             ? 'start-0'
                             : 'end-0'
                           : isRtl
-                          ? 'end-0'
-                          : 'start-0'
+                            ? 'end-0'
+                            : 'start-0'
                       )}
                       onMouseEnter={() => handleMouseEnterItem(item.id)}
                     >
@@ -303,7 +346,7 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                           <div className="pb-4 mb-2 border-b border-[#EFE7DC] flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-[#FAF7F2] text-[#435849] border border-[#EAE3D7] flex items-center justify-center shrink-0">
-                                <Leaf className="w-4 h-4 text-[#435849]" />
+                                <Flower2 className="w-4.5 h-4.5 text-[#435849]" />
                               </div>
                               <h3 className="text-base sm:text-[17px] font-extrabold text-[#1E1915] tracking-wide uppercase font-sans">
                                 {item.name?.[locale] || ''}
@@ -327,6 +370,7 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                           {/* 3-Column Subcategories List with Icons */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-0">
                             {item.subcategories?.map((sub) => {
+                              const IconComponent = getOccasionIcon(sub.icon || sub.id);
                               const subUrl = sub.href?.[locale] || '#';
                               return (
                                 <Link
@@ -336,7 +380,7 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                                   className="group/occ flex items-center gap-3 py-2.5 border-b border-[#F4EFEA] hover:border-[#8CA841]/50 transition-colors"
                                 >
                                   <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-[#FAF7F2] group-hover/occ:bg-[#435849] border border-[#EAE3D7] group-hover/occ:border-[#435849] flex items-center justify-center transition-all duration-200 shrink-0 shadow-2xs">
-                                    <Leaf className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#435849] group-hover/occ:text-white transition-colors duration-200" />
+                                    <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#435849] group-hover/occ:text-white transition-colors duration-200" />
                                   </div>
                                   <span className="text-xs sm:text-[13.5px] font-medium text-[#25211E] group-hover/occ:text-[#435849] group-hover/occ:font-semibold transition-colors truncate">
                                     {sub.name?.[locale] || ''}
