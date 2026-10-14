@@ -28,6 +28,7 @@ import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
 import { CartPageItemSkeleton } from '@/components/ui/Skeleton';
 import { CartPageSkeleton } from '@/components/cart/CartPageSkeleton';
+import { MakeItPerfectSection } from '@/components/cart/MakeItPerfectSection';
 import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft, Loader2, RotateCw, AlertCircle } from 'lucide-react';
 
 interface CartPageViewProps {
@@ -307,6 +308,9 @@ export function CartPageView({ locale }: CartPageViewProps) {
                   );
                 })}
               </div>
+
+              {/* 🌟 Make it perfect (Cart Cross-Sell Add-ons) */}
+              <MakeItPerfectSection locale={locale} />
             </div>
 
             {/* Order Summary Column */}

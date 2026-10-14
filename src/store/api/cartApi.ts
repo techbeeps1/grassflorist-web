@@ -37,6 +37,24 @@ export interface LaravelCartResponse {
   message?: string;
 }
 
+export interface MakeItPerfectCategory {
+  id: string;
+  name: string;
+  name_en?: string;
+  name_ar?: string;
+  slug: string;
+  products: any[];
+}
+
+export interface MakeItPerfectResponse {
+  success: boolean;
+  enabled: boolean;
+  title: string;
+  title_en?: string;
+  title_ar?: string;
+  categories: MakeItPerfectCategory[];
+}
+
 export function getLocalizedProductName(name: any, locale: string = 'en'): string {
   if (!name) return '';
 
@@ -256,6 +274,14 @@ export const cartApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ['Cart'],
     }),
+
+    getMakeItPerfect: builder.query<MakeItPerfectResponse, { locale?: string } | void>({
+      query: (arg) => ({
+        url: '/cart/make-it-perfect',
+        params: arg?.locale ? { locale: arg.locale } : undefined,
+      }),
+      providesTags: ['Cart'],
+    }),
   }),
 });
 
@@ -269,4 +295,5 @@ export const {
   useMergeCartMutation,
   useGetAvailableCouponsQuery,
   useApplyServerCouponMutation,
+  useGetMakeItPerfectQuery,
 } = cartApi;
