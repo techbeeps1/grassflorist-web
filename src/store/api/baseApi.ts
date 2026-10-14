@@ -88,7 +88,7 @@ let lastSessionExpiredNotice = 0;
 /**
  * Handle session expiration when refresh token is invalid or expired
  */
-function handleSessionExpired(api: any) {
+function handleSessionExpired(api: any, errorData?: any) {
   const now = Date.now();
   // Throttle notification and redirect to avoid duplicates if multiple requests fail at once
   if (now - lastSessionExpiredNotice < 4000) return;
@@ -97,27 +97,39 @@ function handleSessionExpired(api: any) {
   const locale = getCurrentLocale();
   const isEn = locale === 'en';
 
+  const isDeactivated =
+    errorData?.code === 'account_deactivated' ||
+    (typeof errorData?.message === 'string' && errorData.message.toLowerCase().includes('deactivated')) ||
+    (typeof errorData?.error === 'string' && errorData.error.toLowerCase().includes('deactivated'));
+
+  const toastMessage = isDeactivated
+    ? (isEn
+        ? 'Your account has been deactivated. Please contact customer support.'
+        : 'تم تعطيل وتجميد حسابك. يرجى التواصل مع فريق الدعم للمساعدة.')
+    : (isEn
+        ? 'Your session has expired. Please log in again.'
+        : 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مجدداً.');
+
   // 1. Dispatch toast notification
   api.dispatch(
     addToast({
       type: 'error',
-      message: isEn
-        ? 'Your session has expired. Please log in again.'
-        : 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مجدداً.',
+      message: toastMessage,
     })
   );
 
   // 2. Clear auth credentials in state & storage
   api.dispatch(logout());
 
-  // 3. Redirect to login page with session_expired indicator
+  // 3. Redirect to login page with indicator
   if (typeof window !== 'undefined') {
     const currentPath = window.location.pathname + window.location.search;
     if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
       const redirectParam = encodeURIComponent(currentPath);
+      const queryParam = isDeactivated ? 'account_deactivated=1' : 'session_expired=1';
       const loginUrl = isEn
-        ? `/en/login?session_expired=1&redirect=${redirectParam}`
-        : `/login?session_expired=1&redirect=${redirectParam}`;
+        ? `/en/login?${queryParam}&redirect=${redirectParam}`
+        : `/login?${queryParam}&redirect=${redirectParam}`;
       window.location.href = loginUrl;
     }
   }
@@ -127,6 +139,8 @@ function handleSessionExpired(api: any) {
  * Custom baseQuery that enforces URL locale prefix (/en/... or /ar/...)
  * and intercepts 401 Unauthorized for automatic silent token refresh.
  */
+let lastRefreshErrorPayload: any = null;
+
 const dynamicBaseQuery: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -173,7 +187,12 @@ const dynamicBaseQuery: BaseQueryFn<
             if (refreshResult.data && (refreshResult.data as any).access_token) {
               const newToken = (refreshResult.data as any).access_token as string;
               api.dispatch(setToken(newToken));
+              lastRefreshErrorPayload = null;
               return newToken;
+            }
+
+            if (refreshResult.error) {
+              lastRefreshErrorPayload = refreshResult.error.data;
             }
             return null;
           } catch {
@@ -190,12 +209,12 @@ const dynamicBaseQuery: BaseQueryFn<
         // Retry the original query with the refreshed token using adjusted prefixed args
         result = await rawBaseQuery(adjustedArgs, api, extraOptions);
       } else {
-        // Silent refresh failed (refresh token expired or invalid) -> redirect to login with notification
-        handleSessionExpired(api);
+        // Silent refresh failed (refresh token expired, deactivated, or invalid) -> redirect to login with notification
+        handleSessionExpired(api, lastRefreshErrorPayload || (result.error as any)?.data);
       }
     } else if (isRefreshUrl) {
       // Direct refresh request returned 401
-      handleSessionExpired(api);
+      handleSessionExpired(api, (result.error as any)?.data);
     }
   }
 

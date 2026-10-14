@@ -13,7 +13,7 @@ import { Product } from '@/types/product';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useGetProductBySlugQuery } from '@/store/api/productsApi';
 import { useCartActions } from '@/hooks/useCartActions';
-import { toggleWishlist, selectIsInWishlist } from '@/store/slices/wishlistSlice';
+import { useWishlist } from '@/hooks/useWishlist';
 import { setCartDrawerOpen } from '@/store/slices/uiSlice';
 import { formatPrice, calculateDiscount } from '@/lib/utils';
 import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
@@ -64,7 +64,8 @@ export function ProductDetailPageView({
     notFound();
   }
 
-  const isInWishlist = useAppSelector((state) => selectIsInWishlist(state, product.id));
+  const { isInWishlist: checkWishlist, toggleWishlist } = useWishlist(locale);
+  const isInWishlist = checkWishlist(product.id);
 
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -294,7 +295,7 @@ export function ProductDetailPageView({
                   {/* Wishlist Button */}
                   <button
                     type="button"
-                    onClick={() => dispatch(toggleWishlist(product))}
+                    onClick={() => toggleWishlist(product)}
                     className={`min-h-[48px] sm:min-h-[52px] min-w-[48px] sm:min-w-[52px] p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center justify-center shrink-0 ${
                       isInWishlist
                         ? 'border-rose-300 bg-rose-50 text-rose-600'

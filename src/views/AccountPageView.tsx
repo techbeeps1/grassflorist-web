@@ -19,6 +19,7 @@ import {
 } from '@/store/api/authApi';
 import { useGetGlobalSettingsQuery } from '@/store/api/cmsApi';
 import { useGetShippingMethodsQuery } from '@/store/api/checkoutApi';
+import { useWishlist } from '@/hooks/useWishlist';
 import { Order } from '@/types/order';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
@@ -71,7 +72,7 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
   const dispatch = useAppDispatch();
 
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
-  const wishlistItems = useAppSelector((state) => state.wishlist.items);
+  const { items: wishlistItems } = useWishlist(locale);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000';
 
   const tabParam = searchParams.get('tab');

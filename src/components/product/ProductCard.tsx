@@ -7,13 +7,8 @@ import { useRouter } from 'next/navigation';
 import { Product } from '@/types/product';
 import { type Locale } from '@/config/site';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { toggleWishlist, selectIsInWishlist } from '@/store/slices/wishlistSlice';
+import { useWishlist } from '@/hooks/useWishlist';
 import { useCartActions } from '@/hooks/useCartActions';
-import {
-  useAddToWishlistMutation,
-  useRemoveFromWishlistServerMutation,
-} from '@/store/api/wishlistApi';
-import { addToast } from '@/store/slices/uiSlice';
 import { calculateDiscount, cn } from '@/lib/utils';
 import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { PriceDisplay } from '@/components/common/CurrencySymbol';
@@ -28,7 +23,8 @@ interface ProductCardProps {
 export function ProductCard({ product, locale, priority = false }: ProductCardProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const isInWishlist = useAppSelector((state) => selectIsInWishlist(state, product.id));
+  const { isInWishlist: checkWishlist, toggleWishlist } = useWishlist(locale);
+  const isInWishlist = checkWishlist(product.id);
   const [isHovered, setIsHovered] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
@@ -51,35 +47,10 @@ export function ProductCard({ product, locale, priority = false }: ProductCardPr
       ? (locale === 'ar' ? product.categoriesList[0].slug_ar : product.categoriesList[0].slug_en) || product.categoriesList[0].name
       : ''))?.replace(/&amp;/g, '&');
 
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  const [addWishlistServer] = useAddToWishlistMutation();
-  const [removeWishlistServer] = useRemoveFromWishlistServerMutation();
-
-  const handleToggleWishlist = (e: React.MouseEvent) => {
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (isAuthenticated) {
-      if (isInWishlist) {
-        removeWishlistServer(product.id).unwrap().catch(() => {});
-      } else {
-        addWishlistServer(product.id).unwrap().catch(() => {});
-      }
-    }
-
-    dispatch(toggleWishlist(product));
-    dispatch(
-      addToast({
-        type: 'info',
-        message: isInWishlist
-          ? locale === 'ar'
-            ? 'تمت إزالة المنتج من قائمة الرغبات'
-            : 'Removed from wishlist'
-          : locale === 'ar'
-            ? 'تمت إضافة المنتج إلى قائمة الرغبات'
-            : 'Added to wishlist',
-      })
-    );
+    await toggleWishlist(product);
   };
 
   const { addToCart } = useCartActions();
