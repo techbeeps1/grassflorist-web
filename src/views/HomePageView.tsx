@@ -18,7 +18,7 @@ import {
   generateWebSiteSchema,
   generateFaqSchema,
 } from '@/lib/schema';
-import { ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 
 import { Product } from '@/types/product';
 import { Category } from '@/types/category';
@@ -242,7 +242,6 @@ export function HomePageView({
             <div className="max-w-3xl mx-auto">
               <div className="text-center mb-6 sm:mb-8">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#435849] border border-[#EAE3D7] text-xs font-bold uppercase tracking-wider mb-3.5 shadow-2xs">
-                  <Sparkles className="w-3.5 h-3.5 text-[#8CA841]" />
                   <span>{locale === 'ar' ? 'مركز المساعدة والإرشادات' : 'HELP & FLORAL GUIDANCE'}</span>
                 </div>
                 <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1E1915] leading-tight">

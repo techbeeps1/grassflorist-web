@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
-import { Sparkles, Heart, Eye, CheckCircle2 } from 'lucide-react';
+import { Heart, Eye, CheckCircle2 } from 'lucide-react';
 
 interface AboutPageViewProps {
   locale: Locale;
@@ -25,7 +25,6 @@ export function AboutPageView({ locale }: AboutPageViewProps) {
         {/* Hero Header */}
         <div className="text-center max-w-3xl mx-auto my-8 sm:my-12">
           <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#FAF5EE] text-[#435849] border border-[#DDD3C6] text-xs font-bold uppercase tracking-widest mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-[#8CA841]" />
             <span>{dict.about.badge}</span>
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#201B18] leading-tight mb-4 tracking-tight">

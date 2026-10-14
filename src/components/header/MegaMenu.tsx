@@ -20,7 +20,6 @@ import {
   Baby,
   Briefcase,
   Flower2,
-  Sparkles,
   Sun,
   Shield,
 } from 'lucide-react';
@@ -37,10 +36,8 @@ const getOccasionIcon = (iconNameOrId?: string) => {
     case 'heart':
     case 'love':
     case 'for-mother':
-      return Heart;
-    case 'sparkles':
     case 'for-her':
-      return Sparkles;
+      return Heart;
     case 'sun':
     case 'get-well':
       return Sun;

@@ -12,7 +12,6 @@ import {
   Home,
   ShoppingCart,
   User,
-  Sparkles,
   LogIn,
   UserPlus,
   LogOut,
@@ -215,7 +214,7 @@ export function MobileBottomBar({ locale }: MobileBottomBarProps) {
                 <div className="w-9 h-9 rounded-full bg-[#8CA841] text-white flex items-center justify-center text-xs font-bold shadow-xs">
                   {mounted && isAuthenticated && user
                     ? (user.name?.charAt(0) || 'G')
-                    : <Sparkles className="w-4 h-4 text-white" />}
+                    : <User className="w-4 h-4 text-white" />}
                 </div>
                 <div>
                   <h3 className="text-sm font-extrabold text-[#201B18]">

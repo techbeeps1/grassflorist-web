@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { Button } from '@/components/ui/Button';
-import { Sparkles, Clock, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Clock, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface HeroSectionProps {
   locale: Locale;
@@ -26,7 +26,6 @@ export function HeroSection({ locale }: HeroSectionProps) {
           <div className="lg:col-span-6 space-y-6 text-center lg:text-start">
             {/* Top Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary-light text-primary text-xs font-bold border border-primary/20 shadow-xs">
-              <Sparkles className="w-4 h-4 text-primary shrink-0" />
               <span>{dict.home.heroBadge}</span>
             </div>
 

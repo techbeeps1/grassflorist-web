@@ -8,7 +8,6 @@ import { useGetSubscriptionDealsQuery } from '@/store/api/subscriptionApi';
 import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import {
-  Sparkles,
   Truck,
   Gift,
   Percent,
@@ -69,7 +68,6 @@ export function FlowersSubscriptionDealsView({ locale }: FlowersSubscriptionDeal
           {/* Hero Content */}
           <div className="relative z-10 p-6 sm:p-12 md:p-16 max-w-2xl text-white">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs sm:text-sm font-semibold mb-4 border border-white/25">
-              <Sparkles className="w-4 h-4 text-emerald-300" />
               <span>{isAr ? 'عروض وباقات الاشتراكات الدورية' : 'Grass Premium Recurring Subscriptions'}</span>
             </div>
 

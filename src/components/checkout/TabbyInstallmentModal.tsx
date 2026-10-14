@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, CheckCircle2, ShieldCheck, Sparkles, Moon } from 'lucide-react';
+import { X, CheckCircle2, ShieldCheck, Percent, Moon } from 'lucide-react';
 import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 
 interface TabbyInstallmentModalProps {
@@ -110,7 +110,7 @@ export const TabbyInstallmentModal: React.FC<TabbyInstallmentModalProps> = ({
           {/* Badges */}
           <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 text-center text-[10.5px] text-gray-600">
             <div className="p-2 rounded-lg bg-gray-50">
-              <Sparkles className="w-3.5 h-3.5 text-blue-500 mx-auto mb-1" />
+              <Percent className="w-3.5 h-3.5 text-blue-500 mx-auto mb-1" />
               <span>{locale === 'ar' ? 'بدون فوائد' : '0% Interest'}</span>
             </div>
             <div className="p-2 rounded-lg bg-gray-50">

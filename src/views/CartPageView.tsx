@@ -28,7 +28,7 @@ import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol';
 import { CartPageItemSkeleton } from '@/components/ui/Skeleton';
 import { CartPageSkeleton } from '@/components/cart/CartPageSkeleton';
-import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft, Loader2, RotateCw } from 'lucide-react';
+import { Trash2, ShoppingBag, Tag, ArrowRight, ArrowLeft, Loader2, RotateCw } from 'lucide-react';
 
 interface CartPageViewProps {
   locale: Locale;

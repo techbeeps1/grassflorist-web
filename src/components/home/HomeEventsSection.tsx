@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { type Locale } from '@/config/site';
+import { getLocalizedPath } from '@/i18n/routing';
 import {
   ChevronLeft,
   ChevronRight,
@@ -119,8 +120,45 @@ export function HomeEventsSection({ locale, benefits, events }: HomeEventsSectio
   const isRtl = locale === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
-  const defaultBookingUrl = isRtl ? '/حجز-مناسبة' : '/en/event-booking';
-  const eventBookingUrl = events?.button_url || events?.buttonUrl || defaultBookingUrl;
+  const resolveEventUrl = (rawUrl?: string): string => {
+    const isEn = locale === 'en';
+    const defaultBookingUrl = isEn ? '/en/event-booking' : '/حجز-مناسبة';
+
+    if (!rawUrl || rawUrl === '#' || rawUrl === '/' || rawUrl === '/en') {
+      return defaultBookingUrl;
+    }
+
+    // Clean relative prefixes like './event-booking' or leading/trailing whitespace
+    const cleaned = rawUrl.trim().replace(/^\.\//, '/');
+
+    // If it points specifically to version 2
+    if (cleaned.includes('event-booking-2')) {
+      return isEn ? '/en/event-booking-2' : '/event-booking-2';
+    }
+
+    // If it points to standard event booking in any format from backend/CMS
+    if (
+      cleaned === '/event-booking' ||
+      cleaned === '/en/event-booking' ||
+      cleaned === '/حجز-مناسبة' ||
+      cleaned === '/en/حجز-مناسبة' ||
+      cleaned === '/events' ||
+      cleaned === '/en/events' ||
+      cleaned.includes('event-booking') ||
+      cleaned.includes('حجز-مناسبة')
+    ) {
+      return defaultBookingUrl;
+    }
+
+    // For any other internal path from CMS, ensure proper locale prefixing
+    if (cleaned.startsWith('/')) {
+      return getLocalizedPath(cleaned, locale);
+    }
+
+    return cleaned;
+  };
+
+  const eventBookingUrl = resolveEventUrl(events?.button_url || events?.buttonUrl);
 
   // 1. Resolve Slides
   const dynamicSlides = Array.isArray(events?.slides) && events.slides.length > 0
@@ -129,7 +167,7 @@ export function HomeEventsSection({ locale, benefits, events }: HomeEventsSectio
       alt: s.title || 'Grass Florist Event Service',
       title: s.title || '',
       serviceTag: s.service_tag || s.serviceTag || (isRtl ? 'باقة المناسبات' : 'EVENT SERVICE'),
-      url: s.url || eventBookingUrl,
+      url: resolveEventUrl(s.url || eventBookingUrl),
     }))
     : DEFAULT_EVENT_SLIDES.map((s) => ({
       src: s.src,

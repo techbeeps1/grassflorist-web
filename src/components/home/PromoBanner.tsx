@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface PromoBannerProps {
   locale: Locale;
@@ -28,7 +28,6 @@ export function PromoBanner({ locale }: PromoBannerProps) {
             {/* Left Content */}
             <div className="lg:col-span-7 p-6 sm:p-12 lg:p-16 space-y-5 text-start">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white text-[#435849] text-xs font-bold border border-[#E2D5C4] shadow-2xs">
-                <Sparkles className="w-3.5 h-3.5 text-[#B08E77]" />
                 <span>{dict.home.promoBadge}</span>
               </div>
 

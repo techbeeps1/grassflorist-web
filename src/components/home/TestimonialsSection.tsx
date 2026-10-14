@@ -7,7 +7,7 @@ import { testimonials } from '@/data/testimonials';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { StarRating } from '@/components/common/StarRating';
-import { Quote, CheckCircle, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Quote, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface TestimonialsSectionProps {
   locale: Locale;
@@ -150,7 +150,6 @@ export function TestimonialsSection({ locale, title, subtitle, testimonials: pro
                         {authorTag && (
                           <div className="mb-6">
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF5EF] text-[#435849] text-[11px] font-bold border border-[#EFE5D8]">
-                              <Sparkles className="w-3 h-3 text-[#B88746]" />
                               <span>{authorTag}</span>
                             </span>
                           </div>

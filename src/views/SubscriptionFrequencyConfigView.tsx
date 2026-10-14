@@ -18,7 +18,6 @@ import {
   ArrowRight,
   ArrowLeft,
   Gift,
-  Sparkles,
   ShieldCheck,
   RotateCw,
   Tag,
@@ -749,7 +748,6 @@ export function SubscriptionFrequencyConfigView({ slug, locale }: SubscriptionFr
                   className="object-cover"
                 />
                 <div className="absolute top-3.5 start-3.5 z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md shadow-xs border border-white/60 text-[11px] font-bold text-[#2D3F33]">
-                  <Sparkles className="w-3.5 h-3.5 text-[#8fae2a]" />
                   <span>{isAr ? 'اشتراك زهور دوري' : 'Flower Subscription'}</span>
                 </div>
               </div>

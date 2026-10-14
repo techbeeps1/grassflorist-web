@@ -15,7 +15,6 @@ import {
   FileText,
   CheckCircle2,
   Loader2,
-  Sparkles,
   Phone,
   Mail,
   User,
@@ -214,7 +213,6 @@ export function PartnerWithUsPageView({ locale }: PartnerWithUsPageViewProps) {
         {/* Heading & Subtitle Header */}
         <div className="text-center max-w-2xl mx-auto my-8 sm:my-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider mb-3">
-            <Sparkles className="w-3.5 h-3.5" />
             <span>{isRtl ? 'شراكات العلامات التجارية' : 'BRAND PARTNERSHIPS'}</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold text-text-main mb-3">

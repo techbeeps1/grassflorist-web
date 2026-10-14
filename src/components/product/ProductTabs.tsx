@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Product } from '@/types/product';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
-import { Sparkles, ShieldCheck, Truck, Droplets } from 'lucide-react';
+import { Flower2, Sun, ShieldCheck, Truck, Droplets } from 'lucide-react';
 import {
   translateArabicProductName,
   translateArabicCategoryName,
@@ -78,7 +78,7 @@ export function ProductTabs({ product, locale }: ProductTabsProps) {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
               <div className="p-4 rounded-xl bg-surface-subtle border border-border flex items-start gap-3">
-                <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <Flower2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-xs font-bold text-text-main">
                     {locale === 'ar' ? 'تنسيق يدوي فندقي' : 'Hand-Tied Atelier Design'}
@@ -124,7 +124,7 @@ export function ProductTabs({ product, locale }: ProductTabsProps) {
               </div>
             </div>
             <div className="flex items-start gap-3 pt-3 border-t border-border">
-              <Sparkles className="w-5 h-5 text-secondary shrink-0 mt-1" />
+              <Sun className="w-5 h-5 text-secondary shrink-0 mt-1" />
               <div>
                 <h4 className="font-bold text-text-main">
                   {locale === 'ar' ? 'الموقع المناسب في المنزل' : 'Optimal Placement'}

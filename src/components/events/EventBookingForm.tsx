@@ -11,7 +11,7 @@ import {
   Phone,
   Mail,
   MessageSquare,
-  Sparkles,
+  PartyPopper,
   CheckCircle2,
   Send,
   Users,
@@ -45,7 +45,7 @@ const EVENT_TYPES: EventTypeOption[] = [
   { id: 'Hall wedding', name: { en: 'Wedding Hall Decoration', ar: 'تنسيق مناسبة في قاعة' }, icon: Crown },
   { id: 'Milkah decoration', name: { en: 'Milkah Ceremony Trays & Engagement Gifts', ar: 'تنسيق عربيات الملكة وهدايا الخطبة' }, icon: Heart },
   { id: 'Flower supply', name: { en: 'Fresh Flower Supply for Hotels & Corporate Clients', ar: 'توريد الورد الطبيعي للشركات والفنادق' }, icon: Building2 },
-  { id: 'Opening ceremony', name: { en: 'Grand Opening Decoration', ar: 'تنسيق حفل افتتاح' }, icon: Sparkles },
+  { id: 'Opening ceremony', name: { en: 'Grand Opening Decoration', ar: 'تنسيق حفل افتتاح' }, icon: PartyPopper },
   { id: 'Corporate event', name: { en: 'Corporate Event Decoration', ar: 'ديكورات مناسبات الشركات' }, icon: Briefcase },
   { id: 'Other inquiries', name: { en: 'Other Inquiries', ar: 'استفسارات أخرى' }, icon: MessageSquare },
 ];
@@ -1586,7 +1586,6 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                   {/* Do You Have a Specific Theme in Mind? */}
                   <div>
                     <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
-                      <Sparkles className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
                       {isRtl
                         ? 'هل فيه ثيم معين حابة يكون عليه التنسيق؟'
                         : 'Do You Have a Specific Theme in Mind?'}
@@ -2328,7 +2327,6 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                   {/* Do You Have a Specific Theme in Mind? */}
                   <div>
                     <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
-                      <Sparkles className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
                       {isRtl
                         ? 'هل فيه ثيم معين حابة يكون عليه التنسيق؟'
                         : 'Do You Have a Specific Theme in Mind?'}
@@ -2646,7 +2644,6 @@ export function EventBookingForm({ locale }: EventBookingFormProps) {
                   {/* Do You Have a Specific Theme in Mind? */}
                   <div>
                     <label className="block text-xs font-semibold text-[#5A5049] mb-1.5">
-                      <Sparkles className="w-3.5 h-3.5 inline-block me-1.5 text-[#8A7E74]" />
                       {isRtl
                         ? 'هل فيه ثيم معين حابة يكون عليه التنسيق؟'
                         : 'Do You Have a Specific Theme in Mind?'}
