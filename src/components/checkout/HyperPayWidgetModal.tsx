@@ -57,11 +57,9 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
       containerRef.current.appendChild(form);
     }
 
-    // Configure HyperPay original card options
+    // Configure HyperPay options (native widget without forced redirects or card-flip overrides)
     (window as any).wpwlOptions = {
       locale: locale === 'ar' ? 'ar' : 'en',
-      style: 'card',
-      paymentTarget: '_top',
       onReady: () => {
         setIsLoading(false);
       },
@@ -102,7 +100,7 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200">
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl md:max-w-2xl overflow-hidden border border-gray-100 flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
         dir={locale === 'ar' ? 'rtl' : 'ltr'}
       >
         {/* Header */}
@@ -177,7 +175,7 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
           {/* Native HyperPay Card Form */}
           <div
             ref={containerRef}
-            className="w-full flex justify-center items-center py-2 min-h-[140px]"
+            className="w-full flex justify-center items-center py-2 min-h-[220px]"
           />
 
           <p className="text-[11px] text-gray-400 mt-4 pb-1 flex items-center justify-center gap-1.5 text-center px-4 shrink-0">
