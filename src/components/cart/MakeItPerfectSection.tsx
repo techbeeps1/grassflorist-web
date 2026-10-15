@@ -15,14 +15,21 @@ interface MakeItPerfectSectionProps {
   locale: Locale;
   compact?: boolean;
   onItemAdded?: () => void;
+  itemsVisible?: 4 | 5;
 }
 
 export function MakeItPerfectSection({
   locale,
   compact = false,
   onItemAdded,
+  itemsVisible,
 }: MakeItPerfectSectionProps) {
   const isRtl = locale === 'ar';
+  const visibleCount = itemsVisible || (compact ? 5 : 4);
+  const cardWidthClass =
+    visibleCount === 5
+      ? 'w-[136px] sm:w-[calc((100%-48px)/5)] shrink-0'
+      : 'w-[136px] sm:w-[calc((100%-36px)/4)] shrink-0';
   const { data, isLoading } = useGetMakeItPerfectQuery({ locale });
   const { addToCart } = useCartActions();
   const cartItems = useAppSelector((state) => state.cart.items);
@@ -66,9 +73,10 @@ export function MakeItPerfectSection({
 
   const scrollProducts = (direction: 'left' | 'right') => {
     if (!productsScrollRef.current) return;
-    const scrollAmount = direction === 'left' ? -220 : 220;
+    const cardEl = productsScrollRef.current.firstElementChild as HTMLElement;
+    const scrollAmount = cardEl ? cardEl.offsetWidth + 12 : 220;
     const finalAmount = isRtl ? -scrollAmount : scrollAmount;
-    productsScrollRef.current.scrollBy({ left: finalAmount, behavior: 'smooth' });
+    productsScrollRef.current.scrollBy({ left: (direction === 'left' ? -1 : 1) * finalAmount, behavior: 'smooth' });
   };
 
   // Drag-to-scroll event handlers for mouse
@@ -118,19 +126,64 @@ export function MakeItPerfectSection({
 
   if (isLoading) {
     return (
-      <div className="bg-surface rounded-2xl border border-border p-4 space-y-3 shadow-xs animate-pulse">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 bg-surface-subtle rounded-full" />
-          <div className="h-4 w-36 bg-surface-subtle rounded-md" />
+      <div
+        className={`bg-surface rounded-2xl border border-border shadow-xs overflow-hidden transition-all ${
+          compact ? 'p-3.5 sm:p-4' : 'p-4 sm:p-5'
+        }`}
+      >
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between pb-3 border-b border-border/80">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-surface-subtle shrink-0 animate-pulse" />
+            <div>
+              <div className="h-4 w-32 sm:w-36 bg-surface-subtle rounded-md animate-pulse" />
+              <div className="h-3 w-48 sm:w-56 bg-surface-subtle/80 rounded-md mt-1.5 animate-pulse" />
+            </div>
+          </div>
+
+          {/* Carousel Arrow Controls Skeleton */}
+          <div className="hidden sm:flex items-center gap-1.5">
+            <div className="w-7 h-7 rounded-full bg-surface-subtle border border-border/60 animate-pulse" />
+            <div className="w-7 h-7 rounded-full bg-surface-subtle border border-border/60 animate-pulse" />
+          </div>
         </div>
-        <div className="flex gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-8 w-20 bg-surface-subtle rounded-full" />
-          ))}
+
+        {/* Tabs Skeleton */}
+        <div className="relative mt-3 mb-3">
+          <div className="flex items-center gap-1.5 overflow-hidden py-0.5 no-scrollbar">
+            {[100, 120, 80, 75, 90, 110].map((width, i) => (
+              <div
+                key={i}
+                style={{ width: `${width}px` }}
+                className="h-[31px] rounded-full bg-surface-subtle animate-pulse shrink-0 border border-border/40"
+              />
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-44 bg-surface-subtle rounded-xl" />
+
+        {/* Products Row Skeleton (Flex row matching exact card sizes) */}
+        <div className="flex gap-2.5 sm:gap-3 overflow-hidden pb-1.5 pt-0.5 -mx-1 px-1 no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {Array.from({ length: visibleCount }).map((_, i) => (
+            <div
+              key={i}
+              className={`${cardWidthClass} bg-white rounded-2xl border border-border/80 overflow-hidden flex flex-col justify-between shadow-xs`}
+            >
+              {/* Product Thumbnail Skeleton */}
+              <div className="relative aspect-square w-full bg-surface-subtle animate-pulse" />
+
+              {/* Product Info Skeleton */}
+              <div className="p-2 sm:p-2.5 flex flex-col flex-1 justify-between text-start">
+                <div>
+                  <div className="h-4 w-14 bg-surface-subtle rounded animate-pulse mb-1" />
+                  <div className="h-3.5 w-full bg-surface-subtle rounded animate-pulse" />
+                </div>
+
+                {/* Quick Add Button Skeleton */}
+                <div className="mt-2 pt-1.5 border-t border-border/50">
+                  <div className="h-[29px] w-full rounded-full bg-surface-subtle animate-pulse" />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -177,14 +230,14 @@ export function MakeItPerfectSection({
         <div className="hidden sm:flex items-center gap-1.5">
           <button
             onClick={() => scrollProducts('left')}
-            className="w-7 h-7 rounded-full border border-border hover:border-primary hover:text-primary flex items-center justify-center text-text-muted transition-colors cursor-pointer bg-surface"
+            className="w-7 h-7 rounded-full border border-border/80 hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-text-muted transition-all cursor-pointer bg-surface active:scale-95 shadow-2xs"
             aria-label="Previous items"
           >
             {isRtl ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
           </button>
           <button
             onClick={() => scrollProducts('right')}
-            className="w-7 h-7 rounded-full border border-border hover:border-primary hover:text-primary flex items-center justify-center text-text-muted transition-colors cursor-pointer bg-surface"
+            className="w-7 h-7 rounded-full border border-border/80 hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-text-muted transition-all cursor-pointer bg-surface active:scale-95 shadow-2xs"
             aria-label="Next items"
           >
             {isRtl ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
@@ -196,7 +249,7 @@ export function MakeItPerfectSection({
       <div className="relative mt-3 mb-3">
         <div
           ref={tabsRef}
-          className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 scroll-smooth select-none cursor-grab active:cursor-grabbing"
+          className="flex items-center gap-1.5 overflow-x-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-0.5 scroll-smooth select-none cursor-grab active:cursor-grabbing"
         >
           {categories.map((cat) => {
             const isActive = cat.id === activeTabId;
@@ -211,8 +264,8 @@ export function MakeItPerfectSection({
                 onClick={() => setActiveTabId(cat.id)}
                 className={`px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 border ${
                   isActive
-                    ? 'bg-primary text-white border-primary shadow-xs font-bold'
-                    : 'bg-surface-subtle text-text-main border-transparent hover:border-border hover:bg-surface'
+                    ? 'bg-primary text-white border-primary shadow-xs font-bold scale-[1.02]'
+                    : 'bg-surface-subtle text-text-main border-border/60 hover:border-primary/40 hover:bg-surface'
                 }`}
               >
                 {tabName}
@@ -222,14 +275,14 @@ export function MakeItPerfectSection({
         </div>
       </div>
 
-      {/* Draggable Products Row / Grid */}
+      {/* Draggable Products Row */}
       <div
         ref={productsScrollRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
-        className="flex gap-2.5 sm:gap-3 overflow-x-auto scrollbar-none pb-1.5 pt-0.5 scroll-smooth -mx-1 px-1 select-none cursor-grab active:cursor-grabbing"
+        className="flex gap-2.5 sm:gap-3 overflow-x-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1.5 pt-0.5 scroll-smooth -mx-1 px-1 select-none cursor-grab active:cursor-grabbing"
       >
         {activeProducts.map((p: any) => {
           const pid = String(p.id);
@@ -243,12 +296,14 @@ export function MakeItPerfectSection({
           return (
             <div
               key={p.id}
-              className={`w-[136px] sm:w-[155px] bg-surface rounded-xl sm:rounded-2xl border border-border/80 overflow-hidden flex flex-col justify-between shrink-0 hover:shadow-md hover:border-primary/40 transition-all duration-200 group ${
-                inCartCount > 0 ? 'ring-1 ring-primary/30' : ''
+              className={`${cardWidthClass} bg-white rounded-2xl border transition-all duration-200 overflow-hidden flex flex-col justify-between group ${
+                inCartCount > 0
+                  ? 'border-primary ring-1.5 ring-primary/30 shadow-xs'
+                  : 'border-border/80 hover:border-primary/50 hover:shadow-md'
               }`}
             >
-              {/* Product Thumbnail (Sleeker compact aspect) */}
-              <div className="relative aspect-square w-full bg-surface-subtle overflow-hidden">
+              {/* Product Thumbnail */}
+              <div className="relative aspect-square w-full bg-[#FAF7F2] overflow-hidden">
                 <Image
                   src={imageUrl}
                   alt={productName}
@@ -259,15 +314,15 @@ export function MakeItPerfectSection({
                   className="object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none select-none"
                 />
 
-                {/* In Cart Indicator */}
+                {/* In Cart Indicator Badge */}
                 {inCartCount > 0 && (
-                  <div className="absolute top-1.5 end-1.5 bg-primary text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full shadow-xs">
+                  <div className="absolute top-2 end-2 bg-primary text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-xs flex items-center justify-center min-w-[20px]">
                     {inCartCount}
                   </div>
                 )}
               </div>
 
-              {/* Product Info (Compact height) */}
+              {/* Product Info */}
               <div className="p-2 sm:p-2.5 flex flex-col flex-1 justify-between text-start">
                 <div>
                   <div className="flex items-center gap-1 text-primary font-black text-xs sm:text-sm mb-0.5">
@@ -281,17 +336,17 @@ export function MakeItPerfectSection({
                   </h4>
                 </div>
 
-                {/* Quick Add Button */}
+                {/* Quick Add Pill Button */}
                 <div className="mt-2 pt-1.5 border-t border-border/50">
                   <button
                     onClick={() => onAddClick(p)}
                     disabled={isAdding || p.stock <= 0}
-                    className={`w-full py-1 px-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`w-full py-1 sm:py-1.5 px-2.5 rounded-full text-[11px] sm:text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       isRecentlyAdded
-                        ? 'bg-emerald-600 text-white shadow-xs'
+                        ? 'bg-emerald-600 text-white shadow-xs border border-emerald-600'
                         : inCartCount > 0
-                        ? 'border border-primary text-primary hover:bg-primary hover:text-white'
-                        : 'border border-text-main text-text-main hover:border-primary hover:bg-primary hover:text-white'
+                        ? 'bg-primary/10 text-primary border border-primary/40 hover:bg-primary hover:text-white shadow-2xs'
+                        : 'border border-border text-text-main bg-surface-subtle hover:border-primary hover:bg-primary hover:text-white shadow-2xs'
                     }`}
                   >
                     {isAdding ? (

@@ -253,20 +253,20 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                         ) : null}
 
                         <div className="flex items-center justify-between">
-                          <div className={`inline-flex items-center h-7 rounded-lg bg-white border border-[#E2DAD0] shadow-2xs ${isUpdating ? 'opacity-70' : ''}`}>
+                          <div className={`inline-flex items-center h-8 rounded-full bg-white border border-[#DDD3C4] shadow-xs px-1 ${isUpdating ? 'opacity-70' : ''}`}>
                             <button
                               type="button"
                               disabled={isUpdating || item.quantity <= 1}
                               onClick={() => updateQuantity(item.productId, item.quantity - 1, item.cartItemId)}
                               aria-label="Decrease quantity"
-                              className="w-7 h-full flex items-center justify-center text-[#6B5E52] hover:text-[#1E1915] hover:bg-[#F5EFE6] transition-colors disabled:opacity-25 disabled:pointer-events-none cursor-pointer rounded-s-lg"
+                              className="w-6 h-6 rounded-full flex items-center justify-center text-[#435849] hover:bg-[#F2ECE3] active:scale-90 transition-all disabled:opacity-25 disabled:pointer-events-none cursor-pointer"
                             >
-                              <Minus className="w-3 h-3" />
+                              <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
                             </button>
 
-                            <span className="min-w-[26px] text-center text-xs font-bold text-[#1E1915] tabular-nums select-none px-0.5">
+                            <span className="min-w-[28px] text-center text-xs font-extrabold text-[#1E1915] tabular-nums select-none px-1">
                               {isUpdating ? (
-                                <Loader2 className="w-3 h-3 animate-spin text-[#435849] mx-auto" />
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#435849] mx-auto" />
                               ) : (
                                 item.quantity
                               )}
@@ -277,9 +277,9 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                               disabled={isUpdating || isOutOfStock || isMaxStockReached}
                               onClick={() => updateQuantity(item.productId, item.quantity + 1, item.cartItemId)}
                               aria-label="Increase quantity"
-                              className="w-7 h-full flex items-center justify-center text-[#6B5E52] hover:text-[#1E1915] hover:bg-[#F5EFE6] transition-colors disabled:opacity-25 disabled:pointer-events-none cursor-pointer rounded-e-lg"
+                              className="w-6 h-6 rounded-full flex items-center justify-center text-[#435849] hover:bg-[#F2ECE3] active:scale-90 transition-all disabled:opacity-25 disabled:pointer-events-none cursor-pointer"
                             >
-                              <Plus className="w-3 h-3" />
+                              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                             </button>
                           </div>
 
