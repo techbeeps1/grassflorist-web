@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Lock, X, ShieldCheck, Loader2 } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { Lock, X, ShieldCheck } from 'lucide-react';
 import { CurrencySymbol } from '@/components/common/CurrencySymbol';
 
 interface HyperPayWidgetModalProps {
@@ -32,12 +32,14 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
   returnUrl,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!isOpen || !scriptUrl) return;
 
-    setIsLoading(true);
+    // Clean up any previously set options
+    try {
+      delete (window as any).wpwlOptions;
+    } catch {}
 
     // Shopper result URL where HyperPay redirects back after 3DS authorization
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
@@ -57,20 +59,7 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
       containerRef.current.appendChild(form);
     }
 
-    // Configure HyperPay options (native widget without forced redirects or card-flip overrides)
-    (window as any).wpwlOptions = {
-      locale: locale === 'ar' ? 'ar' : 'en',
-      onReady: () => {
-        setIsLoading(false);
-      },
-    };
-
-    // Safety fallback for loading indicator
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-
-    // Inject HyperPay script
+    // Inject HyperPay script exactly like original staging
     const scriptId = 'hyperpay-widget-script';
     const existing = document.getElementById(scriptId);
     if (existing) {
@@ -84,23 +73,20 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
     document.body.appendChild(script);
 
     return () => {
-      clearTimeout(timer);
       const s = document.getElementById(scriptId);
       if (s) s.remove();
       try {
         delete (window as any).wpwlOptions;
-      } catch (e) {
-        (window as any).wpwlOptions = undefined;
-      }
+      } catch {}
     };
   }, [isOpen, scriptUrl, checkoutId, brands, orderNumber, locale, returnUrl]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
+        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]"
         dir={locale === 'ar' ? 'rtl' : 'ltr'}
       >
         {/* Header */}
@@ -143,43 +129,23 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
           <div className="text-end">
             <span dir="ltr" className="font-black text-[#8fae2a] text-sm flex items-center justify-end gap-1">
               <CurrencySymbol className="w-3.5 h-3.5" forcedCurrency={(currency as 'SAR' | 'USD') || 'SAR'} />
-              <span>
-                {Number(amount).toFixed(2)} {currency}
-              </span>
+              <span>{Number(amount).toFixed(2)} {currency}</span>
             </span>
             {currency === 'USD' && (
-              <span
-                dir="ltr"
-                className="text-[11px] text-gray-500 font-semibold flex items-center justify-end gap-1 mt-0.5"
-              >
+              <span dir="ltr" className="text-[11px] text-gray-500 font-semibold flex items-center justify-end gap-1 mt-0.5">
                 <span>≈</span>
                 <CurrencySymbol forcedCurrency="SAR" size={12} className="w-3 h-3 inline -mt-0.5" />
-                <span>{Number(sarAmount || amount / 0.2667).toFixed(2)} SAR</span>
+                <span>{Number(sarAmount || (amount / 0.2667)).toFixed(2)} SAR</span>
               </span>
             )}
           </div>
         </div>
 
-        {/* HyperPay Original Widget Container (Overflow / Scrollbar Track Fixed) */}
-        <div className="p-4 sm:p-6 flex-1 flex flex-col justify-start items-center w-full relative overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {/* Loading Skeleton */}
-          {isLoading && (
-            <div className="absolute inset-0 bg-white/95 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center gap-3">
-              <Loader2 className="w-7 h-7 text-[#8fae2a] animate-spin" />
-              <p className="text-xs text-gray-500 font-medium">
-                {locale === 'ar' ? 'جاري تحميل نموذج الدفع...' : 'Loading payment form...'}
-              </p>
-            </div>
-          )}
-
-          {/* Native HyperPay Card Form */}
-          <div
-            ref={containerRef}
-            className="w-full flex justify-center items-center py-2 min-h-[220px]"
-          />
-
-          <p className="text-[11px] text-gray-400 mt-4 pb-1 flex items-center justify-center gap-1.5 text-center px-4 shrink-0">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0 inline" />
+        {/* HyperPay Widget Form Container (Without visible scrollbar track) */}
+        <div className="p-6 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-1 min-h-[320px] flex flex-col justify-center items-center">
+          <div ref={containerRef} className="w-full flex justify-center min-h-[220px]" />
+          <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1 shrink-0">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 inline" />
             <span>
               {locale === 'ar'
                 ? 'معاملة مشفرة ومحمية بمعايير الأمان العالمية 3D Secure'
@@ -197,28 +163,10 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
           >
             {locale === 'ar' ? 'إلغاء واختيار وسيلة دفع أخرى' : 'Cancel & choose another payment method'}
           </button>
-          <div className="flex items-center gap-2 opacity-90">
-            <img
-              src="/payments/mada-logo.svg"
-              alt="mada"
-              width={60}
-              height={20}
-              className="w-[60px] h-[20px] aspect-[3/1] object-contain"
-            />
-            <img
-              src="/payments/visa.svg"
-              alt="visa"
-              width={46}
-              height={20}
-              className="h-[20px] w-auto max-w-[46px] object-contain"
-            />
-            <img
-              src="/payments/mastercard.svg"
-              alt="mastercard"
-              width={46}
-              height={20}
-              className="h-[20px] w-auto max-w-[46px] object-contain"
-            />
+          <div className="flex items-center gap-1.5 opacity-80">
+            <img src="/payments/mada-logo.svg" alt="mada" className="h-3 object-contain" />
+            <img src="/payments/visa.svg" alt="visa" className="h-3 object-contain" />
+            <img src="/payments/mastercard.svg" alt="mastercard" className="h-3 object-contain" />
           </div>
         </div>
       </div>
