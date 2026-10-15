@@ -1097,7 +1097,9 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
     bestseller: true,
     newArrival: true,
     availability: (item.quantity === undefined || item.quantity > 0) ? 'in_stock' : 'out_of_stock',
+    productAttributes: Array.isArray(item.attributes) ? item.attributes : [],
     is_subscription_enabled: Boolean(item.is_subscription_enabled),
+
     subscription_discount_percentage: Number(item.subscription_discount_percentage || 10),
     subscription_frequencies: Array.isArray(item.subscription_frequencies) ? item.subscription_frequencies : ['weekly', 'biweekly', 'monthly'],
     subscription_durations: Array.isArray(item.subscription_durations) ? item.subscription_durations : ['3_months', '6_months', '12_months', 'until_cancelled'],
@@ -1541,7 +1543,7 @@ export function getCategorySlugForLocale(slug: string, targetLocale: Locale): st
 export async function getStoreCategoryBySlug(
   slug: string,
   locale?: Locale
-): Promise<{ category: Category | null; products: Product[] }> {
+): Promise<{ category: Category | null; products: Product[]; attributes?: any[] }> {
   try {
     const decodedSlug = decodeURIComponent(slug).trim();
     const activeLocale = locale || 'ar';
@@ -1587,13 +1589,19 @@ export async function getStoreCategoryBySlug(
             const category = mapLaravelCategoryToCategory(catPayload);
             const rawProducts = Array.isArray(data.products) ? data.products : [];
             const products = rawProducts.map((p: any) => mapLaravelProductToProduct(p, activeLocale));
-            return { category, products };
+            const attributes = Array.isArray(data.attributes)
+              ? data.attributes
+              : Array.isArray(data.filters?.attributes)
+              ? data.filters.attributes
+              : [];
+            return { category, products, attributes };
           }
         }
       } catch {
         // Continue to next candidate or fallback
       }
     }
+
 
     if (is404FromBackend) {
       return { category: null, products: [] };

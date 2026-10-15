@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EnglishSubcategoryPage({ params }: PageProps) {
   const { slug, subSlug } = await params;
-  const [{ category, products }, categories] = await Promise.all([
+  const [{ category, products, attributes }, categories] = await Promise.all([
     getStoreCategoryBySlug(slug, 'en'),
     getHomeSliderCategories('en'),
   ]);
@@ -83,7 +83,9 @@ export default async function EnglishSubcategoryPage({ params }: PageProps) {
         initialProducts={products}
         allCategories={categories.filter((c) => Boolean(c.image))}
         initialSubcategory={subSlug}
+        initialAttributes={attributes}
       />
     </Suspense>
   );
+
 }

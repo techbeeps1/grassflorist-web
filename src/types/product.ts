@@ -56,12 +56,33 @@ export interface Product {
     freshnessDays?: number;
     flowerTypes?: LocalizedString;
   };
+  productAttributes?: ProductAttributeItem[];
   reviewsList?: ProductReview[];
   is_subscription_enabled?: boolean;
   subscription_discount_percentage?: number;
   subscription_frequencies?: string[];
   subscription_durations?: string[];
   subscription_min_duration?: string;
+}
+
+export interface AttributeValueItem {
+  id: number;
+  name: string | LocalizedString;
+  name_en?: string;
+  name_ar?: string;
+  slug: string;
+  color_code?: string;
+  count?: number;
+}
+
+export interface ProductAttributeItem {
+  id: number;
+  name: string | LocalizedString;
+  name_en?: string;
+  name_ar?: string;
+  slug: string;
+  type?: string;
+  values: AttributeValueItem[];
 }
 
 export interface ProductFilterState {
@@ -71,5 +92,7 @@ export interface ProductFilterState {
   inStockOnly?: boolean;
   minRating?: number;
   tags?: string[];
+  selectedAttributes?: Record<string, string[]>;
   sortBy?: 'popular' | 'price-asc' | 'price-desc' | 'rating' | 'newest';
 }
+

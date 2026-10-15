@@ -15,13 +15,12 @@ import { LoadMorePagination } from '@/components/product/LoadMorePagination';
 import { SubcategoryPills } from '@/components/category/SubcategoryPills';
 import { Button } from '@/components/ui/Button';
 import { categories } from '@/data/categories';
-import { ProductFilterState } from '@/types/product';
+import { ProductFilterState, Product, ProductAttributeItem } from '@/types/product';
 import { generateBreadcrumbSchema } from '@/lib/schema';
 import { SlidersHorizontal } from 'lucide-react';
 import { Skeleton, ProductCardSkeleton } from '@/components/ui/Skeleton';
 import { CategoryPageSkeleton } from '@/components/category/CategoryPageSkeleton';
 
-import { Product } from '@/types/product';
 import { Category } from '@/types/category';
 import { decodeHtmlEntities, safeDecodeUri, translateEnglishCategoryNameToArabic } from '@/lib/wordpress/store-api';
 
@@ -37,6 +36,7 @@ interface CategoryPageViewProps {
   initialProducts?: Product[];
   allCategories?: Category[];
   initialSubcategory?: string;
+  initialAttributes?: any[];
 }
 
 function CategoryPageContent({
@@ -46,7 +46,9 @@ function CategoryPageContent({
   initialProducts,
   allCategories,
   initialSubcategory,
+  initialAttributes,
 }: CategoryPageViewProps) {
+
   const dict = getDictionary(locale);
   const searchParams = useSearchParams();
 
@@ -315,7 +317,21 @@ function CategoryPageContent({
       result = result.filter((p) => p.rating >= (filters.minRating || 0));
     }
 
+    // Faceted Attribute Filtering (e.g. Color, Flower Type, Size)
+    if (filters.selectedAttributes && Object.keys(filters.selectedAttributes).length > 0) {
+      for (const [attrSlug, selectedValues] of Object.entries(filters.selectedAttributes)) {
+        if (!selectedValues || selectedValues.length === 0) continue;
+        result = result.filter((p) => {
+          if (!Array.isArray(p.productAttributes)) return false;
+          const attr = p.productAttributes.find((a) => a.slug === attrSlug);
+          if (!attr || !Array.isArray(attr.values)) return false;
+          return attr.values.some((v) => selectedValues.includes(v.slug));
+        });
+      }
+    }
+
     switch (filters.sortBy) {
+
       case 'price-asc':
         result.sort((a, b) => a.price - b.price);
         break;
@@ -337,9 +353,142 @@ function CategoryPageContent({
     return result;
   }, [slug, activeSubcategory, filters, baseProducts, currentCategory]);
 
+  const handleAttributeToggle = useCallback((attrSlug: string, valueSlug: string) => {
+    setFilters((prev) => {
+      const currentSelected = prev.selectedAttributes?.[attrSlug] || [];
+      const newSelected = currentSelected.includes(valueSlug)
+        ? currentSelected.filter((v) => v !== valueSlug)
+        : [...currentSelected, valueSlug];
+
+      const updatedAttributes = { ...(prev.selectedAttributes || {}) };
+      if (newSelected.length > 0) {
+        updatedAttributes[attrSlug] = newSelected;
+      } else {
+        delete updatedAttributes[attrSlug];
+      }
+
+      return {
+        ...prev,
+        selectedAttributes: updatedAttributes,
+      };
+    });
+  }, []);
+
+  const availableAttributes = useMemo(() => {
+    const map = new Map<string, {
+      id: number;
+      name: any;
+      name_en?: string;
+      name_ar?: string;
+      slug: string;
+      type?: string;
+      sort_order?: number;
+      values: Map<string, {
+        id: number;
+        name: any;
+        name_en?: string;
+        name_ar?: string;
+        slug: string;
+        color_code?: string;
+        sort_order?: number;
+      }>;
+    }>();
+
+    if (Array.isArray(initialAttributes)) {
+      for (const attr of initialAttributes) {
+        if (!attr || !attr.slug) continue;
+        if (!map.has(attr.slug)) {
+          map.set(attr.slug, {
+            id: attr.id,
+            name: attr.name,
+            name_en: attr.name_en,
+            name_ar: attr.name_ar,
+            slug: attr.slug,
+            type: attr.type || 'select',
+            sort_order: attr.sort_order || 0,
+            values: new Map(),
+          });
+        }
+        const aObj = map.get(attr.slug)!;
+        if (Array.isArray(attr.values)) {
+          for (const v of attr.values) {
+            if (!v || !v.slug) continue;
+            if (!aObj.values.has(v.slug)) {
+              aObj.values.set(v.slug, {
+                id: v.id,
+                name: v.name,
+                name_en: v.name_en,
+                name_ar: v.name_ar,
+                slug: v.slug,
+                color_code: v.color_code,
+                sort_order: v.sort_order || 0,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    for (const p of baseProducts) {
+      if (!Array.isArray(p.productAttributes)) continue;
+      for (const attr of p.productAttributes) {
+        if (!attr || !attr.slug) continue;
+        if (!map.has(attr.slug)) {
+          map.set(attr.slug, {
+            id: attr.id,
+            name: attr.name,
+            name_en: attr.name_en,
+            name_ar: attr.name_ar,
+            slug: attr.slug,
+            type: attr.type || 'select',
+            values: new Map(),
+          });
+        }
+        const aObj = map.get(attr.slug)!;
+        if (Array.isArray(attr.values)) {
+          for (const v of attr.values) {
+            if (!v || !v.slug) continue;
+            if (!aObj.values.has(v.slug)) {
+              aObj.values.set(v.slug, {
+                id: v.id,
+                name: v.name,
+                name_en: v.name_en,
+                name_ar: v.name_ar,
+                slug: v.slug,
+                color_code: v.color_code,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return Array.from(map.values()).map((attr) => {
+      const valuesArray = Array.from(attr.values.values()).map((val) => {
+        const count = baseProducts.filter((p) => {
+          if (!Array.isArray(p.productAttributes)) return false;
+          return p.productAttributes.some((pa) => 
+            pa.slug === attr.slug && pa.values.some((pv) => pv.slug === val.slug)
+          );
+        }).length;
+
+        return {
+          ...val,
+          count,
+        };
+      }).filter((v) => v.count > 0);
+
+      return {
+        ...attr,
+        values: valuesArray,
+      };
+    }).filter((a) => a.values.length > 0);
+  }, [baseProducts, initialAttributes]);
+
   const displayedProducts = useMemo(() => {
     return categoryProducts.slice(0, visibleCount);
   }, [categoryProducts, visibleCount]);
+
 
   const rawCatTitle = currentCategory.name[locale] || currentCategory.name.en || '';
   const cleanCategoryName = locale === 'ar'
@@ -525,8 +674,10 @@ function CategoryPageContent({
                 activeSubcategory={activeSubcategory}
                 onSubcategorySelect={handleSubcategorySelect}
                 categorySlug={slug}
+                attributes={availableAttributes}
+                onAttributeToggle={handleAttributeToggle}
                 onReset={() => {
-                  setFilters({ category: slug, sortBy: 'popular' });
+                  setFilters({ category: slug, sortBy: 'popular', selectedAttributes: {} });
                   setActiveSubcategory(undefined);
                   if (typeof window !== 'undefined') {
                     const basePath = locale === 'ar' ? `/category/${slug}` : `/en/category/${slug}`;
@@ -572,8 +723,10 @@ function CategoryPageContent({
           activeSubcategory={activeSubcategory}
           onSubcategorySelect={handleSubcategorySelect}
           categorySlug={slug}
+          attributes={availableAttributes}
+          onAttributeToggle={handleAttributeToggle}
           onReset={() => {
-            setFilters({ category: slug, sortBy: 'popular' });
+            setFilters({ category: slug, sortBy: 'popular', selectedAttributes: {} });
             setActiveSubcategory(undefined);
             if (typeof window !== 'undefined') {
               const basePath = locale === 'ar' ? `/category/${slug}` : `/en/category/${slug}`;
@@ -582,6 +735,7 @@ function CategoryPageContent({
           }}
           productCount={categoryProducts.length}
         />
+
       </div>
     </>
   );
