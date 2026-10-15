@@ -253,8 +253,8 @@ export function MegaMenu({ locale, navItems }: MegaMenuProps) {
                             ? 'start-0'
                             : 'end-0'
                           : isRtl
-                          ? 'end-0'
-                          : 'start-0'
+                            ? 'end-0'
+                            : 'start-0'
                       )}
                       onMouseEnter={() => handleMouseEnterItem(item.id)}
                     >

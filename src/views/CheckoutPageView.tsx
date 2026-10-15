@@ -1997,9 +1997,17 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
             {/* ============================================================== */}
             <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6">
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 text-start space-y-5">
-                <h2 className="text-base sm:text-lg font-black tracking-wide text-gray-900 uppercase border-b border-gray-100 pb-3">
-                  {locale === 'ar' ? 'طلبك' : 'YOUR ORDER'}
-                </h2>
+                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <h2 className="text-base sm:text-lg font-black tracking-wide text-gray-900 uppercase">
+                    {locale === 'ar' ? 'طلبك' : 'YOUR ORDER'}
+                  </h2>
+                  <Link
+                    href={locale === 'ar' ? '/cart' : '/en/cart'}
+                    className="text-xs font-semibold text-[#546e3a] hover:underline"
+                  >
+                    {locale === 'ar' ? 'تعديل السلة' : 'Edit Cart'}
+                  </Link>
+                </div>
 
                 {/* Table Header: PRODUCT | SUBTOTAL */}
                 <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-wider text-gray-400 pb-2 border-b border-gray-100">
@@ -2057,51 +2065,29 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                             </span>
                           )}
 
-                          <div className="flex items-center gap-2 mt-1.5">
-                            {/* Qty changer */}
-                            {(() => {
-                              const itemStock = item.product?.stock !== undefined ? item.product.stock : 99;
-                              const isMaxStockReached = itemStock > 0 && item.quantity >= itemStock;
-                              const isMinReached = item.quantity <= 1;
+                          {/* Addons if any (e.g. Vase, Chocolates) */}
+                          {(item.addons?.vase || item.addons?.chocolates) && (
+                            <div className="text-[10.5px] text-gray-500 space-y-0.5 mt-0.5">
+                              {item.addons?.vase && <div>+ {item.addons.vase.name}</div>}
+                              {item.addons?.chocolates && <div>+ {item.addons.chocolates.name}</div>}
+                            </div>
+                          )}
 
-                              return (
-                                <div className="inline-flex items-center border border-gray-200 rounded-md bg-white">
-                                  <button
-                                    type="button"
-                                    disabled={isUpdating || isMinReached}
-                                    onClick={() => handleUpdateQty(item.cartItemId, item.productId, item.quantity - 1, item.quantity)}
-                                    className="px-1.5 py-0.5 text-gray-500 hover:text-black hover:bg-gray-100 text-xs disabled:opacity-25 disabled:pointer-events-none disabled:cursor-not-allowed transition-opacity"
-                                    aria-label="Decrease quantity"
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </button>
-                                  <span className="px-2 text-xs font-bold text-gray-800 tabular-nums select-none min-w-[20px] text-center">
-                                    {isUpdating ? (
-                                      <div className="w-2.5 h-2.5 border-2 border-[#435849] border-t-transparent rounded-full animate-spin inline-block align-middle" />
-                                    ) : (
-                                      item.quantity
-                                    )}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    disabled={isUpdating || isMaxStockReached}
-                                    onClick={() => handleUpdateQty(item.cartItemId, item.productId, item.quantity + 1, item.quantity)}
-                                    className="px-1.5 py-0.5 text-gray-500 hover:text-black hover:bg-gray-100 text-xs disabled:opacity-25 disabled:pointer-events-none disabled:cursor-not-allowed transition-opacity"
-                                    aria-label="Increase quantity"
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              );
-                            })()}
+                          <div className="flex items-center gap-2 mt-1.5">
+                            {/* Quantity display */}
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-xs font-medium">
+                              <span className="text-gray-500">{locale === 'ar' ? 'الكمية:' : 'Qty:'}</span>
+                              <span className="font-bold text-gray-900">{item.quantity}</span>
+                            </span>
 
                             {/* Delete X */}
                             <button
                               type="button"
                               disabled={isUpdating}
                               onClick={() => handleRemoveItem(item.cartItemId, item.productId)}
-                              className="text-gray-400 hover:text-red-500 p-1 disabled:opacity-30 disabled:pointer-events-none"
-                              title="Remove"
+                              className="text-gray-400 hover:text-red-500 p-0.5 rounded transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                              title={locale === 'ar' ? 'حذف المنتج' : 'Remove item'}
+                              aria-label={locale === 'ar' ? 'حذف المنتج' : 'Remove item'}
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
