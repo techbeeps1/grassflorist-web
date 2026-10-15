@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
-import { ProductFilterState } from '@/types/product';
+import { ProductFilterState, ProductAttributeItem } from '@/types/product';
 import { Category, Subcategory } from '@/types/category';
 import { decodeHtmlEntities } from '@/lib/wordpress/store-api';
 import { RotateCcw, Check, ChevronDown, ChevronUp } from 'lucide-react';
@@ -20,6 +20,8 @@ interface CategoryFiltersProps {
   activeSubcategory?: string;
   onSubcategorySelect?: (subSlug?: string) => void;
   categorySlug?: string;
+  attributes?: ProductAttributeItem[];
+  onAttributeToggle?: (attrSlug: string, valueSlug: string) => void;
   className?: string;
 }
 
@@ -34,6 +36,157 @@ function cleanTitle(str?: string): string {
   return cleaned;
 }
 
+function AttributeFilterBlock({
+  attr,
+  locale,
+  selectedValues,
+  onToggle,
+}: {
+  attr: ProductAttributeItem;
+  locale: Locale;
+  selectedValues: string[];
+  onToggle: (valSlug: string) => void;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const DEFAULT_VISIBLE = 8;
+  const listRef = useRef<HTMLDivElement>(null);
+  const [collapsedHeight, setCollapsedHeight] = useState<number | undefined>(undefined);
+
+  const rawTitle = typeof attr.name === 'object' && attr.name !== null
+    ? (attr.name[locale] || attr.name.en || attr.name.ar || attr.slug)
+    : (locale === 'ar' ? (attr.name_ar || attr.name) : (attr.name_en || attr.name));
+  const attrTitle = cleanTitle(rawTitle);
+
+  useEffect(() => {
+    if (!isExpanded && listRef.current) {
+      const h = listRef.current.offsetHeight || listRef.current.scrollHeight;
+      if (h > 0) {
+        setCollapsedHeight(h);
+      }
+    }
+  }, [isExpanded, attr.values]);
+
+  const visibleValues = isExpanded
+    ? attr.values
+    : attr.values.slice(0, DEFAULT_VISIBLE);
+
+  return (
+    <div className="pb-3 border-b border-border">
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="text-xs font-bold text-text-main uppercase tracking-wider">
+          {attrTitle}
+        </h4>
+        {selectedValues.length > 0 && (
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+            {selectedValues.length}
+          </span>
+        )}
+      </div>
+
+      <div
+        ref={listRef}
+        className={cn(
+          'space-y-0.5',
+          isExpanded && 'overflow-y-auto pe-1 custom-scrollbar'
+        )}
+        style={
+          isExpanded
+            ? {
+                height: collapsedHeight ? `${collapsedHeight}px` : '290px',
+                maxHeight: collapsedHeight ? `${collapsedHeight}px` : '290px',
+              }
+            : undefined
+        }
+      >
+        {visibleValues.map((val) => {
+          const isSelected = selectedValues.includes(val.slug);
+          const rawValName = typeof val.name === 'object' && val.name !== null
+            ? (val.name[locale] || val.name.en || val.name.ar || val.slug)
+            : (locale === 'ar' ? (val.name_ar || val.name) : (val.name_en || val.name));
+          const valDisplayName = cleanTitle(rawValName);
+
+          return (
+            <button
+              key={val.id || val.slug}
+              type="button"
+              onClick={() => onToggle(val.slug)}
+              className={cn(
+                'w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer text-start outline-none group',
+                isSelected
+                  ? 'bg-primary/10 text-primary font-bold'
+                  : 'text-text-secondary hover:bg-surface-subtle hover:text-text-main'
+              )}
+            >
+              {/* Checkbox box (Floward style) */}
+              <div
+                className={cn(
+                  'w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0',
+                  isSelected
+                    ? 'bg-primary border-primary text-white shadow-xs'
+                    : 'border-border/80 group-hover:border-primary/50 bg-surface'
+                )}
+              >
+                {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+              </div>
+
+              {/* Color swatch circle if color_code exists */}
+              {val.color_code && (
+                <span
+                  className="w-3.5 h-3.5 rounded-full border border-black/15 shrink-0 shadow-xs"
+                  style={{ backgroundColor: val.color_code }}
+                />
+              )}
+
+              {/* Value Label */}
+              <span className="truncate">{valDisplayName}</span>
+
+              {/* Product Count (e.g. (67)) */}
+              {typeof val.count === 'number' && (
+                <span className={cn(
+                  'ms-auto text-[11px] font-normal shrink-0',
+                  isSelected ? 'text-primary font-semibold' : 'text-text-muted/70'
+                )}>
+                  ({val.count})
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Expand / Collapse toggle */}
+      {attr.values.length > DEFAULT_VISIBLE && (
+        <button
+          type="button"
+          onClick={() => {
+            if (isExpanded && listRef.current) {
+              listRef.current.scrollTop = 0;
+            }
+            setIsExpanded(!isExpanded);
+          }}
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold text-primary hover:text-primary-dark transition-colors cursor-pointer border border-dashed border-primary/30 rounded-xl hover:bg-primary/5 mt-2"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp className="w-3.5 h-3.5" />
+              <span>{locale === 'ar' ? 'عرض أقل' : 'Show Less'}</span>
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-3.5 h-3.5" />
+              <span>
+                {locale === 'ar'
+                  ? `+ المزيد (${attr.values.length - DEFAULT_VISIBLE})`
+                  : `+ More (${attr.values.length - DEFAULT_VISIBLE})`}
+              </span>
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function CategoryFilters({
   locale,
   filters,
@@ -45,6 +198,8 @@ export function CategoryFilters({
   activeSubcategory,
   onSubcategorySelect,
   categorySlug,
+  attributes,
+  onAttributeToggle,
   className,
 }: CategoryFiltersProps) {
   const dict = getDictionary(locale);
@@ -52,8 +207,6 @@ export function CategoryFilters({
   const DEFAULT_VISIBLE_COUNT = 8;
   const subListRef = useRef<HTMLDivElement>(null);
   const [collapsedHeight, setCollapsedHeight] = useState<number | undefined>(undefined);
-
-
 
   // Subcategories expand / collapse logic
   const [isSubExpanded, setIsSubExpanded] = useState(() => {
@@ -114,18 +267,27 @@ export function CategoryFilters({
     { label: locale === 'ar' ? 'أكثر من 750 ر.س' : 'Above 750 ر.س', min: 750, max: undefined },
   ];
 
-  const allProductsUrl = locale === 'ar' ? '/products' : '/en/products';
-
   const hasPriceFilter = Boolean(
     (typeof filters?.minPrice === 'number' && !isNaN(filters.minPrice)) ||
     (typeof filters?.maxPrice === 'number' && !isNaN(filters.maxPrice))
   );
 
-  const hasActiveFilters = Boolean(hasPriceFilter || Boolean(activeSubcategory));
+  const hasSelectedAttributes = Boolean(
+    filters.selectedAttributes &&
+    Object.values(filters.selectedAttributes).some((vals) => vals && vals.length > 0)
+  );
+
+  const hasActiveFilters = Boolean(hasPriceFilter || Boolean(activeSubcategory) || hasSelectedAttributes);
 
   const handleResetFilters = () => {
     handlePriceChange(undefined, undefined);
     onSubcategorySelect?.(undefined);
+    onFilterChange({
+      ...filters,
+      minPrice: undefined,
+      maxPrice: undefined,
+      selectedAttributes: {},
+    });
     onReset();
   };
 
@@ -262,8 +424,22 @@ export function CategoryFilters({
         </div>
       )}
 
+      {/* Dynamic Custom Attributes Filter (e.g., Color, Size, Flower Type) */}
+      {attributes && attributes.length > 0 && attributes.map((attr) => {
+        const selectedForAttr = filters.selectedAttributes?.[attr.slug] || [];
+        return (
+          <AttributeFilterBlock
+            key={attr.id || attr.slug}
+            attr={attr}
+            locale={locale}
+            selectedValues={selectedForAttr}
+            onToggle={(valSlug) => onAttributeToggle?.(attr.slug, valSlug)}
+          />
+        );
+      })}
+
       {/* Price Range Filter (Compact 2-col Grid) */}
-      <div className={cn(subcategories && subcategories.length > 0 && 'pt-3 border-t border-border')}>
+      <div>
         <h4 className="text-xs font-bold text-text-main uppercase tracking-wider mb-2.5">
           {dict.category.priceRange}
         </h4>

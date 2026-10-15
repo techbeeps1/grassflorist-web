@@ -16,6 +16,9 @@ interface LanguageSwitcherProps {
 export function LanguageSwitcher({ currentLocale, className }: LanguageSwitcherProps) {
   const pathname = usePathname() || '/';
   const [currentPath, setCurrentPath] = useState(pathname);
+  const [alternatePath, setAlternatePath] = useState<string | null>(null);
+
+  const targetLocale: Locale = currentLocale === 'ar' ? 'en' : 'ar';
 
   useEffect(() => {
     setCurrentPath(typeof window !== 'undefined' ? window.location.pathname : pathname);
@@ -28,26 +31,41 @@ export function LanguageSwitcher({ currentLocale, className }: LanguageSwitcherP
       }
     };
 
+    const handleAlternateChange = () => {
+      if (typeof window !== 'undefined') {
+        const alts = (window as any).__ALTERNATE_PATHS__;
+        if (alts && alts[targetLocale]) {
+          setAlternatePath(alts[targetLocale]);
+          return;
+        }
+      }
+      setAlternatePath(null);
+    };
+
+    handleAlternateChange();
+
     window.addEventListener('popstate', handleLocationChange);
     window.addEventListener('locationchange', handleLocationChange);
+    window.addEventListener('alternatepathschange', handleAlternateChange);
 
     return () => {
       window.removeEventListener('popstate', handleLocationChange);
       window.removeEventListener('locationchange', handleLocationChange);
+      window.removeEventListener('alternatepathschange', handleAlternateChange);
     };
-  }, []);
+  }, [targetLocale]);
 
-  const targetLocale: Locale = currentLocale === 'ar' ? 'en' : 'ar';
-  const targetPath = getLocalizedPath(currentPath, targetLocale);
+  const targetPath = alternatePath || getLocalizedPath(currentPath, targetLocale);
 
   // Label to show: if on Arabic, show 'English'; if on English, show 'العربية'
   const displayLabel = targetLocale === 'ar' ? 'العربية' : 'English';
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (typeof window !== 'undefined') {
+      const freshAlt = (window as any).__ALTERNATE_PATHS__?.[targetLocale];
       const freshPath = window.location.pathname;
-      const freshTarget = getLocalizedPath(freshPath, targetLocale);
-      if (freshTarget && freshTarget !== targetPath) {
+      const freshTarget = freshAlt || getLocalizedPath(freshPath, targetLocale);
+      if (freshTarget) {
         e.preventDefault();
         window.location.href = freshTarget;
       }
@@ -71,4 +89,3 @@ export function LanguageSwitcher({ currentLocale, className }: LanguageSwitcherP
     </Link>
   );
 }
-

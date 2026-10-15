@@ -52,7 +52,7 @@ export default async function ArabicCategoryPage({ params }: PageProps) {
       redirect(`/category/${encodeURIComponent(parts[0])}/${encodeURIComponent(parts[1])}`);
     }
   }
-  const [{ category, products }, categories] = await Promise.all([
+  const [{ category, products, attributes }, categories] = await Promise.all([
     getStoreCategoryBySlug(slug, 'ar'),
     getHomeSliderCategories('ar'),
   ]);
@@ -69,7 +69,9 @@ export default async function ArabicCategoryPage({ params }: PageProps) {
         initialCategory={category}
         initialProducts={products}
         allCategories={categories.filter((c) => Boolean(c.image))}
+        initialAttributes={attributes}
       />
     </Suspense>
   );
+
 }

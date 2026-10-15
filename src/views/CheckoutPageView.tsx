@@ -60,6 +60,7 @@ import {
   RotateCw,
   Loader2,
   Sparkles,
+  Trash2,
 } from 'lucide-react';
 
 import { CountryCodePicker, ALL_COUNTRY_CODES } from '@/components/checkout/CountryCodePicker';
@@ -983,14 +984,11 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     e.preventDefault();
 
     if (isRestrictedBlocked) {
-      const bannerEl = document.getElementById('restricted-category-banner');
-      if (bannerEl) {
-        bannerEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
       setPaymentNotification({
         type: 'error',
         message: restrictionMessage || (locale === 'ar' ? 'لا يمكن إتمام الطلب لأن السلة تحتوي على منتجات مقيدة بدون منتج رئيسي (مثل الزهور)' : 'Cannot complete order: cart contains restricted items without a main product (e.g. flowers)'),
       });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -1375,7 +1373,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
           </div>
         )}
 
-        {/* 🛑 Restricted Category Warning Banner matching Floward style */}
+        {/* 🛑 Restricted Category Notice matching Grass website theme */}
         {isRestrictedBlocked && (
           <div id="restricted-category-banner" className="mb-6">
             <RestrictedCartBanner message={restrictionMessage} locale={locale} />
@@ -2104,10 +2102,14 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       );
                     }
 
+                    const itemStock = item.product.stock !== undefined ? item.product.stock : 99;
+                    const isOutOfStock = itemStock <= 0;
+                    const isMaxStockReached = item.quantity >= itemStock;
+
                     return (
-                      <div key={item.cartItemId} className={`py-3 flex items-center gap-3 transition-colors ${isUpdating ? 'opacity-80' : ''}`}>
+                      <div key={item.cartItemId} className={`py-3 flex items-center gap-3 transition-colors ${isUpdating ? 'opacity-85' : ''}`}>
                         {/* Image */}
-                        <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-gray-200 bg-gray-50">
+                        <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-[#EAE2D5] bg-white shadow-2xs">
                           <Image
                             src={formatStorageUrl(item.product.thumbnail)}
                             alt={getLocalizedProductName(item.product.name, locale)}
@@ -2120,7 +2122,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
                         {/* Details & Qty */}
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-xs font-bold text-gray-800 truncate">
+                          <h4 className="text-xs font-bold text-gray-900 truncate">
                             {getLocalizedProductName(item.product.name, locale)}
                           </h4>
 
@@ -2140,23 +2142,48 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                             </div>
                           )}
 
-                          <div className="flex items-center gap-2 mt-1.5">
-                            {/* Quantity display */}
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-xs font-medium">
-                              <span className="text-gray-500">{locale === 'ar' ? 'الكمية:' : 'Qty:'}</span>
-                              <span className="font-bold text-gray-900">{item.quantity}</span>
-                            </span>
+                          <div className="flex items-center gap-2 mt-2">
+                            {/* Quantity Stepper (Same luxury pill design as Cart drawer) */}
+                            <div className={`inline-flex items-center h-8 rounded-full bg-white border border-[#DDD3C4] shadow-xs px-1 ${isUpdating ? 'opacity-70' : ''}`}>
+                              <button
+                                type="button"
+                                disabled={isUpdating || item.quantity <= 1}
+                                onClick={() => handleUpdateQty(item.cartItemId, item.productId, item.quantity - 1, item.quantity)}
+                                aria-label={locale === 'ar' ? 'تقليل الكمية' : 'Decrease quantity'}
+                                className="w-6 h-6 rounded-full flex items-center justify-center text-[#435849] hover:bg-[#F2ECE3] active:scale-90 transition-all disabled:opacity-25 disabled:pointer-events-none cursor-pointer"
+                              >
+                                <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+                              </button>
 
-                            {/* Delete X */}
+                              <span className="min-w-[28px] text-center text-xs font-extrabold text-[#1E1915] tabular-nums select-none px-1">
+                                {isUpdating ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#435849] mx-auto" />
+                                ) : (
+                                  item.quantity
+                                )}
+                              </span>
+
+                              <button
+                                type="button"
+                                disabled={isUpdating || isOutOfStock || isMaxStockReached}
+                                onClick={() => handleUpdateQty(item.cartItemId, item.productId, item.quantity + 1, item.quantity)}
+                                aria-label={locale === 'ar' ? 'زيادة الكمية' : 'Increase quantity'}
+                                className="w-6 h-6 rounded-full flex items-center justify-center text-[#435849] hover:bg-[#F2ECE3] active:scale-90 transition-all disabled:opacity-25 disabled:pointer-events-none cursor-pointer"
+                              >
+                                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                              </button>
+                            </div>
+
+                            {/* Delete item button */}
                             <button
                               type="button"
                               disabled={isUpdating}
                               onClick={() => handleRemoveItem(item.cartItemId, item.productId)}
-                              className="text-gray-400 hover:text-red-500 p-0.5 rounded transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                              className="text-[#9E9285] hover:text-red-600 p-1 rounded-full hover:bg-red-50/80 transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                               title={locale === 'ar' ? 'حذف المنتج' : 'Remove item'}
                               aria-label={locale === 'ar' ? 'حذف المنتج' : 'Remove item'}
                             >
-                              <X className="w-3.5 h-3.5" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
@@ -2164,16 +2191,21 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                         {/* Item Total (both SAR & USD) */}
                         <div dir="ltr" className="text-xs font-bold text-gray-900 shrink-0 text-end">
                           {isUpdating ? (
-                            <div className="h-4 w-12 bg-gray-200 rounded animate-pulse ms-auto" />
-                          ) : (
-                            <div className="flex items-center gap-1 justify-end">
-                              <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
-                              <span>{item.itemTotal} SAR</span>
+                            <div className="space-y-1">
+                              <div className="h-4 w-14 bg-gray-200 rounded animate-pulse ms-auto" />
+                              <div className="h-3 w-10 bg-gray-100 rounded animate-pulse ms-auto" />
                             </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-1 justify-end">
+                                <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
+                                <span>{item.itemTotal} SAR</span>
+                              </div>
+                              <div className="text-[10px] text-gray-500 font-medium">
+                                ${(item.itemTotal * sarToUsdRate).toFixed(2)} USD
+                              </div>
+                            </>
                           )}
-                          <div className="text-[10px] text-gray-500 font-medium">
-                            ${(item.itemTotal * sarToUsdRate).toFixed(2)} USD
-                          </div>
                         </div>
                       </div>
                     );
@@ -2647,13 +2679,6 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                     <p className="text-[11px] text-red-500 mt-1">{errors.agreeTerms}</p>
                   )}
                 </div>
-
-                {/* 🛑 Restricted Category Warning Banner in Order Summary */}
-                {isRestrictedBlocked && (
-                  <div className="pt-2">
-                    <RestrictedCartBanner message={restrictionMessage} locale={locale} showBrowseLink={true} />
-                  </div>
-                )}
 
                 {/* Big Place Order Button matching WordPress style */}
                 <button

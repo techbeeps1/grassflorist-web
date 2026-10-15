@@ -58,20 +58,20 @@ export function MakeItPerfectModal({ isOpen, onClose, locale }: MakeItPerfectMod
         {/* Close Button Top Right/Left */}
         <button
           onClick={onClose}
-          className="absolute top-4 end-4 z-20 w-9 h-9 rounded-full bg-surface-subtle hover:bg-border text-text-muted hover:text-text-main flex items-center justify-center transition-colors cursor-pointer"
+          className="absolute top-3.5 end-3.5 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-surface-subtle hover:bg-border/80 text-text-muted hover:text-text-main flex items-center justify-center transition-all cursor-pointer hover:rotate-90 duration-200 shadow-2xs"
           aria-label="Close modal"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
         {/* Modal Content */}
-        <div className="p-4 sm:p-6 max-h-[85vh] overflow-y-auto scrollbar-thin">
-          <MakeItPerfectSection locale={locale} compact />
+        <div className="p-4 sm:p-5 max-h-[85vh] overflow-y-auto no-scrollbar">
+          <MakeItPerfectSection locale={locale} compact itemsVisible={5} />
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 sm:px-6 bg-surface-subtle border-t border-border flex items-center justify-between gap-3">
-          <p className="text-xs text-text-muted hidden sm:block">
+        <div className="p-3.5 sm:px-6 bg-surface-subtle/60 border-t border-border/80 flex items-center justify-between gap-3">
+          <p className="text-xs text-text-muted hidden sm:block font-medium">
             {locale === 'ar'
               ? 'يمكنك إضافة الشوكولاتة والبالونات بضغطة واحدة قبل إتمام الطلب.'
               : 'You can add chocolates or balloons with one click before checkout.'}
@@ -81,7 +81,7 @@ export function MakeItPerfectModal({ isOpen, onClose, locale }: MakeItPerfectMod
             variant="primary"
             size="md"
             onClick={onClose}
-            className="w-full sm:w-auto font-bold ms-auto"
+            className="w-full sm:w-auto font-bold ms-auto rounded-full px-6 py-2.5 shadow-sm text-sm hover:shadow-md transition-all active:scale-[0.98]"
           >
             <span>{locale === 'ar' ? 'متابعة الدفع' : 'Continue to Checkout'}</span>
             <ArrowIcon className="w-4 h-4 ms-1.5" />

@@ -147,7 +147,7 @@ export function CartPageView({ locale }: CartPageViewProps) {
           </p>
         </div>
 
-        {/* 🛑 Restricted Category Warning Banner matching user reference */}
+        {/* 🛑 Restricted Category Notice matching Grass website theme */}
         {hasItemsOrPending && isRestrictedBlocked && (
           <div className="mb-6">
             <RestrictedCartBanner message={restrictionMessage} locale={locale} />
@@ -322,7 +322,7 @@ export function CartPageView({ locale }: CartPageViewProps) {
               </div>
 
               {/* 🌟 Make it perfect (Cart Cross-Sell Add-ons) */}
-              <MakeItPerfectSection locale={locale} />
+              <MakeItPerfectSection locale={locale} itemsVisible={4} />
             </div>
 
             {/* Order Summary Column */}
@@ -438,13 +438,6 @@ export function CartPageView({ locale }: CartPageViewProps) {
                     </div>
                   </div>
                 </div>
-
-                {/* 🛑 Restricted Category Warning Banner in Summary */}
-                {isRestrictedBlocked && (
-                  <div className="pt-2">
-                    <RestrictedCartBanner message={restrictionMessage} locale={locale} showBrowseLink={true} />
-                  </div>
-                )}
 
                 {/* Checkout CTA */}
                 {isRestrictedBlocked ? (

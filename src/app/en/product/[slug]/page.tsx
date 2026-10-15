@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import { ProductDetailPageView } from '@/views/ProductDetailPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 import { getStoreProductBySlug, getStoreProducts, getStoreProductDetails } from '@/lib/wordpress/store-api';
@@ -15,21 +16,23 @@ export const revalidate = 0;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getStoreProductBySlug(slug, 'en');
+  const decodedSlug = decodeURIComponent(slug);
+  const product = await getStoreProductBySlug(decodedSlug, 'en');
 
   if (!product) {
     return generatePageMetadata({
       title: 'Product Not Found',
-      path: `/product/${slug}`,
+      path: `/en/product/${slug}`,
       locale: 'en',
       noIndex: true,
     });
   }
 
+  const canonicalSlug = product.slug?.en || decodedSlug;
   return generatePageMetadata({
     title: product.seoTitle.en,
     description: product.seoDescription.en,
-    path: `/product/${slug}`,
+    path: `/en/product/${canonicalSlug}`,
     locale: 'en',
     image: product.thumbnail,
   });
@@ -39,6 +42,11 @@ export default async function EnglishProductDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
   const { product, relatedProducts: apiRelated } = await getStoreProductDetails(decodedSlug, 'en');
+
+  // If accessed with Arabic slug or alternative slug, redirect to official English slug
+  if (product && product.slug?.en && decodedSlug !== product.slug.en) {
+    redirect(`/en/product/${encodeURIComponent(product.slug.en)}`);
+  }
 
   let relatedProducts = apiRelated && apiRelated.length > 0 ? apiRelated : undefined;
   if (!relatedProducts && product?.categorySlug) {
@@ -65,3 +73,4 @@ export default async function EnglishProductDetailPage({ params }: PageProps) {
     </Suspense>
   );
 }
+

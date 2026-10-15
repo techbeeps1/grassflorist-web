@@ -4,7 +4,7 @@ import React from 'react';
 import { Drawer } from '@/components/ui/Drawer';
 import { CategoryFilters } from './CategoryFilters';
 import { Button } from '@/components/ui/Button';
-import { ProductFilterState } from '@/types/product';
+import { ProductFilterState, ProductAttributeItem } from '@/types/product';
 import { type Locale } from '@/config/site';
 import { getDictionary } from '@/i18n/get-dictionary';
 
@@ -24,6 +24,8 @@ interface MobileFilterDrawerProps {
   activeSubcategory?: string;
   onSubcategorySelect?: (subSlug?: string) => void;
   categorySlug?: string;
+  attributes?: ProductAttributeItem[];
+  onAttributeToggle?: (attrSlug: string, valueSlug: string) => void;
 }
 
 export function MobileFilterDrawer({
@@ -40,6 +42,8 @@ export function MobileFilterDrawer({
   activeSubcategory,
   onSubcategorySelect,
   categorySlug,
+  attributes,
+  onAttributeToggle,
 }: MobileFilterDrawerProps) {
   const dict = getDictionary(locale);
 
@@ -48,7 +52,12 @@ export function MobileFilterDrawer({
     (typeof filters?.maxPrice === 'number' && !isNaN(filters.maxPrice))
   );
 
-  const hasActiveFilters = Boolean(hasPriceFilter || Boolean(activeSubcategory));
+  const hasSelectedAttributes = Boolean(
+    filters.selectedAttributes &&
+    Object.values(filters.selectedAttributes).some((vals) => vals && vals.length > 0)
+  );
+
+  const hasActiveFilters = Boolean(hasPriceFilter || Boolean(activeSubcategory) || hasSelectedAttributes);
 
   return (
     <Drawer
@@ -63,7 +72,12 @@ export function MobileFilterDrawer({
               variant="outline"
               size="md"
               onClick={() => {
-                onFilterChange({ ...filters, minPrice: undefined, maxPrice: undefined });
+                onFilterChange({
+                  ...filters,
+                  minPrice: undefined,
+                  maxPrice: undefined,
+                  selectedAttributes: {},
+                });
                 onReset();
               }}
               className="flex-1 font-bold text-xs"
@@ -93,6 +107,8 @@ export function MobileFilterDrawer({
         activeSubcategory={activeSubcategory}
         onSubcategorySelect={onSubcategorySelect}
         categorySlug={categorySlug}
+        attributes={attributes}
+        onAttributeToggle={onAttributeToggle}
       />
     </Drawer>
   );

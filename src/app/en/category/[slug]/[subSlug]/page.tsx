@@ -46,12 +46,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EnglishSubcategoryPage({ params }: PageProps) {
   const { slug, subSlug } = await params;
-  const [{ category, products }, categories] = await Promise.all([
+  const [{ category, products, attributes }, categories] = await Promise.all([
     getStoreCategoryBySlug(slug, 'en'),
     getHomeSliderCategories('en'),
   ]);
 
   if (!category || (category as any).is_visible === false) {
+    notFound();
+  }
+
+  // Conflict resolution: verify subSlug belongs to this category
+  const decodedSubSlug = decodeURIComponent(subSlug).toLowerCase().trim();
+  const isDirectSub = category.subcategories?.some((s) => {
+    const sSlug = decodeURIComponent(s.slug).toLowerCase().trim();
+    return sSlug === decodedSubSlug || s.slug.toLowerCase().trim() === decodedSubSlug;
+  });
+
+  if (!isDirectSub) {
+    // If slug is a child category that has a parent (e.g. latex-balloons's parent is balloons),
+    // and subSlug is actually a sibling or valid category under that parent,
+    // redirect to canonical URL: /en/category/[parentSlug]/[subSlug] (e.g. /en/category/balloons/numbers-ballons)
+    if (category.parent?.slug) {
+      const parentSlug = category.parent.slug_en || category.parent.slug;
+      const { redirect } = await import('next/navigation');
+      redirect(`/en/category/${parentSlug}/${subSlug}`);
+    }
     notFound();
   }
 
@@ -64,7 +83,9 @@ export default async function EnglishSubcategoryPage({ params }: PageProps) {
         initialProducts={products}
         allCategories={categories.filter((c) => Boolean(c.image))}
         initialSubcategory={subSlug}
+        initialAttributes={attributes}
       />
     </Suspense>
   );
+
 }

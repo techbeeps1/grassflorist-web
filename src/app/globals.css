@@ -392,6 +392,15 @@ select:-webkit-autofill {
   scrollbar-color: #D5C6B5 transparent;
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .custom-scrollbar::-webkit-scrollbar,
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
