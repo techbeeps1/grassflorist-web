@@ -108,10 +108,10 @@ export function SearchBar({ locale }: SearchBarProps) {
           onFocus={() => setIsOpen(true)}
           placeholder={dict.header.searchPlaceholder}
           aria-label={dict.header.searchPlaceholder}
-          className="w-full h-9 sm:h-10 ps-9 sm:ps-10 pe-9 text-xs sm:text-[13px] bg-surface-subtle hover:bg-surface border border-border/80 focus:border-primary focus:bg-surface rounded-full transition-all text-text-main placeholder:text-text-muted/80 focus:outline-none focus:ring-2 focus:ring-primary/10 shadow-2xs"
+          className="w-full h-10 ps-9 sm:ps-10 pe-9 pt-[2.5px] pb-0 text-xs sm:text-[13px] leading-normal bg-surface-subtle hover:bg-surface border border-border/80 focus:border-primary focus:bg-surface rounded-full transition-all text-text-main placeholder:text-text-muted/80 placeholder:leading-normal focus:outline-none focus:ring-2 focus:ring-primary/10 shadow-2xs"
         />
 
-        <div className="absolute start-3.5 flex items-center pointer-events-none text-text-muted">
+        <div className="absolute inset-y-0 start-3.5 flex items-center pointer-events-none text-text-muted">
           {isFetching ? (
             <Loader2 className="w-4 h-4 animate-spin text-primary" />
           ) : (
@@ -123,7 +123,7 @@ export function SearchBar({ locale }: SearchBarProps) {
           <button
             type="button"
             onClick={handleClear}
-            className="absolute end-3 p-1 text-text-muted hover:text-text-main rounded-full cursor-pointer"
+            className="absolute inset-y-0 end-2.5 my-auto h-6 w-6 flex items-center justify-center text-text-muted hover:text-text-main rounded-full cursor-pointer"
             aria-label="Clear search query"
           >
             <X className="w-3.5 h-3.5" />

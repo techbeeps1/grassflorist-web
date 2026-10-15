@@ -166,6 +166,7 @@ html {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: clip;
   font-family: var(--font-tajawal), "Tajawal", Arial, Helvetica, sans-serif;
+  touch-action: manipulation;
 }
 
 /* Global unified font family for Arabic and English */
@@ -244,6 +245,15 @@ select:focus,
 select:focus-visible {
   outline: none !important;
   box-shadow: none;
+}
+
+/* Prevent iOS Safari and Chrome Android from auto-zooming on input focus (requires font-size >= 16px) */
+@media screen and (max-width: 768px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
 }
 
 /* Hide scrollbar for clean horizontal story / category scroll */

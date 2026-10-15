@@ -131,12 +131,12 @@ function SearchPageContent({ locale }: SearchPageViewProps) {
               value={queryInput}
               onChange={(e) => setQueryInput(e.target.value)}
               placeholder={dict.header.searchPlaceholder}
-              className="w-full h-12 ps-12 pe-28 text-sm bg-surface border border-border rounded-full focus:outline-none focus:border-primary shadow-xs"
+              className="w-full h-12 ps-12 pe-28 pt-[2px] pb-0 text-sm leading-normal bg-surface border border-border rounded-full focus:outline-none focus:border-primary shadow-xs"
             />
-            <Search className="w-5 h-5 text-text-muted absolute start-4 pointer-events-none" />
+            <Search className="w-5 h-5 text-text-muted absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none" />
             <button
               type="submit"
-              className="absolute end-1.5 px-5 py-2 bg-primary text-white text-xs font-bold rounded-full hover:bg-primary-hover transition-colors cursor-pointer"
+              className="absolute end-1.5 top-1/2 -translate-y-1/2 px-5 py-2 bg-primary text-white text-xs font-bold rounded-full hover:bg-primary-hover transition-colors cursor-pointer"
             >
               {locale === 'ar' ? 'بحث' : 'Search'}
             </button>

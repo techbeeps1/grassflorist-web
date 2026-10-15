@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { tajawal } from '../fonts';
 import '../globals.css';
 import { StoreProvider } from '@/store/provider';
@@ -12,6 +12,13 @@ import { WhatsAppFloatingButton } from '@/components/common/WhatsAppFloatingButt
 import { MobileBottomBar } from '@/components/layout/MobileBottomBar';
 import { seoConfig } from '@/config/seo';
 import { siteConfig } from '@/config/site';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
