@@ -110,6 +110,27 @@ function CategoryPageContent({
     setIsNavigatingCategory(false);
   }, [slug]);
 
+  // Register alternate language URLs for the LanguageSwitcher (AR category slug <-> EN category slug)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && currentCategory) {
+      const arSlug = currentCategory.slug_ar || currentCategory.slug;
+      const enSlug = currentCategory.slug_en || currentCategory.slug;
+      if (arSlug && enSlug) {
+        (window as any).__ALTERNATE_PATHS__ = {
+          ar: `/category/${encodeURIComponent(arSlug)}`,
+          en: `/en/category/${encodeURIComponent(enSlug)}`,
+        };
+        window.dispatchEvent(new Event('alternatepathschange'));
+      }
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).__ALTERNATE_PATHS__;
+        window.dispatchEvent(new Event('alternatepathschange'));
+      }
+    };
+  }, [currentCategory]);
+
   const subcategorySectionRef = useRef<HTMLDivElement>(null);
 
   const scrollToProductsIfNeeded = useCallback(() => {

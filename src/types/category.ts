@@ -12,6 +12,8 @@ export interface Category {
   id: string;
   name: LocalizedString;
   slug: string;
+  slug_ar?: string;
+  slug_en?: string;
   description: LocalizedString;
   image: string;
   icon?: string;

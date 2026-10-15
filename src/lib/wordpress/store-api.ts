@@ -1062,8 +1062,8 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
       en: nameEn,
     },
     slug: {
-      ar: item.slug_ar || item.slug,
-      en: item.slug,
+      ar: safeDecodeUri(item.slug_ar || item.slug || ''),
+      en: safeDecodeUri(item.slug_en || item.slug || ''),
     },
     description: {
       ar: descAr,
@@ -1234,6 +1234,8 @@ export function mapLaravelCategoryToCategory(cat: any): Category {
       en: nameEn,
     },
     slug: decodedSlug,
+    slug_ar: slugAr || undefined,
+    slug_en: slugEn || undefined,
     description: {
       ar: typeof cat.description === 'object' ? cat.description?.ar || nameAr : cat.description || nameAr,
       en: typeof cat.description === 'object' ? cat.description?.en || nameEn : cat.description || nameEn,

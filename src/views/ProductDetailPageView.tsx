@@ -67,7 +67,29 @@ export function ProductDetailPageView({
   const { isInWishlist: checkWishlist, toggleWishlist } = useWishlist(locale);
   const isInWishlist = checkWishlist(product.id);
 
+  // Register alternate language URLs for the LanguageSwitcher (AR slug <-> EN slug)
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && product) {
+      const arSlug = product.slug?.ar || slug;
+      const enSlug = product.slug?.en || slug;
+      if (arSlug && enSlug) {
+        (window as any).__ALTERNATE_PATHS__ = {
+          ar: `/product/${encodeURIComponent(arSlug)}`,
+          en: `/en/product/${encodeURIComponent(enSlug)}`,
+        };
+        window.dispatchEvent(new Event('alternatepathschange'));
+      }
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).__ALTERNATE_PATHS__;
+        window.dispatchEvent(new Event('alternatepathschange'));
+      }
+    };
+  }, [product, slug]);
+
   const [quantity, setQuantity] = useState(1);
+
   const [isAdding, setIsAdding] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
 
@@ -197,15 +219,31 @@ export function ProductDetailPageView({
 
             {/* Product Details & Ordering Column */}
             <div className="lg:col-span-6 space-y-6 text-start">
-              {/* Category & Title */}
+              {/* Category, SKU & Title */}
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-secondary block mb-1">
-                  {displayCategory}
-                </span>
+                <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {product.bestseller && (
+                      <span className="text-[11px] font-extrabold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                        {locale === 'ar' ? 'الأكثر مبيعاً' : 'Best Seller'}
+                      </span>
+                    )}
+                    <span className="text-xs font-bold uppercase tracking-wider text-secondary">
+                      {displayCategory}
+                    </span>
+                  </div>
+                  {product.sku && (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-muted bg-surface-subtle px-2.5 py-0.5 rounded-md border border-border/70">
+                      <span>{locale === 'ar' ? 'رمز المنتج:' : 'SKU:'}</span>
+                      <span className="font-bold text-text-main select-all">{product.sku}</span>
+                    </span>
+                  )}
+                </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main leading-tight">
                   {displayName}
                 </h1>
               </div>
+
 
               {/* Pricing Box */}
               <div className="p-4 rounded-2xl bg-surface-subtle border border-border/80 flex items-center justify-between">
