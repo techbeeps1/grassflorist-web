@@ -86,7 +86,7 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200">
       <div
-        className="bg-white rounded-2xl shadow-2xl max-w-xl sm:max-w-2xl w-full overflow-hidden border border-gray-100 flex flex-col max-h-[92vh]"
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl sm:max-w-3xl md:max-w-[800px] w-full overflow-hidden border border-gray-100 flex flex-col max-h-[92vh]"
         dir={locale === 'ar' ? 'rtl' : 'ltr'}
       >
         {/* Header */}
@@ -141,25 +141,13 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
           </div>
         </div>
 
-        {/* Style override to ensure HyperPay 3DS iframe and form have full sufficient width */}
+        {/* Style override strictly for 3DS response/approve iframe without touching card input fields */}
         <style dangerouslySetInnerHTML={{ __html: `
-          .wpwl-container {
+          iframe.wpwl-target {
             width: 100% !important;
-            max-width: 540px !important;
-            margin: 0 auto !important;
-          }
-          .wpwl-form {
-            width: 100% !important;
-            max-width: 540px !important;
-            margin: 0 auto !important;
-          }
-          iframe.wpwl-target,
-          .wpwl-target,
-          .wpwl-container iframe {
-            width: 100% !important;
-            max-width: 540px !important;
-            min-width: 320px !important;
-            min-height: 450px !important;
+            min-width: 520px !important;
+            max-width: 650px !important;
+            min-height: 500px !important;
             border: none !important;
             margin: 0 auto !important;
             display: block !important;
