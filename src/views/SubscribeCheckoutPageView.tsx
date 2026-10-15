@@ -103,10 +103,10 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
   // User auth state and profile/orders
   const user = useAppSelector((state) => state.auth.user);
   const userId = user?.id;
-  const { data: userOrders } = useGetUserOrdersQuery(userId, {
+  const { data: userOrders, isLoading: isOrdersLoading } = useGetUserOrdersQuery(userId, {
     skip: !userId,
   });
-  const { data: profileUser } = useGetUserProfileQuery(undefined, {
+  const { data: profileUser, isLoading: isProfileLoading } = useGetUserProfileQuery(undefined, {
     skip: !userId,
   });
 
@@ -281,6 +281,13 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
       if (found.longitude !== undefined) setLongitude(found.longitude);
     }
   };
+
+  // Auto-populate most recent address if user has saved addresses and inputs are empty
+  useEffect(() => {
+    if (savedAddresses.length > 0 && !selectedSavedAddress && !shippingAddress) {
+      handleSelectSavedAddress(savedAddresses[0].id);
+    }
+  }, [savedAddresses, selectedSavedAddress, shippingAddress]);
 
   // Handler to remove a saved address with the cross icon
   const handleRemoveSavedAddress = (addrToRemove: SavedAddressOption) => {
@@ -921,6 +928,20 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                   </div>
                 </div>
 
+                {/* Saved Address Loading Skeleton */}
+                {user && (isOrdersLoading || isProfileLoading) && savedAddresses.length === 0 && (
+                  <div className="mb-4 space-y-1.5 animate-pulse">
+                    <div className="h-3 w-52 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-11 w-full bg-gray-100 rounded-xl border border-gray-200 flex items-center px-3.5 justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-4 h-4 rounded-full bg-gray-300 shrink-0"></div>
+                        <div className="h-3 w-48 bg-gray-300 rounded"></div>
+                      </div>
+                      <div className="w-4 h-4 rounded bg-gray-300 shrink-0"></div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Previously Used Address Custom Dropdown */}
                 {user && savedAddresses.length > 0 && (
                   <div ref={addressDropdownRef} className="relative">
@@ -1280,32 +1301,31 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                   </div>
                 )}
 
-                {isShippingReady && (
-                  <div className="flex justify-between items-center">
-                    <span>
-                      {activeShippingMethod
-                        ? (isAr
-                          ? (activeShippingMethod.name_ar || activeShippingMethod.name)
-                          : (activeShippingMethod.name_en || activeShippingMethod.name))
-                        : (isAr ? 'التوصيل داخل جدة' : 'Delivery Inside Jeddah')}
-                    </span>
-                    <span className="font-semibold text-emerald-600">
-                      {shippingFee === 0 ? (
-                        isAr ? 'توصيل مجاني' : 'Free Delivery'
-                      ) : (
-                        <div dir="ltr" className="text-end">
-                          <span className="flex items-center justify-end gap-1 text-gray-900">
-                            <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
-                            <span>{shippingFee} SAR</span>
-                          </span>
-                          <span className="text-[10.5px] text-gray-500 font-normal block">
-                            ${shippingFeeUsd} USD
-                          </span>
-                        </div>
-                      )}
-                    </span>
-                  </div>
-                )}
+                {/* Shipping Fee: Render immediately without waiting for API, matching VAT & Subtotal */}
+                <div className="flex justify-between items-center">
+                  <span>
+                    {activeShippingMethod
+                      ? (isAr
+                        ? (activeShippingMethod.name_ar || activeShippingMethod.name)
+                        : (activeShippingMethod.name_en || activeShippingMethod.name))
+                      : (isAr ? 'التوصيل داخل جدة' : 'Delivery Inside Jeddah')}
+                  </span>
+                  <span className="font-semibold text-emerald-600">
+                    {shippingFee === 0 ? (
+                      isAr ? 'توصيل مجاني' : 'Free Delivery'
+                    ) : (
+                      <div dir="ltr" className="text-end">
+                        <span className="flex items-center justify-end gap-1 text-gray-900">
+                          <CurrencySymbol className="w-3 h-3" forcedCurrency="SAR" />
+                          <span>{shippingFee} SAR</span>
+                        </span>
+                        <span className="text-[10.5px] text-gray-500 font-normal block">
+                          ${shippingFeeUsd} USD
+                        </span>
+                      </div>
+                    )}
+                  </span>
+                </div>
 
                 <div className="flex justify-between items-center">
                   <span>
