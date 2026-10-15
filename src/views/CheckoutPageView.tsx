@@ -998,6 +998,13 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
       const fullSenderPhone = `${senderCountryCode}${senderPhone.replace(/^0+/, '')}`;
       const fullRecipientPhone = `${recipientCountryCode}${recipientPhone.replace(/^0+/, '')}`;
 
+      const matchedSlot = (serverSlots || []).find(
+        (s) => String(s.code || s.start_time || s.id) === deliveryTimeSlot || String(s.id) === deliveryTimeSlot
+      );
+      const resolvedTimeSlotText = matchedSlot
+        ? (locale === 'ar' ? (matchedSlot.title_ar || matchedSlot.title_en) : (matchedSlot.title_en || matchedSlot.title_ar))
+        : (deliveryTimeSlot || (locale === 'ar' ? 'من 11 صباحاً وحتى 3 مساءً' : '11:00 AM to 03:00 PM'));
+
       const result = await createOrder({
         items: cartItems,
         orderNumber: draftOrderNumber || undefined,
@@ -1023,7 +1030,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
         },
         delivery: {
           date: deliveryDate,
-          timeSlot: deliveryTimeSlot,
+          timeSlot: resolvedTimeSlotText,
         },
         giftCard: {
           senderName: senderNameOnCard.trim(),
@@ -1226,6 +1233,22 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                 {confirmedOrder.recipient.street ? ` - ${confirmedOrder.recipient.street}` : ''}
               </span>
             </div>
+            {Boolean(confirmedOrder.delivery?.date) && (
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-500">{locale === 'ar' ? 'تاريخ التوصيل:' : 'Delivery Date:'}</span>
+                <span className="font-semibold text-gray-900 font-mono">
+                  {confirmedOrder.delivery.date}
+                </span>
+              </div>
+            )}
+            {Boolean(confirmedOrder.delivery?.timeSlot) && (
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-500">{locale === 'ar' ? 'وقت التوصيل:' : 'Delivery Time:'}</span>
+                <span className="font-semibold text-gray-900">
+                  {confirmedOrder.delivery.timeSlot}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between text-xs">
               <span className="text-gray-500">{dict.cart.total}:</span>
               <span dir="ltr" className="font-bold text-[#546e3a] inline-flex items-center gap-1.5">
