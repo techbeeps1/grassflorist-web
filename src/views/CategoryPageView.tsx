@@ -67,9 +67,9 @@ function CategoryPageContent({
 
   const subcategoryParam = initialSubcategory || searchParams?.get('subcategory') || undefined;
 
-  const hasSubcategories = Boolean(
-    currentCategory.subcategories && currentCategory.subcategories.length > 0
-  );
+  // Use actual subcategories belonging to this category (supports 3-level parent -> sub -> sub-sub categories)
+  const availableSubcategories = currentCategory.subcategories || [];
+  const hasSubcategories = availableSubcategories.length > 0;
 
   const [filters, setFilters] = useState<ProductFilterState>({
     category: slug,
@@ -348,11 +348,28 @@ function CategoryPageContent({
       : translateEnglishCategoryNameToArabic(rawCatTitle, slug))
     : cleanTitle(currentCategory.name.en || currentCategory.name.ar || '');
 
-  const breadcrumbItems = [
+  const breadcrumbItems: { label: string; href?: string }[] = [
     { label: dict.nav.home, href: locale === 'ar' ? '/' : '/en' },
     { label: dict.nav.allProducts, href: locale === 'ar' ? '/products' : '/en/products' },
-    { label: cleanCategoryName },
   ];
+
+  if (currentCategory.parent) {
+    const parentSlug = locale === 'ar'
+      ? (currentCategory.parent.slug_ar || currentCategory.parent.slug)
+      : (currentCategory.parent.slug_en || currentCategory.parent.slug);
+    const rawParentTitle = currentCategory.parent.name[locale] || currentCategory.parent.name.en || '';
+    const parentName = locale === 'ar'
+      ? (currentCategory.parent.name.ar
+        ? cleanTitle(currentCategory.parent.name.ar)
+        : translateEnglishCategoryNameToArabic(rawParentTitle, parentSlug))
+      : cleanTitle(currentCategory.parent.name.en || currentCategory.parent.name.ar || '');
+    breadcrumbItems.push({
+      label: parentName,
+      href: locale === 'ar' ? `/category/${parentSlug}` : `/en/category/${parentSlug}`,
+    });
+  }
+
+  breadcrumbItems.push({ label: cleanCategoryName });
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: dict.nav.home, url: locale === 'ar' ? siteConfig.url : `${siteConfig.url}/en` },
@@ -504,7 +521,7 @@ function CategoryPageContent({
                 onFilterChange={setFilters}
                 categories={allCategories}
                 activeCategorySlug={slug}
-                subcategories={currentCategory.subcategories}
+                subcategories={availableSubcategories}
                 activeSubcategory={activeSubcategory}
                 onSubcategorySelect={handleSubcategorySelect}
                 categorySlug={slug}
@@ -551,7 +568,7 @@ function CategoryPageContent({
           onFilterChange={setFilters}
           categories={allCategories}
           activeCategorySlug={slug}
-          subcategories={currentCategory.subcategories}
+          subcategories={availableSubcategories}
           activeSubcategory={activeSubcategory}
           onSubcategorySelect={handleSubcategorySelect}
           categorySlug={slug}

@@ -1213,6 +1213,18 @@ export function mapLaravelCategoryToCategory(cat: any): Category {
     };
   });
 
+  const parentObj = cat.parent ? {
+    id: String(cat.parent.id),
+    name: {
+      ar: typeof cat.parent.name === 'object' ? (cat.parent.name.ar || cat.parent.name_ar || '') : (cat.parent.name_ar || cat.parent.name || ''),
+      en: typeof cat.parent.name === 'object' ? (cat.parent.name.en || cat.parent.name_en || '') : (cat.parent.name_en || cat.parent.name || ''),
+    },
+    slug: safeDecodeUri(cat.parent.slug || cat.parent.slug_en || ''),
+    slug_en: cat.parent.slug_en,
+    slug_ar: cat.parent.slug_ar,
+    image: cat.parent.image,
+  } : null;
+
   return {
     id: String(cat.id),
     name: {
@@ -1236,6 +1248,9 @@ export function mapLaravelCategoryToCategory(cat: any): Category {
     featured: Boolean(cat.is_visible),
     itemCount: cat.meta_data?.count || 12,
     subcategories,
+    parentId: cat.parent_id ? String(cat.parent_id) : undefined,
+    isChild: Boolean(cat.parent_id || cat.is_child),
+    parent: parentObj,
   };
 }
 

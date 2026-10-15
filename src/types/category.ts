@@ -20,4 +20,14 @@ export interface Category {
   featured: boolean;
   itemCount: number;
   subcategories: Subcategory[];
+  parentId?: string | number | null;
+  isChild?: boolean;
+  parent?: {
+    id: string | number;
+    name: LocalizedString;
+    slug: string;
+    slug_en?: string;
+    slug_ar?: string;
+    image?: string | null;
+  } | null;
 }

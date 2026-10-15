@@ -55,6 +55,25 @@ export default async function ArabicSubcategoryPage({ params }: PageProps) {
     notFound();
   }
 
+  // Conflict resolution: verify subSlug belongs to this category
+  const decodedSubSlug = decodeURIComponent(subSlug).toLowerCase().trim();
+  const isDirectSub = category.subcategories?.some((s) => {
+    const sSlug = decodeURIComponent(s.slug).toLowerCase().trim();
+    return sSlug === decodedSubSlug || s.slug.toLowerCase().trim() === decodedSubSlug;
+  });
+
+  if (!isDirectSub) {
+    // If slug is a child category that has a parent (e.g. latex-balloons's parent is balloons),
+    // and subSlug is actually a sibling or valid category under that parent,
+    // redirect to canonical URL: /category/[parentSlug]/[subSlug]
+    if (category.parent?.slug) {
+      const parentSlug = category.parent.slug_ar || category.parent.slug;
+      const { redirect } = await import('next/navigation');
+      redirect(`/category/${parentSlug}/${subSlug}`);
+    }
+    notFound();
+  }
+
   return (
     <Suspense fallback={<CategoryPageSkeleton locale="ar" />}>
       <CategoryPageView
