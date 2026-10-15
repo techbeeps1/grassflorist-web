@@ -141,9 +141,34 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
           </div>
         </div>
 
+        {/* Style override to ensure HyperPay 3DS iframe and form have full sufficient width */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          .wpwl-container {
+            width: 100% !important;
+            max-width: 540px !important;
+            margin: 0 auto !important;
+          }
+          .wpwl-form {
+            width: 100% !important;
+            max-width: 540px !important;
+            margin: 0 auto !important;
+          }
+          iframe.wpwl-target,
+          .wpwl-target,
+          .wpwl-container iframe {
+            width: 100% !important;
+            max-width: 540px !important;
+            min-width: 320px !important;
+            min-height: 450px !important;
+            border: none !important;
+            margin: 0 auto !important;
+            display: block !important;
+          }
+        `}} />
+
         {/* HyperPay Widget Form Container (Without visible scrollbar track) */}
-        <div className="p-4 sm:p-6 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-1 min-h-[400px] flex flex-col justify-start items-center">
-          <div ref={containerRef} className="w-full flex justify-center min-h-[360px]" />
+        <div className="p-4 sm:p-6 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-1 min-h-[440px] flex flex-col justify-start items-center">
+          <div ref={containerRef} className="w-full flex justify-center min-h-[400px]" />
           <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1 shrink-0">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 inline" />
             <span>
