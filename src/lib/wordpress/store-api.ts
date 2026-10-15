@@ -1537,6 +1537,7 @@ export async function getStoreCategoryBySlug(
 
     // 1. Direct fetch from Laravel API category endpoint
     const candidates = [decodedSlug, mappedSlug];
+    let is404FromBackend = false;
     for (const cand of candidates) {
       const apiUrl = `${LARAVEL_API_BASE}/${activeLocale}/category/${encodeURIComponent(cand)}`;
 
@@ -1550,9 +1551,13 @@ export async function getStoreCategoryBySlug(
           next: IS_DEV ? undefined : { revalidate: 300 },
         });
 
+        if (res.status === 404) {
+          is404FromBackend = true;
+        }
+
         if (res.ok) {
           const data = await res.json();
-          if (data.category) {
+          if (data.category && (data.category as any).is_visible !== false) {
             const catPayload = {
               ...data.category,
               child:
@@ -1573,6 +1578,10 @@ export async function getStoreCategoryBySlug(
       } catch {
         // Continue to next candidate or fallback
       }
+    }
+
+    if (is404FromBackend) {
+      return { category: null, products: [] };
     }
 
     const categories = await getStoreCategories(activeLocale);
@@ -1619,16 +1628,8 @@ export async function getStoreCategoryBySlug(
       }
     }
 
-    // If still not matched, check fallback categories
     if (!matchedCategory) {
-      matchedCategory =
-        fallbackCategories.find(
-          (c) =>
-            c.slug === decodedSlug ||
-            c.slug === mappedSlug ||
-            c.id === decodedSlug ||
-            c.id === mappedSlug
-        ) || null;
+      return { category: null, products: [] };
     }
 
     // Gather all target category IDs (parent + all subcategories)

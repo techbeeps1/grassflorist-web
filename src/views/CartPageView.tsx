@@ -29,6 +29,8 @@ import { CurrencySymbol, PriceDisplay } from '@/components/common/CurrencySymbol
 import { CartPageItemSkeleton } from '@/components/ui/Skeleton';
 import { CartPageSkeleton } from '@/components/cart/CartPageSkeleton';
 import { MakeItPerfectSection } from '@/components/cart/MakeItPerfectSection';
+import { useCartRestriction } from '@/hooks/useCartRestriction';
+import { RestrictedCartBanner } from '@/components/cart/RestrictedCartBanner';
 import { Trash2, ShoppingBag, Sparkles, Tag, ArrowRight, ArrowLeft, Loader2, RotateCw, AlertCircle } from 'lucide-react';
 
 interface CartPageViewProps {
@@ -60,6 +62,9 @@ export function CartPageView({ locale }: CartPageViewProps) {
     shippingLabel,
     vatLabel,
   } = useCartDynamicTotals(locale);
+
+  // Restricted Categories Rule: Cannot buy restricted items alone
+  const { isBlocked: isRestrictedBlocked, message: restrictionMessage } = useCartRestriction(cartItems, locale);
 
   const { updateQuantity, removeItem, pendingAddItem, updatingItemIds, removingItemIds } = useCartActions();
   const [applyServerCoupon, { isLoading: isApplyingCoupon }] = useApplyServerCouponMutation();
@@ -141,6 +146,13 @@ export function CartPageView({ locale }: CartPageViewProps) {
               : 'Review your floral arrangements before proceeding to checkout and delivery scheduling.'}
           </p>
         </div>
+
+        {/* 🛑 Restricted Category Warning Banner matching user reference */}
+        {hasItemsOrPending && isRestrictedBlocked && (
+          <div className="mb-6">
+            <RestrictedCartBanner message={restrictionMessage} locale={locale} />
+          </div>
+        )}
 
         {hasItemsOrPending ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -427,13 +439,31 @@ export function CartPageView({ locale }: CartPageViewProps) {
                   </div>
                 </div>
 
+                {/* 🛑 Restricted Category Warning Banner in Summary */}
+                {isRestrictedBlocked && (
+                  <div className="pt-2">
+                    <RestrictedCartBanner message={restrictionMessage} locale={locale} showBrowseLink={true} />
+                  </div>
+                )}
+
                 {/* Checkout CTA */}
-                <Link href={checkoutUrl} className="block w-full">
-                  <Button variant="primary" size="lg" className="w-full font-bold text-sm shadow-md">
-                    <span>{dict.cart.proceedToCheckout}</span>
-                    <ArrowIcon className="w-4 h-4 ms-2" />
+                {isRestrictedBlocked ? (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    disabled
+                    className="w-full font-bold text-sm shadow-md bg-gray-400 cursor-not-allowed opacity-80 flex items-center justify-center gap-2"
+                  >
+                    <span>{locale === 'ar' ? 'أضف باقة زهور للمتابعة إلى الدفع' : 'Add flowers to proceed to checkout'}</span>
                   </Button>
-                </Link>
+                ) : (
+                  <Link href={checkoutUrl} className="block w-full">
+                    <Button variant="primary" size="lg" className="w-full font-bold text-sm shadow-md">
+                      <span>{dict.cart.proceedToCheckout}</span>
+                      <ArrowIcon className="w-4 h-4 ms-2" />
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>

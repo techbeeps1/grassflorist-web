@@ -117,6 +117,18 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
   const [senderPhoneCode, setSenderPhoneCode] = useState('+966');
   const [senderPhone, setSenderPhone] = useState('');
 
+  // Receiver Information state matching standard Checkout
+  const [recipientFirstName, setRecipientFirstName] = useState('');
+  const [recipientLastName, setRecipientLastName] = useState('');
+  const [recipientCountryCode, setRecipientCountryCode] = useState('+966');
+  const [recipientPhone, setRecipientPhone] = useState('');
+
+  const [shippingAddress, setShippingAddress] = useState('');
+  const [shippingAddressLink, setShippingAddressLink] = useState('');
+  const city = isAr ? 'جدة' : 'Jeddah';
+  const [latitude, setLatitude] = useState<number | undefined>(undefined);
+  const [longitude, setLongitude] = useState<number | undefined>(undefined);
+
   // Prefill sender from authenticated user if available
   useEffect(() => {
     if (user) {
@@ -378,18 +390,6 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
     }
   };
 
-  // Receiver Information state matching standard Checkout
-  const [recipientFirstName, setRecipientFirstName] = useState('');
-  const [recipientLastName, setRecipientLastName] = useState('');
-  const [recipientCountryCode, setRecipientCountryCode] = useState('+966');
-  const [recipientPhone, setRecipientPhone] = useState('');
-
-  const [shippingAddress, setShippingAddress] = useState('');
-  const [shippingAddressLink, setShippingAddressLink] = useState('');
-  const city = isAr ? 'جدة' : 'Jeddah';
-  const [latitude, setLatitude] = useState<number | undefined>(undefined);
-  const [longitude, setLongitude] = useState<number | undefined>(undefined);
-
   const [paymentMethod, setPaymentMethod] = useState<'mada' | 'credit_card' | 'paypal'>('mada');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -600,6 +600,37 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
     if (Object.keys(newErrors).length > 0) {
       setFormError(isAr ? 'يرجى ملء جميع الحقول المطلوبة بشكل صحيح.' : 'Please fill all required fields correctly.');
+
+      const subFieldOrder = [
+        { key: 'senderFirstName', id: 'sub-field-senderFirstName' },
+        { key: 'senderEmail', id: 'sub-field-senderEmail' },
+        { key: 'senderPhone', id: 'sub-field-senderPhone' },
+        { key: 'shippingAddress', id: 'sub-field-shippingAddress' },
+        { key: 'recipientFirstName', id: 'sub-field-recipientFirstName' },
+        { key: 'recipientLastName', id: 'sub-field-recipientLastName' },
+        { key: 'recipientPhone', id: 'sub-field-recipientPhone' },
+        { key: 'agreeTerms', id: 'sub-field-agreeTerms' },
+      ];
+
+      for (const field of subFieldOrder) {
+        if (newErrors[field.key]) {
+          const el = document.getElementById(field.id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const inputEl = el.querySelector('input, select, textarea') as HTMLElement | null;
+            if (inputEl) {
+              setTimeout(() => {
+                try {
+                  inputEl.focus({ preventScroll: true });
+                } catch {
+                  inputEl.focus();
+                }
+              }, 350);
+            }
+            break;
+          }
+        }
+      }
       return;
     }
 
@@ -824,9 +855,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
               <div className="space-y-4">
                 {/* First Name & Last Name */}
-                {/* First Name & Last Name */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+                  <div id="sub-field-senderFirstName">
                     <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                       {isAr ? 'الاسم الأول' : 'First name'} <span className="text-red-500">*</span>
                     </label>
@@ -860,7 +890,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
                 {/* Email Address & Phone Number */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+                  <div id="sub-field-senderEmail">
                     <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                       {isAr ? 'البريد الإلكتروني' : 'Email address'} <span className="text-red-500">*</span>
                     </label>
@@ -878,7 +908,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                     )}
                   </div>
 
-                  <div>
+                  <div id="sub-field-senderPhone">
                     <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                       {isAr ? 'رقم الهاتف' : 'Phone number'} <span className="text-red-500">*</span>
                     </label>
@@ -1070,7 +1100,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                 <div className="space-y-4 pt-2">
                   {/* Shipping address & link in 1 row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+                    <div id="sub-field-shippingAddress">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {isAr ? 'عنوان الشحن' : 'Shipping address'} <span className="text-red-500">*</span>
                       </label>
@@ -1127,7 +1157,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
                   {/* Row 1: Recipient First Name & Recipient Last Name */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+                    <div id="sub-field-recipientFirstName">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {isAr ? 'اسم المستلم الأول' : 'Recipient first name'} <span className="text-red-500">*</span>
                       </label>
@@ -1145,7 +1175,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                       )}
                     </div>
 
-                    <div>
+                    <div id="sub-field-recipientLastName">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {isAr ? 'اسم عائلة المستلم' : 'Recipient last name'} <span className="text-red-500">*</span>
                       </label>
@@ -1167,7 +1197,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                   {/* Row 2: Country code & Phone number, and City */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Phone number with Country code */}
-                    <div>
+                    <div id="sub-field-recipientPhone">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {isAr ? 'رقم هاتف المستلم' : 'Phone number'} <span className="text-red-500">*</span>
                       </label>
@@ -1456,7 +1486,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
               </div>
 
               {/* Terms and Conditions Checkbox */}
-              <div className="pt-1">
+              <div id="sub-field-agreeTerms" className="pt-1">
                 <label className="flex items-start gap-2.5 text-xs text-gray-700 cursor-pointer">
                   <input
                     type="checkbox"

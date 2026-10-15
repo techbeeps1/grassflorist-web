@@ -25,6 +25,21 @@ export interface GlobalSettings {
     default_delivery_fee?: number;
     free_shipping_threshold?: number;
   };
+  cart_upsell?: {
+    enabled: boolean;
+    title: { en: string; ar: string };
+    category_ids: number[];
+    limit_per_category: number;
+  };
+  restricted_categories?: {
+    enabled: boolean;
+    restricted_category_ids: number[];
+    qualifying_category_ids: number[];
+    message: {
+      en: string;
+      ar: string;
+    };
+  };
   branding?: {
     site_name: { en: string; ar: string };
     site_tagline: { en: string; ar: string };

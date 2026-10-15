@@ -36,9 +36,11 @@ export function SearchBar({ locale }: SearchBarProps) {
     const list: Array<{ id: string; name: string; slug: string; image?: string }> = [];
     const seenSlugs = new Set<string>();
 
-    // 1. From API data.categories
+    // From API data.categories (which are strictly filtered by is_visible in backend)
     if (data?.categories && data.categories.length > 0) {
       for (const cat of data.categories) {
+        if ((cat as any).is_visible === false) continue;
+
         const catSlug =
           typeof cat.slug === 'object' && cat.slug !== null
             ? (locale === 'ar' ? (cat.slug as any).ar : (cat.slug as any).en)
@@ -60,34 +62,8 @@ export function SearchBar({ locale }: SearchBarProps) {
       }
     }
 
-    // 2. Supplement/fallback from returned products whose category matches query
-    if (query.trim().length >= 2 && searchResults.length > 0) {
-      const qLower = query.toLowerCase().trim();
-      for (const prod of searchResults) {
-        const catNameEn = prod.category?.en || '';
-        const catNameAr = prod.category?.ar || '';
-        const catSlug = prod.categorySlug || '';
-
-        if (
-          catNameEn.toLowerCase().includes(qLower) ||
-          catNameAr.toLowerCase().includes(qLower) ||
-          catSlug.toLowerCase().includes(qLower)
-        ) {
-          if (catSlug && !seenSlugs.has(catSlug.toLowerCase())) {
-            seenSlugs.add(catSlug.toLowerCase());
-            list.push({
-              id: `prod-cat-${catSlug}`,
-              name: locale === 'ar' ? (catNameAr || catNameEn) : (catNameEn || catNameAr),
-              slug: catSlug,
-              image: prod.thumbnail,
-            });
-          }
-        }
-      }
-    }
-
     return list.slice(0, 3);
-  }, [data?.categories, searchResults, query, locale]);
+  }, [data?.categories, locale]);
 
   const hasResults = searchResults.length > 0 || searchCategories.length > 0;
 

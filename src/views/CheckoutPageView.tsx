@@ -68,6 +68,8 @@ import { CountrySelect } from '@/components/common/CountrySelect';
 import { HyperPayWidgetModal } from '@/components/checkout/HyperPayWidgetModal';
 import { TabbyInstallmentModal } from '@/components/checkout/TabbyInstallmentModal';
 import { MakeItPerfectModal } from '@/components/checkout/MakeItPerfectModal';
+import { useCartRestriction } from '@/hooks/useCartRestriction';
+import { RestrictedCartBanner } from '@/components/cart/RestrictedCartBanner';
 
 // Dynamically load Leaflet Map to avoid SSR issues
 const AddressMapPicker = dynamic(
@@ -226,23 +228,23 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
   const [showMakeItPerfectModal, setShowMakeItPerfectModal] = useState(false);
+  const hasTriggeredMakeItPerfectRef = useRef(false);
+
+  // Restricted Categories Rule: Cannot buy restricted items alone
+  const { isBlocked: isRestrictedBlocked, message: restrictionMessage } = useCartRestriction(cartItems, locale);
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
-  // Show "Make it perfect" upsell popup once on checkout if user hasn't seen it yet
+  // Show "Make it perfect" upsell popup automatically whenever checkout page opens
   useEffect(() => {
-    if (hasMounted && cartItems.length > 0) {
-      try {
-        const hasSeen = sessionStorage.getItem('seen_checkout_make_it_perfect');
-        if (!hasSeen) {
-          const timer = setTimeout(() => {
-            setShowMakeItPerfectModal(true);
-          }, 800);
-          return () => clearTimeout(timer);
-        }
-      } catch {}
+    if (hasMounted && cartItems.length > 0 && !hasTriggeredMakeItPerfectRef.current) {
+      hasTriggeredMakeItPerfectRef.current = true;
+      const timer = setTimeout(() => {
+        setShowMakeItPerfectModal(true);
+      }, 300);
+      return () => clearTimeout(timer);
     }
   }, [hasMounted, cartItems.length]);
 
@@ -973,23 +975,60 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     }
 
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+    return errs;
   };
 
   // Place Order submission
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) {
-      const hasDeliveryError = !deliveryTimeSlot || isDateBlocked;
-      const customerFieldsFilled = senderFirstName.trim() && senderLastName.trim() && senderPhone.trim() && shippingAddress.trim() && recipientFirstName.trim() && recipientLastName.trim() && recipientPhone.trim();
-      if (customerFieldsFilled && hasDeliveryError) {
-        const deliveryEl = document.getElementById('delivery-section');
-        if (deliveryEl) {
-          deliveryEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          return;
+
+    if (isRestrictedBlocked) {
+      const bannerEl = document.getElementById('restricted-category-banner');
+      if (bannerEl) {
+        bannerEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setPaymentNotification({
+        type: 'error',
+        message: restrictionMessage || (locale === 'ar' ? 'لا يمكن إتمام الطلب لأن السلة تحتوي على منتجات مقيدة بدون منتج رئيسي (مثل الزهور)' : 'Cannot complete order: cart contains restricted items without a main product (e.g. flowers)'),
+      });
+      return;
+    }
+
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      const fieldOrder: { key: string; id: string }[] = [
+        { key: 'senderFirstName', id: 'field-senderFirstName' },
+        { key: 'senderLastName', id: 'field-senderLastName' },
+        { key: 'senderEmail', id: 'field-senderEmail' },
+        { key: 'senderPhone', id: 'field-senderPhone' },
+        { key: 'shippingAddress', id: 'field-shippingAddress' },
+        { key: 'recipientFirstName', id: 'field-recipientFirstName' },
+        { key: 'recipientLastName', id: 'field-recipientLastName' },
+        { key: 'recipientPhone', id: 'field-recipientPhone' },
+        { key: 'deliveryDate', id: 'delivery-section' },
+        { key: 'deliveryTimeSlot', id: 'delivery-section' },
+        { key: 'agreeTerms', id: 'field-agreeTerms' },
+      ];
+
+      for (const field of fieldOrder) {
+        if (validationErrors[field.key]) {
+          const el = document.getElementById(field.id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const inputEl = el.querySelector('input, select, textarea') as HTMLElement | null;
+            if (inputEl) {
+              setTimeout(() => {
+                try {
+                  inputEl.focus({ preventScroll: true });
+                } catch {
+                  inputEl.focus();
+                }
+              }, 350);
+            }
+            return;
+          }
         }
       }
-      window.scrollTo({ top: 100, behavior: 'smooth' });
       return;
     }
 
@@ -1336,6 +1375,13 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
           </div>
         )}
 
+        {/* 🛑 Restricted Category Warning Banner matching Floward style */}
+        {isRestrictedBlocked && (
+          <div id="restricted-category-banner" className="mb-6">
+            <RestrictedCartBanner message={restrictionMessage} locale={locale} />
+          </div>
+        )}
+
         {cartItems.length > 0 ? (
           <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
             {/* ============================================================== */}
@@ -1351,7 +1397,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                 <div className="space-y-4">
                   {/* First Name & Last Name */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+                    <div id="field-senderFirstName">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {locale === 'ar' ? 'الاسم الأول' : 'First name'} <span className="text-red-500">*</span>
                       </label>
@@ -1368,7 +1414,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       )}
                     </div>
 
-                    <div>
+                    <div id="field-senderLastName">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {locale === 'ar' ? 'اسم العائلة' : 'Last name'} <span className="text-red-500">*</span>
                       </label>
@@ -1399,7 +1445,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       />
                     </div>
 
-                    <div>
+                    <div id="field-senderEmail">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {locale === 'ar' ? 'البريد الإلكتروني' : 'Email address'} <span className="text-red-500">*</span>
                       </label>
@@ -1418,7 +1464,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   </div>
 
                   {/* Phone number */}
-                  <div>
+                  <div id="field-senderPhone">
                     <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                       {locale === 'ar' ? 'رقم الهاتف (الواتساب)' : 'Phone number'} <span className="text-red-500">*</span>
                     </label>
@@ -1605,7 +1651,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                 <div className="space-y-4 pt-2">
                   {/* Shipping address & link in 1 row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+                    <div id="field-shippingAddress">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {locale === 'ar' ? 'عنوان الشحن' : 'Shipping address'} <span className="text-red-500">*</span>
                       </label>
@@ -1660,7 +1706,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
 
                   {/* Row 1: Recipient First Name & Recipient Last Name */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+                    <div id="field-recipientFirstName">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {locale === 'ar' ? 'اسم المستلم الأول' : 'Recipient first name'} <span className="text-red-500">*</span>
                       </label>
@@ -1677,7 +1723,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                       )}
                     </div>
 
-                    <div>
+                    <div id="field-recipientLastName">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {locale === 'ar' ? 'اسم عائلة المستلم' : 'Recipient last name'} <span className="text-red-500">*</span>
                       </label>
@@ -1698,7 +1744,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   {/* Row 2: Country code & Phone number, and City */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Phone number with Country code */}
-                    <div>
+                    <div id="field-recipientPhone">
                       <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                         {locale === 'ar' ? 'رقم هاتف المستلم' : 'Phone number'} <span className="text-red-500">*</span>
                       </label>
@@ -2549,7 +2595,7 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                 </p>
 
                 {/* Terms and Conditions Checkbox */}
-                <div className="pt-1">
+                <div id="field-agreeTerms" className="pt-1">
                   <label className="flex items-start gap-2.5 text-xs text-gray-700 cursor-pointer">
                     <input
                       type="checkbox"
@@ -2602,13 +2648,20 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                   )}
                 </div>
 
+                {/* 🛑 Restricted Category Warning Banner in Order Summary */}
+                {isRestrictedBlocked && (
+                  <div className="pt-2">
+                    <RestrictedCartBanner message={restrictionMessage} locale={locale} showBrowseLink={true} />
+                  </div>
+                )}
+
                 {/* Big Place Order Button matching WordPress style */}
                 <button
                   type="submit"
-                  disabled={isLoading || isSubmittingOrder || Boolean(redirectingGateway) || isDateBlocked || isSlotsPending}
-                  className={`w-full py-3.5 px-6 rounded-lg text-sm font-black uppercase tracking-wider text-white shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 ${isLoading || isSubmittingOrder || Boolean(redirectingGateway) || isDateBlocked || isSlotsPending
+                  disabled={isLoading || isSubmittingOrder || Boolean(redirectingGateway) || isDateBlocked || isSlotsPending || isRestrictedBlocked}
+                  className={`w-full py-3.5 px-6 rounded-lg text-sm font-black uppercase tracking-wider text-white shadow-md transition-all flex items-center justify-center gap-2 ${isLoading || isSubmittingOrder || Boolean(redirectingGateway) || isDateBlocked || isSlotsPending || isRestrictedBlocked
                     ? 'bg-gray-400 cursor-not-allowed opacity-75'
-                    : 'bg-[#8fae2a] hover:bg-[#7d9b23] active:scale-[0.99]'
+                    : 'bg-[#8fae2a] hover:bg-[#7d9b23] active:scale-[0.99] cursor-pointer'
                     }`}
                 >
                   {(isLoading || isSubmittingOrder || redirectingGateway) ? (
@@ -2627,6 +2680,8 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
                     locale === 'ar' ? 'جاري تحديث الفترات...' : 'UPDATING SLOTS...'
                   ) : isDateBlocked ? (
                     locale === 'ar' ? 'التوصيل غير متاح في هذا التاريخ' : 'DELIVERY UNAVAILABLE ON THIS DATE'
+                  ) : isRestrictedBlocked ? (
+                    locale === 'ar' ? 'أضف باقة زهور لإتمام الطلب' : 'ADD FLOWERS TO COMPLETE ORDER'
                   ) : (
                     locale === 'ar' ? 'إتمام الطلب' : 'PLACE ORDER'
                   )}
@@ -2677,9 +2732,6 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
           isOpen={showMakeItPerfectModal}
           onClose={() => {
             setShowMakeItPerfectModal(false);
-            try {
-              sessionStorage.setItem('seen_checkout_make_it_perfect', '1');
-            } catch {}
           }}
           locale={locale}
         />

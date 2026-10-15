@@ -80,13 +80,7 @@ export function CategoryPageSkeleton({ locale = 'en' }: CategoryPageSkeletonProp
             ))}
           </div>
 
-          {/* Collections Section */}
-          <div className="space-y-2">
-            <Skeleton className="h-3.5 w-20 rounded-md bg-[#E2D8CA] mb-2" />
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-7 w-full rounded-xl bg-[#EAE2D5]" />
-            ))}
-          </div>
+
 
           {/* Price Range Section */}
           <div className="pt-3 border-t border-[#EAE3D8] space-y-2">

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { CategoryPageView } from '@/views/CategoryPageView';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 import { getStoreCategoryBySlug, getHomeSliderCategories } from '@/lib/wordpress/store-api';
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
   const { category } = await getStoreCategoryBySlug(slug, 'en');
 
-  if (!category) {
+  if (!category || (category as any).is_visible === false) {
     return generatePageMetadata({
       title: 'Category Not Found',
       path: `/category/${slug}`,
@@ -56,6 +56,10 @@ export default async function EnglishCategoryPage({ params }: PageProps) {
     getStoreCategoryBySlug(slug, 'en'),
     getHomeSliderCategories('en'),
   ]);
+
+  if (!category || (category as any).is_visible === false) {
+    notFound();
+  }
 
   return (
     <Suspense fallback={<CategoryPageSkeleton locale="en" />}>

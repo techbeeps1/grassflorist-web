@@ -15,6 +15,9 @@ export function getCartSessionId(): string {
 export interface LaravelCartItem {
   id: number;
   product_id: number | string;
+  category_id?: any;
+  category_ids?: number[];
+  sub_category_id?: any;
   product_name: string;
   product_slug: string;
   product_price: number | string;
@@ -132,6 +135,22 @@ export function convertServerCartItemToClient(item: LaravelCartItem): CartItem {
       images: item.image ? [formatStorageUrl(item.image)] : [formatStorageUrl(null)],
       category: { ar: '', en: '' },
       categorySlug: '',
+      categoryIds: Array.isArray(item.category_ids) && item.category_ids.length > 0
+        ? item.category_ids.map(Number).filter(Boolean)
+        : (() => {
+            const cat = item.category_id;
+            if (Array.isArray(cat)) return cat.map(Number).filter(Boolean);
+            if (typeof cat === 'number') return [cat];
+            if (typeof cat === 'string') {
+              try {
+                const p = JSON.parse(cat);
+                if (Array.isArray(p)) return p.map(Number).filter(Boolean);
+                if (typeof p === 'number') return [p];
+              } catch {}
+              return cat.split(',').map((s) => Number(s.trim())).filter(Boolean);
+            }
+            return [];
+          })(),
       description: { ar: '', en: '' },
       shortDescription: { ar: '', en: '' },
       sku: `PROD-${productId}`,

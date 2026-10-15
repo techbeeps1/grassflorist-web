@@ -59,16 +59,9 @@ function CategoryPageContent({
         decodeURIComponent(c.slug) === decodedSlug ||
         c.name.ar === decodedSlug ||
         c.name.en.toLowerCase() === decodedSlug.toLowerCase()
-    )) ||
-    categories.find(
-      (c) =>
-        c.slug === slug ||
-        decodeURIComponent(c.slug) === decodedSlug ||
-        c.name.ar === decodedSlug ||
-        c.name.en.toLowerCase() === decodedSlug.toLowerCase()
-    );
+    ));
 
-  if (!currentCategory) {
+  if (!currentCategory || (currentCategory as any).is_visible === false) {
     notFound();
   }
 
