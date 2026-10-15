@@ -84,9 +84,9 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200">
       <div
-        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]"
+        className="bg-white rounded-2xl shadow-2xl max-w-xl sm:max-w-2xl w-full overflow-hidden border border-gray-100 flex flex-col max-h-[92vh]"
         dir={locale === 'ar' ? 'rtl' : 'ltr'}
       >
         {/* Header */}
@@ -142,8 +142,8 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
         </div>
 
         {/* HyperPay Widget Form Container (Without visible scrollbar track) */}
-        <div className="p-6 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-1 min-h-[320px] flex flex-col justify-center items-center">
-          <div ref={containerRef} className="w-full flex justify-center min-h-[220px]" />
+        <div className="p-4 sm:p-6 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-1 min-h-[400px] flex flex-col justify-start items-center">
+          <div ref={containerRef} className="w-full flex justify-center min-h-[360px]" />
           <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1 shrink-0">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 inline" />
             <span>
