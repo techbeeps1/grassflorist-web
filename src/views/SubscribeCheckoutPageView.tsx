@@ -691,8 +691,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
       const combinedCardMessage = subscriptionData?.sender_name_on_card
         ? (subscriptionData?.gift_message
-            ? `${subscriptionData.gift_message}\n(Sender / المرسل: ${subscriptionData.sender_name_on_card})`
-            : `(Sender / المرسل: ${subscriptionData.sender_name_on_card})`)
+          ? `${subscriptionData.gift_message}\n(Sender / المرسل: ${subscriptionData.sender_name_on_card})`
+          : `(Sender / المرسل: ${subscriptionData.sender_name_on_card})`)
         : (subscriptionData?.gift_message || undefined);
 
       const payload = {
@@ -822,7 +822,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
           <div className="space-y-2">
             <h2 className="text-2xl sm:text-3xl font-black text-gray-900">
-              {isAr ? 'تم تفعيل اشتراكك بنجاح! 🌸' : 'Subscription Confirmed! 🌸'}
+              {isAr ? 'تم تفعيل اشتراكك بنجاح! ' : 'Subscription Confirmed! '}
             </h2>
             <p className="text-sm text-gray-600 max-w-md mx-auto">
               {isAr
@@ -945,9 +945,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                       value={senderFirstName}
                       onChange={(e) => setSenderFirstName(e.target.value)}
                       placeholder={isAr ? 'الاسم الأول' : 'First name'}
-                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                        errors.senderFirstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                      }`}
+                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.senderFirstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                        }`}
                     />
                     {errors.senderFirstName && (
                       <p className="text-[11px] text-red-500 mt-1">{errors.senderFirstName}</p>
@@ -979,9 +978,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                       value={senderEmail}
                       onChange={(e) => setSenderEmail(e.target.value)}
                       placeholder="your@email.com"
-                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                        errors.senderEmail ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                      }`}
+                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.senderEmail ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                        }`}
                     />
                     {errors.senderEmail && (
                       <p className="text-[11px] text-red-500 mt-1">{errors.senderEmail}</p>
@@ -1003,9 +1001,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                         value={senderPhone}
                         onChange={(e) => setSenderPhone(e.target.value)}
                         placeholder="5XXXXXXXX"
-                        className={`flex-1 min-w-0 h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                          errors.senderPhone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                        }`}
+                        className={`flex-1 min-w-0 h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.senderPhone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
                       />
                     </div>
                     {errors.senderPhone && (
@@ -1070,11 +1067,10 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                     <button
                       type="button"
                       onClick={() => setIsAddressDropdownOpen((prev) => !prev)}
-                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-xl flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-2xs ${
-                        isAddressDropdownOpen
+                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-xl flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-2xs ${isAddressDropdownOpen
                           ? 'border-[#8fae2a] ring-2 ring-[#8fae2a]/20 text-gray-900 font-semibold'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700 font-medium'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         <MapPin className="w-4 h-4 text-[#546e3a] shrink-0" />
@@ -1085,9 +1081,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 text-gray-400">
                         <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-200 ${
-                            isAddressDropdownOpen ? 'rotate-180 text-[#546e3a]' : ''
-                          }`}
+                          className={`w-4 h-4 transition-transform duration-200 ${isAddressDropdownOpen ? 'rotate-180 text-[#546e3a]' : ''
+                            }`}
                         />
                       </div>
                     </button>
@@ -1101,11 +1096,10 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                             handleSelectSavedAddress('');
                             setIsAddressDropdownOpen(false);
                           }}
-                          className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between transition-colors ${
-                            !selectedSavedAddress
+                          className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between transition-colors ${!selectedSavedAddress
                               ? 'bg-[#8fae2a]/10 text-[#546e3a] font-bold'
                               : 'hover:bg-gray-50 text-gray-500'
-                          }`}
+                            }`}
                         >
                           <span className="italic">
                             {isAr ? 'اختر من العناوين المحفوظة...' : 'Select from Addresses...'}
@@ -1122,17 +1116,15 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                                 handleSelectSavedAddress(addr.id);
                                 setIsAddressDropdownOpen(false);
                               }}
-                              className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between gap-3 group transition-colors ${
-                                isSelected
+                              className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between gap-3 group transition-colors ${isSelected
                                   ? 'bg-[#8fae2a]/10 text-gray-900 font-bold'
                                   : 'hover:bg-gray-50 text-gray-700'
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2.5 min-w-0 flex-1">
                                 <MapPin
-                                  className={`w-4 h-4 shrink-0 ${
-                                    isSelected ? 'text-[#546e3a]' : 'text-gray-400 group-hover:text-gray-600'
-                                  }`}
+                                  className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#546e3a]' : 'text-gray-400 group-hover:text-gray-600'
+                                    }`}
                                 />
                                 <span className="truncate block leading-snug">
                                   {addr.label}
@@ -1189,9 +1181,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                         value={shippingAddress}
                         onChange={(e) => setShippingAddress(e.target.value)}
                         placeholder={isAr ? 'اسم الحي، الشارع، أو رقم المبنى' : 'District, Street, Landmark'}
-                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                          errors.shippingAddress ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                        }`}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.shippingAddress ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
                       />
                       {errors.shippingAddress && (
                         <p className="text-[11px] text-red-500 mt-1">{errors.shippingAddress}</p>
@@ -1214,11 +1205,10 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                           readOnly={Boolean(shippingAddressLink)}
                           onChange={(e) => setShippingAddressLink(e.target.value)}
                           placeholder="https://maps.google.com/..."
-                          className={`w-full h-11 px-3.5 pe-9 text-xs border rounded-lg focus:outline-none transition-all ${
-                            shippingAddressLink
+                          className={`w-full h-11 px-3.5 pe-9 text-xs border rounded-lg focus:outline-none transition-all ${shippingAddressLink
                               ? 'bg-gray-100/90 border-gray-200 text-gray-600 cursor-not-allowed select-all font-mono text-[11px]'
                               : 'bg-white border-gray-200 focus:border-[#8fae2a]'
-                          }`}
+                            }`}
                         />
                         {shippingAddressLink && (
                           <a
@@ -1246,9 +1236,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                         value={recipientFirstName}
                         onChange={(e) => setRecipientFirstName(e.target.value)}
                         placeholder={isAr ? 'اسم المستلم الأول' : 'Recipient first name'}
-                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                          errors.recipientFirstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                        }`}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.recipientFirstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
                       />
                       {errors.recipientFirstName && (
                         <p className="text-[11px] text-red-500 mt-1">{errors.recipientFirstName}</p>
@@ -1264,9 +1253,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                         value={recipientLastName}
                         onChange={(e) => setRecipientLastName(e.target.value)}
                         placeholder={isAr ? 'اسم العائلة' : 'Recipient last name'}
-                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                          errors.recipientLastName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                        }`}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.recipientLastName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
                       />
                       {errors.recipientLastName && (
                         <p className="text-[11px] text-red-500 mt-1">{errors.recipientLastName}</p>
@@ -1292,9 +1280,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                           value={recipientPhone}
                           onChange={(e) => setRecipientPhone(e.target.value)}
                           placeholder="5XXXXXXXX"
-                          className={`flex-1 min-w-0 h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                            errors.recipientPhone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                          }`}
+                          className={`flex-1 min-w-0 h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.recipientPhone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                            }`}
                         />
                       </div>
                       {errors.recipientPhone && (
