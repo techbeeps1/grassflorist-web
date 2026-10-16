@@ -169,6 +169,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
 
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
@@ -233,8 +234,12 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
     setTimeout(() => setMessageToast(null), 4000);
   };
 
-  const fetchSubscriptions = async () => {
-    setIsLoading(true);
+  const fetchSubscriptions = async (silent = false) => {
+    if (!silent && subscriptions.length === 0) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
     try {
       const userParam = userId ? `&user_id=${userId}` : '';
       const statusParam = statusFilter !== 'all' ? `status=${statusFilter}` : 'status=all';
@@ -251,11 +256,12 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       console.error('Failed to fetch subscriptions', e);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    fetchSubscriptions();
+    fetchSubscriptions(false);
   }, [statusFilter, userId]);
 
   const fetchSubDetails = async (id: number) => {
@@ -287,7 +293,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(isAr ? 'تم إيقاف الاشتراك مؤقتاً بنجاح.' : 'Subscription paused successfully.');
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === id) fetchSubDetails(id);
       } else {
         showToast(data.message || 'Failed to pause', 'error');
@@ -311,7 +317,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(isAr ? 'تم استئناف الاشتراك بنجاح.' : 'Subscription resumed successfully.');
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === id) fetchSubDetails(id);
       } else {
         showToast(data.message || 'Failed to resume', 'error');
@@ -335,7 +341,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(isAr ? 'تم تخطي موعد التوصيل القادم بنجاح.' : 'Next delivery skipped successfully.');
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === id) fetchSubDetails(id);
       } else {
         showToast(data.message || 'Failed to skip', 'error');
@@ -371,7 +377,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
         showToast(isAr ? 'تم إعادة جدولة موعد التوصيل بنجاح.' : 'Delivery rescheduled successfully.');
         setRescheduleDelivery(null);
         fetchSubDetails(selectedSub.id);
-        fetchSubscriptions();
+        fetchSubscriptions(true);
       } else {
         showToast(data.message || 'Failed to reschedule', 'error');
       }
@@ -409,7 +415,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       if (res.ok && data.success) {
         showToast(isAr ? 'تم تحديث عنوان التوصيل بنجاح.' : 'Delivery address updated successfully.');
         setAddressModalSub(null);
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === addressModalSub.id) fetchSubDetails(addressModalSub.id);
       } else {
         showToast(data.message || 'Failed to update address', 'error');
@@ -435,7 +441,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       if (res.ok && data.success) {
         showToast(isAr ? 'تم إلغاء الاشتراك بنجاح.' : 'Subscription cancelled successfully.');
         setCancelModalSub(null);
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === cancelModalSub.id) fetchSubDetails(cancelModalSub.id);
       } else {
         showToast(data.message || 'Failed to cancel', 'error');
@@ -459,7 +465,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(isAr ? 'نجحت إعادة محاولة الدفع وتم تأكيد التوصيل!' : 'Payment retry succeeded! Delivery confirmed.');
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === id) fetchSubDetails(id);
       } else {
         showToast(data.message || 'Payment retry declined', 'error');
@@ -567,7 +573,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       </div>
 
       {/* Subscriptions List */}
-      {isLoading ? (
+      {isLoading && subscriptions.length === 0 ? (
         <div className="py-16 text-center space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-[#435849] mx-auto" />
           <p className="text-xs sm:text-sm text-[#7A6E65]">
@@ -591,7 +597,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className={`grid grid-cols-1 gap-4 transition-opacity duration-200 ${isRefreshing ? 'opacity-70' : 'opacity-100'}`}>
           {subscriptions.map((sub) => {
             const prod = sub.product;
             const prodName = isAr
