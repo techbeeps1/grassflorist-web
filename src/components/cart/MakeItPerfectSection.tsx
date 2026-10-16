@@ -8,7 +8,7 @@ import { useCartActions } from '@/hooks/useCartActions';
 import { useAppSelector } from '@/store';
 import { formatStorageUrl } from '@/lib/wordpress/store-api';
 import { PriceDisplay } from '@/components/common/CurrencySymbol';
-import { Sparkles, ChevronRight, ChevronLeft, Plus, Check, Loader2 } from 'lucide-react';
+import { Sparkles, ChevronRight, ChevronLeft, Plus, Minus, Check, Loader2 } from 'lucide-react';
 import { Product } from '@/types/product';
 
 interface MakeItPerfectSectionProps {
@@ -31,11 +31,12 @@ export function MakeItPerfectSection({
       ? 'w-[136px] sm:w-[calc((100%-48px)/5)] shrink-0'
       : 'w-[136px] sm:w-[calc((100%-36px)/4)] shrink-0';
   const { data, isLoading } = useGetMakeItPerfectQuery({ locale });
-  const { addToCart } = useCartActions();
+  const { addToCart, updateQuantity, removeItem } = useCartActions();
   const cartItems = useAppSelector((state) => state.cart.items);
 
   const [activeTabId, setActiveTabId] = useState<string>('recommended');
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
 
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -121,6 +122,22 @@ export function MakeItPerfectSection({
       }
     } finally {
       setAddingId(null);
+    }
+  };
+
+  const onUpdateQty = async (product: any, newQty: number, cartItemId?: string) => {
+    if (isDraggingRef.current) return;
+    const pid = String(product.id);
+    setUpdatingId(pid);
+    try {
+      if (newQty <= 0) {
+        await removeItem(pid, cartItemId);
+      } else {
+        await updateQuantity(pid, newQty, cartItemId);
+      }
+      if (onItemAdded) onItemAdded();
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -287,6 +304,7 @@ export function MakeItPerfectSection({
         {activeProducts.map((p: any) => {
           const pid = String(p.id);
           const isAdding = addingId === pid;
+          const isUpdating = updatingId === pid;
           const isRecentlyAdded = recentlyAddedId === pid;
           const cartItem = cartItems.find((ci) => String(ci.productId) === pid);
           const inCartCount = cartItem ? cartItem.quantity : 0;
@@ -336,41 +354,63 @@ export function MakeItPerfectSection({
                   </h4>
                 </div>
 
-                {/* Quick Add Pill Button */}
+                {/* Quick Add / Quantity Pill Controller */}
                 <div className="mt-2 pt-1.5 border-t border-border/50">
-                  <button
-                    onClick={() => onAddClick(p)}
-                    disabled={isAdding || p.stock <= 0}
-                    className={`w-full py-1 sm:py-1.5 px-2.5 rounded-full text-[11px] sm:text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                      isRecentlyAdded
-                        ? 'bg-emerald-600 text-white shadow-xs border border-emerald-600'
-                        : inCartCount > 0
-                        ? 'bg-primary/10 text-primary border border-primary/40 hover:bg-primary hover:text-white shadow-2xs'
-                        : 'border border-border text-text-main bg-surface-subtle hover:border-primary hover:bg-primary hover:text-white shadow-2xs'
-                    }`}
-                  >
-                    {isAdding ? (
-                      <>
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>{locale === 'ar' ? 'إضافة...' : 'Adding...'}</span>
-                      </>
-                    ) : isRecentlyAdded ? (
-                      <>
-                        <Check className="w-3 h-3" />
-                        <span>{locale === 'ar' ? 'تمت الإضافة' : 'Added'}</span>
-                      </>
-                    ) : inCartCount > 0 ? (
-                      <>
-                        <Plus className="w-3 h-3" />
-                        <span>{locale === 'ar' ? 'أضف المزيد' : 'Add more'}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-3 h-3" />
-                        <span>{locale === 'ar' ? 'إضافة' : 'Add'}</span>
-                      </>
-                    )}
-                  </button>
+                  {inCartCount > 0 ? (
+                    <div className="w-full h-7 sm:h-8 rounded-full bg-[#FAF7F2] border border-primary/40 flex items-center justify-between px-1 shadow-2xs">
+                      <button
+                        type="button"
+                        disabled={isUpdating}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateQty(p, inCartCount - 1, cartItem?.cartItemId);
+                        }}
+                        aria-label="Decrease quantity"
+                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-90 disabled:opacity-50"
+                      >
+                        <Minus className="w-3 h-3 stroke-[2.5]" />
+                      </button>
+
+                      <span className="text-[11px] sm:text-xs font-black text-text-main px-1 tabular-nums select-none min-w-[20px] text-center">
+                        {isUpdating ? (
+                          <Loader2 className="w-3 h-3 animate-spin text-primary mx-auto" />
+                        ) : (
+                          inCartCount
+                        )}
+                      </span>
+
+                      <button
+                        type="button"
+                        disabled={isUpdating || (p.stock !== undefined && inCartCount >= p.stock)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateQty(p, inCartCount + 1, cartItem?.cartItemId);
+                        }}
+                        aria-label="Increase quantity"
+                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-90 disabled:opacity-50"
+                      >
+                        <Plus className="w-3 h-3 stroke-[2.5]" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => onAddClick(p)}
+                      disabled={isAdding || p.stock <= 0}
+                      className="w-full py-1 sm:py-1.5 px-2.5 rounded-full text-[11px] sm:text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border border-border text-text-main bg-surface-subtle hover:border-primary hover:bg-primary hover:text-white shadow-2xs"
+                    >
+                      {isAdding ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <span>{locale === 'ar' ? 'إضافة...' : 'Adding...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3 h-3" />
+                          <span>{locale === 'ar' ? 'إضافة' : '+ Add'}</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

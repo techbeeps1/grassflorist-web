@@ -225,101 +225,103 @@ function CategoryPageContent({
     return list;
   }, [allCategories, currentCategory]);
 
+  const isProductInSubcategory = useCallback((p: Product, subSlugOrId: string) => {
+    const activeDecoded = decodeURIComponent(subSlugOrId).toLowerCase().trim();
+    const cleanActive = activeDecoded.replace(/[-_\s]+/g, ' ');
+    const targetSub = currentCategory?.subcategories?.find((s) => {
+      const sSlug = decodeURIComponent(s.slug || '').toLowerCase().trim();
+      const cleanSSlug = sSlug.replace(/[-_\s]+/g, ' ');
+      const cleanSEn = s.name?.en ? s.name.en.toLowerCase().trim().replace(/[-_\s]+/g, ' ') : '';
+      const cleanSAr = s.name?.ar ? s.name.ar.toLowerCase().trim().replace(/[-_\s]+/g, ' ') : '';
+      return (
+        sSlug === activeDecoded ||
+        String(s.id) === subSlugOrId ||
+        cleanSSlug === cleanActive ||
+        cleanSEn === cleanActive ||
+        cleanSAr === cleanActive
+      );
+    });
+    const targetSubId = targetSub
+      ? Number(targetSub.id)
+      : !isNaN(Number(subSlugOrId))
+      ? Number(subSlugOrId)
+      : null;
+    const targetSubSlug = targetSub ? targetSub.slug.toLowerCase() : activeDecoded;
+
+    // 1. Direct ID match from categoryIds
+    if (targetSubId !== null && p.categoryIds && p.categoryIds.includes(targetSubId)) {
+      return true;
+    }
+
+    // 2. Slug match in categorySlugs
+    if (
+      p.categorySlugs &&
+      p.categorySlugs.some((cs) => {
+        const dec = decodeURIComponent(cs).toLowerCase().trim();
+        const cleanCs = dec.replace(/[-_\s]+/g, ' ');
+        return (
+          dec === activeDecoded ||
+          dec === targetSubSlug ||
+          cleanCs === cleanActive
+        );
+      })
+    ) {
+      return true;
+    }
+
+    // 3. Subcategory object match in categoriesList
+    if (
+      p.categoriesList &&
+      p.categoriesList.some((c) => {
+        if (targetSubId !== null && Number(c.id) === targetSubId) return true;
+        const cSlug = (c.slug || '').toLowerCase();
+        const cEn = (c.slug_en || '').toLowerCase();
+        const cAr = (c.slug_ar || '').toLowerCase();
+        return (
+          cSlug === activeDecoded ||
+          cSlug === targetSubSlug ||
+          cEn === activeDecoded ||
+          cEn === targetSubSlug ||
+          cAr === activeDecoded ||
+          cAr === targetSubSlug
+        );
+      })
+    ) {
+      return true;
+    }
+
+    // 4. subcategorySlug or categorySlug
+    const subSlug = p.subcategorySlug ? decodeURIComponent(p.subcategorySlug).toLowerCase() : '';
+    const catSlug = p.categorySlug ? decodeURIComponent(p.categorySlug).toLowerCase() : '';
+    if (
+      subSlug === activeDecoded ||
+      subSlug === targetSubSlug ||
+      catSlug === activeDecoded ||
+      catSlug === targetSubSlug
+    ) {
+      return true;
+    }
+
+    // 5. Tags match
+    if (
+      p.tags &&
+      p.tags.some(
+        (t) =>
+          decodeURIComponent(t).toLowerCase() === activeDecoded ||
+          decodeURIComponent(t).toLowerCase() === targetSubSlug
+      )
+    ) {
+      return true;
+    }
+
+    return false;
+  }, [currentCategory]);
+
   const categoryProducts = useMemo(() => {
     let result = [...baseProducts];
 
     if (activeSubcategory) {
-      const activeDecoded = decodeURIComponent(activeSubcategory).toLowerCase().trim();
-      const cleanActive = activeDecoded.replace(/[-_\s]+/g, ' ');
-      const targetSub = currentCategory.subcategories?.find((s) => {
-        const sSlug = decodeURIComponent(s.slug).toLowerCase().trim();
-        const cleanSSlug = sSlug.replace(/[-_\s]+/g, ' ');
-        const cleanSEn = s.name.en ? s.name.en.toLowerCase().trim().replace(/[-_\s]+/g, ' ') : '';
-        const cleanSAr = s.name.ar ? s.name.ar.toLowerCase().trim().replace(/[-_\s]+/g, ' ') : '';
-        return (
-          sSlug === activeDecoded ||
-          String(s.id) === activeSubcategory ||
-          cleanSSlug === cleanActive ||
-          cleanSEn === cleanActive ||
-          cleanSAr === cleanActive
-        );
-      });
-      const targetSubId = targetSub
-        ? Number(targetSub.id)
-        : !isNaN(Number(activeSubcategory))
-        ? Number(activeSubcategory)
-        : null;
-      const targetSubSlug = targetSub ? targetSub.slug.toLowerCase() : activeDecoded;
-
-      result = result.filter((p) => {
-        // 1. Direct ID match from categoryIds
-        if (targetSubId !== null && p.categoryIds && p.categoryIds.includes(targetSubId)) {
-          return true;
-        }
-
-        // 2. Slug match in categorySlugs
-        if (
-          p.categorySlugs &&
-          p.categorySlugs.some((cs) => {
-            const dec = decodeURIComponent(cs).toLowerCase().trim();
-            const cleanCs = dec.replace(/[-_\s]+/g, ' ');
-            return (
-              dec === activeDecoded ||
-              dec === targetSubSlug ||
-              cleanCs === cleanActive
-            );
-          })
-        ) {
-          return true;
-        }
-
-        // 3. Subcategory object match in categoriesList
-        if (
-          p.categoriesList &&
-          p.categoriesList.some((c) => {
-            if (targetSubId !== null && Number(c.id) === targetSubId) return true;
-            const cSlug = (c.slug || '').toLowerCase();
-            const cEn = (c.slug_en || '').toLowerCase();
-            const cAr = (c.slug_ar || '').toLowerCase();
-            return (
-              cSlug === activeDecoded ||
-              cSlug === targetSubSlug ||
-              cEn === activeDecoded ||
-              cEn === targetSubSlug ||
-              cAr === activeDecoded ||
-              cAr === targetSubSlug
-            );
-          })
-        ) {
-          return true;
-        }
-
-        // 4. subcategorySlug or categorySlug
-        const subSlug = p.subcategorySlug ? decodeURIComponent(p.subcategorySlug).toLowerCase() : '';
-        const catSlug = p.categorySlug ? decodeURIComponent(p.categorySlug).toLowerCase() : '';
-        if (
-          subSlug === activeDecoded ||
-          subSlug === targetSubSlug ||
-          catSlug === activeDecoded ||
-          catSlug === targetSubSlug
-        ) {
-          return true;
-        }
-
-        // 5. Tags match
-        if (
-          p.tags &&
-          p.tags.some(
-            (t) =>
-              decodeURIComponent(t).toLowerCase() === activeDecoded ||
-              decodeURIComponent(t).toLowerCase() === targetSubSlug
-          )
-        ) {
-          return true;
-        }
-
-        return false;
-      });
+      result = result.filter((p) => isProductInSubcategory(p, activeSubcategory));
     }
 
     if (filters.minPrice !== undefined) {
@@ -372,7 +374,7 @@ function CategoryPageContent({
     }
 
     return result;
-  }, [slug, activeSubcategory, filters, baseProducts, currentCategory]);
+  }, [slug, activeSubcategory, filters, baseProducts, currentCategory, isProductInSubcategory]);
 
   const handleAttributeToggle = useCallback((attrSlug: string, valueSlug: string) => {
     setFilters((prev) => {
@@ -484,9 +486,52 @@ function CategoryPageContent({
       }
     }
 
+    // Helper to test if product matches activeSubcategory, price, stock, rating, and other attribute selections
+    const matchesFiltersForAttr = (p: Product, currentAttrSlug: string) => {
+      // 1. Subcategory filter
+      if (activeSubcategory && !isProductInSubcategory(p, activeSubcategory)) {
+        return false;
+      }
+
+      // 2. Price filter
+      if (filters.minPrice !== undefined && p.price < (filters.minPrice || 0)) {
+        return false;
+      }
+      if (filters.maxPrice !== undefined && filters.maxPrice > 0 && p.price > filters.maxPrice) {
+        return false;
+      }
+
+      // 3. Stock filter
+      if (filters.inStockOnly && p.availability !== 'in_stock') {
+        return false;
+      }
+
+      // 4. Rating filter
+      if (filters.minRating && p.rating < (filters.minRating || 0)) {
+        return false;
+      }
+
+      // 5. Faceted Attribute Filtering for OTHER attributes (excluding currentAttrSlug)
+      if (filters.selectedAttributes && Object.keys(filters.selectedAttributes).length > 0) {
+        for (const [attrSlug, selectedValues] of Object.entries(filters.selectedAttributes)) {
+          if (attrSlug === currentAttrSlug) continue; // Exclude own attribute facet so user can multi-select or toggle alternatives
+          if (!selectedValues || selectedValues.length === 0) continue;
+
+          if (!Array.isArray(p.productAttributes)) return false;
+          const attr = p.productAttributes.find((a) => a.slug === attrSlug);
+          if (!attr || !Array.isArray(attr.values)) return false;
+          if (!attr.values.some((v) => selectedValues.includes(v.slug))) return false;
+        }
+      }
+
+      return true;
+    };
+
     return Array.from(map.values()).map((attr) => {
+      const selectedForThisAttr = filters.selectedAttributes?.[attr.slug] || [];
       const valuesArray = Array.from(attr.values.values()).map((val) => {
         const count = baseProducts.filter((p) => {
+          if (!matchesFiltersForAttr(p, attr.slug)) return false;
           if (!Array.isArray(p.productAttributes)) return false;
           return p.productAttributes.some((pa) => 
             pa.slug === attr.slug && pa.values.some((pv) => pv.slug === val.slug)
@@ -497,14 +542,17 @@ function CategoryPageContent({
           ...val,
           count,
         };
-      }).filter((v) => v.count > 0);
+      }).filter((v) => {
+        const isSelected = selectedForThisAttr.includes(v.slug);
+        return v.count > 0 || isSelected;
+      });
 
       return {
         ...attr,
         values: valuesArray,
       };
     }).filter((a) => a.values.length > 0);
-  }, [baseProducts, initialAttributes]);
+  }, [baseProducts, initialAttributes, activeSubcategory, filters, isProductInSubcategory]);
 
   const displayedProducts = useMemo(() => {
     return categoryProducts.slice(0, visibleCount);
