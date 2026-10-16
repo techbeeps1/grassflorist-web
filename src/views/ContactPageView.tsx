@@ -273,12 +273,12 @@ export function ContactPageView({ locale, contactData }: ContactPageViewProps) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <MessageCircle className="w-4 h-4 text-primary shrink-0" />
                   <a
                     href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-bold text-text-main hover:text-emerald-700 transition-colors"
+                    className="font-bold text-text-main hover:text-primary transition-colors"
                     dir="ltr"
                   >
                     {whatsappNumber} (WhatsApp Concierge)

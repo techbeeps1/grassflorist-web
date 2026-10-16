@@ -298,7 +298,7 @@ export function Footer({ locale }: FooterProps) {
       )}
 
       {/* 2. MAIN LUXURY DARK FOOTER (Floward-Style Structure & Hierarchy) */}
-      <footer className="bg-[#493D25] text-[#D1C9BE] pt-10 sm:pt-14 pb-8 sm:pb-10 border-t border-[#233227]">
+      <footer className="bg-[#493D25] text-[#D1C9BE] pt-10 sm:pt-14 pb-36 md:pb-10 border-t border-[#233227]">
         <div className="site-container">
           {/* Main Content Grid: Left Brand Block (5 cols) + Right Link Columns (7 cols) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 pb-8 sm:pb-10 border-b border-white/10">
@@ -683,25 +683,10 @@ export function Footer({ locale }: FooterProps) {
           </div>
 
           {/* 3. BOTTOM BAR (Copyright, Terms Links, Payment Icons & Back to top) */}
-          <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-5 text-sm text-white">
-            {/* Copyright info & Cookie Settings */}
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center md:text-start">
-              <p>{globalSettings?.footer?.copyright?.[locale] || dict.footer.allRightsReserved}</p>
-              <span className="hidden sm:inline text-white/30">•</span>
-              <button
-                type="button"
-                onClick={() => openCookiePreferencesModal()}
-                className="text-xs text-white/70 hover:text-[#99C552] underline underline-offset-4 cursor-pointer transition-colors"
-              >
-                {locale === 'ar' ? 'إعدادات ملفات تعريف الارتباط' : 'Cookie Settings'}
-              </button>
-            </div>
-
-
-
-            {/* Payment Method Badges */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center flex-wrap gap-1.5 justify-center md:justify-end">
+          <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-white">
+            {/* Payment Method Badges (order-1 on mobile so they appear clearly above copyright & bottom navigation) */}
+            <div className="flex items-center gap-3 order-1 md:order-2 w-full md:w-auto justify-center md:justify-end">
+              <div className="flex items-center flex-wrap gap-1.5 justify-center md:justify-end max-w-full">
                 {[
                   { name: 'mada', src: '/payments/mada-logo.svg' },
                   { name: 'Visa', src: '/payments/visa.svg' },
@@ -715,7 +700,7 @@ export function Footer({ locale }: FooterProps) {
                 ].map((pm) => (
                   <div
                     key={pm.name}
-                    className="w-[62px] h-[30px] bg-white border border-white/20 shadow-xs flex items-center justify-center p-1 hover:scale-105 transition-all"
+                    className="w-[60px] h-[20px] bg-white flex items-center justify-center px-1.5 py-0.5 hover:scale-105 transition-all shrink-0"
                     title={pm.name}
                   >
                     <img
@@ -723,11 +708,24 @@ export function Footer({ locale }: FooterProps) {
                       alt={pm.name}
                       width={60}
                       height={20}
-                      className="w-[54px] h-[18px] sm:w-[56px] sm:h-[20px] object-contain shrink-0"
+                      className="w-full h-full object-contain shrink-0"
                     />
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Copyright info & Cookie Settings (order-2 on mobile, Cookie Settings hidden on mobile) */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center md:text-start order-2 md:order-1">
+              <p>{globalSettings?.footer?.copyright?.[locale] || dict.footer.allRightsReserved}</p>
+              <span className="hidden md:inline text-white/30">•</span>
+              <button
+                type="button"
+                onClick={() => openCookiePreferencesModal()}
+                className="hidden md:inline-block text-xs text-white/70 hover:text-[#99C552] underline underline-offset-4 cursor-pointer transition-colors"
+              >
+                {locale === 'ar' ? 'إعدادات ملفات تعريف الارتباط' : 'Cookie Settings'}
+              </button>
             </div>
           </div>
         </div>
