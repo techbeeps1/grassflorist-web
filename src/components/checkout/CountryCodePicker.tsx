@@ -212,3 +212,22 @@ export function CountryCodePicker({ value, onChange, locale = 'en' }: CountryCod
     </div>
   );
 }
+
+export function splitPhone(fullPhone: string): { code: string; number: string } {
+  if (!fullPhone) return { code: '+966', number: '' };
+  const cleaned = fullPhone.trim();
+  const matched = ALL_COUNTRY_CODES.find((c) => cleaned.startsWith(c.dialCode));
+  if (matched) {
+    return {
+      code: matched.dialCode,
+      number: cleaned.slice(matched.dialCode.length).trim(),
+    };
+  }
+  if (cleaned.startsWith('+')) {
+    return {
+      code: '+966',
+      number: cleaned.replace(/^\+/, '').trim(),
+    };
+  }
+  return { code: '+966', number: cleaned };
+}
