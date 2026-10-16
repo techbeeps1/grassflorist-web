@@ -2258,21 +2258,23 @@ export interface ContactFormPayload {
   phone?: string;
   message: string;
   subject?: string;
+  locale?: 'en' | 'ar' | string;
 }
 
 /**
  * Submit Contact Inquiry to Laravel /api/contact-form
  */
 export async function submitContactInquiry(payload: ContactFormPayload): Promise<{ success: boolean; message: string; inquiry_id?: number }> {
-  const activeLocale = (payload as any)?.locale || 'ar';
+  const activeLocale = (payload?.locale || 'ar').toLowerCase().startsWith('en') ? 'en' : 'ar';
   const url = `${LARAVEL_API_BASE}/${activeLocale}/contact-form`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'X-Locale': activeLocale,
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, locale: activeLocale }),
   });
 
   const data = await res.json().catch(() => null);
