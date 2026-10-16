@@ -281,7 +281,9 @@ export function HomeEventsSection({ locale, benefits, events }: HomeEventsSectio
   const displayFeatures = Array.isArray(events?.tags) && events.tags.length > 0
     ? events.tags.map((t, idx) => ({
       icon: getFeatureIcon(t.icon, idx),
-      label: t.label,
+      label: typeof t.label === 'object' && t.label !== null
+        ? ((t.label as any)[locale] || (t.label as any).en || (t.label as any).ar || '')
+        : (t.label || ''),
     }))
     : defaultFeatures;
 
@@ -372,28 +374,30 @@ export function HomeEventsSection({ locale, benefits, events }: HomeEventsSectio
             </p>
 
             {/* Bottom Row: CTA Button + 3 Pillar Features */}
-            <div className="flex flex-wrap items-center gap-6 sm:gap-8 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-5 sm:gap-8 pt-2 w-full">
               {/* Dark Olive Pill CTA Button */}
               <Link
                 href={eventBookingUrl}
-                className="inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-full bg-[#3F5438] hover:bg-[#32432C] text-white font-bold text-sm uppercase tracking-wider shadow-md transition-all duration-300 hover:scale-105 active:scale-95 group cursor-pointer"
+                className="inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-full bg-[#3F5438] hover:bg-[#32432C] text-white font-bold text-sm uppercase tracking-wider shadow-md transition-all duration-300 hover:scale-105 active:scale-95 group cursor-pointer w-fit shrink-0"
               >
                 <span>{displayButtonText}</span>
                 <ArrowIcon className="w-4 h-4 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
               </Link>
 
               {/* 3 Pillar Features with Dividers */}
-              <div className="flex items-center gap-4 sm:gap-5">
+              <div className="flex items-start sm:items-center justify-between sm:justify-start w-full sm:w-auto max-w-md sm:max-w-none gap-1.5 sm:gap-5 pt-1 sm:pt-0">
                 {displayFeatures.map((item, idx) => {
                   const Icon = item.icon;
                   return (
                     <React.Fragment key={idx}>
-                      {idx > 0 && <div className="w-[1px] h-8 bg-[#DCD4C6]" />}
-                      <div className="flex flex-col items-center text-center group cursor-default">
-                        <div className="w-8 h-8 rounded-full bg-[#EFE9DC] text-[#4F634A] flex items-center justify-center mb-1.5 transition-colors group-hover:bg-[#3F5438] group-hover:text-white">
+                      {idx > 0 && (
+                        <div className="w-[1px] h-7 sm:h-8 bg-[#DCD4C6] shrink-0 self-center" />
+                      )}
+                      <div className="flex-1 sm:flex-initial flex flex-col items-center text-center group cursor-default min-w-0 px-1 sm:px-0">
+                        <div className="w-8 h-8 rounded-full bg-[#EFE9DC] text-[#4F634A] flex items-center justify-center mb-1.5 shrink-0 transition-colors group-hover:bg-[#3F5438] group-hover:text-white">
                           <Icon className="w-4 h-4" />
                         </div>
-                        <span className="text-[11px] font-medium text-[#524C45] whitespace-nowrap">
+                        <span className="text-[11px] sm:text-xs font-medium text-[#524C45] leading-tight text-center break-words sm:whitespace-nowrap">
                           {item.label}
                         </span>
                       </div>

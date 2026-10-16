@@ -21,13 +21,12 @@ export function CategoryPageSkeleton({ locale = 'en' }: CategoryPageSkeletonProp
       </div>
 
       {/* 2. Category Hero Banner Skeleton */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-[#F5EFE6] to-[#ECE3D5] p-6 sm:p-10 border border-[#E8E0D2] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-6 overflow-hidden">
-        <div className="space-y-3 max-w-lg">
-          <Skeleton className="h-8 sm:h-10 w-48 sm:w-64 rounded-xl bg-[#E2D8CA]" />
-          <Skeleton className="h-4 w-72 sm:w-96 rounded-md bg-[#E5DCCF]" />
-          <Skeleton className="h-4 w-40 sm:w-56 rounded-md bg-[#E5DCCF]" />
+      <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#F5EFE6] to-[#ECE3D5] py-3.5 px-5 sm:py-4 sm:px-8 border border-[#E8E0D2] shadow-2xs flex items-center justify-between gap-4 sm:gap-6 overflow-hidden">
+        <div className="space-y-2 max-w-lg flex-1 min-w-0">
+          <Skeleton className="h-6 sm:h-8 w-40 sm:w-60 rounded-xl bg-[#E2D8CA]" />
+          <Skeleton className="h-3.5 sm:h-4 w-52 sm:w-72 rounded-md bg-[#E5DCCF]" />
         </div>
-        <Skeleton className="w-28 h-28 sm:w-40 sm:h-40 rounded-2xl bg-[#E0D5C5] shrink-0 border-2 border-white shadow-sm" />
+        <Skeleton className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl sm:rounded-2xl bg-[#E0D5C5] shrink-0 border-2 border-white shadow-sm" />
       </div>
 
       {/* 3. Circular Category Slider Skeleton */}

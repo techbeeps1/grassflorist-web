@@ -616,26 +616,28 @@ function CategoryPageContent({
           <Breadcrumbs items={breadcrumbItems} locale={locale} />
 
           {/* Category Banner / Title Card */}
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#FAF3ED] via-[#F4ECE2] to-[#EAE0D3] border border-[#E2D5C4] p-6 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="max-w-xl text-start">
-              <h1 className="text-2xl sm:text-4xl font-extrabold text-[#25211E] mb-2">
+          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-r from-[#FAF3ED] via-[#F4ECE2] to-[#EAE0D3] border border-[#E2D5C4] py-3.5 px-5 sm:py-4 sm:px-8 flex items-center justify-between gap-4 sm:gap-6">
+            <div className="max-w-xl text-start flex-1 min-w-0">
+              <h1 className="text-xl sm:text-3xl font-extrabold text-[#25211E] mb-1 sm:mb-1.5">
                 {cleanCategoryName}
               </h1>
-              <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
+              <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
                 {cleanTitle(currentCategory.description[locale] || currentCategory.description.en || '')}
               </p>
             </div>
 
-            <div className="relative w-36 h-36 sm:w-48 sm:h-48 rounded-2xl overflow-hidden shadow-lg border-2 border-white shrink-0">
-              <Image
-                src={currentCategory.image}
-                alt={cleanCategoryName}
-                fill
-                priority
-                sizes="200px"
-                className="object-cover"
-              />
-            </div>
+            {currentCategory.image && (
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm border-2 border-white shrink-0">
+                <Image
+                  src={currentCategory.image}
+                  alt={cleanCategoryName}
+                  fill
+                  priority
+                  sizes="(max-width: 640px) 80px, 112px"
+                  className="object-cover"
+                />
+              </div>
+            )}
           </div>
 
           {/* Main Category Discovery Slider (matches Home page slider categories) */}
