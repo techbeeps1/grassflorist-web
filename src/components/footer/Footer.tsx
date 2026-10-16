@@ -330,11 +330,11 @@ export function Footer({ locale }: FooterProps) {
               <div className="space-y-2 text-xs sm:text-sm text-white/90 pt-0.5">
                 <div className="flex items-start gap-2.5">
                   <MapPin className="w-4 h-4 text-[#99C552] shrink-0 mt-0.5" />
-                  <Link href="https://maps.google.com/?cid=14095245892291059500&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAMYASAF" target='blank' className="hover:text-[#99C552] transition-colors font-medium text-white">
+                  <span>
                     {locale === 'ar'
                       ? siteConfig.locations[0].address.ar
                       : siteConfig.locations[0].address.en}
-                  </Link>
+                  </span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Phone className="w-4 h-4 text-[#99C552] shrink-0" />

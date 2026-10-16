@@ -887,7 +887,7 @@ export function formatStorageUrl(path?: string | null): string {
   if (!str) return 'https://grassflorist.com/wp-content/uploads/2025/02/placeholder.png';
 
   const mediaOrigin = (
-    process.env.NEXT_PUBLIC_MEDIA_URL || 
+    process.env.NEXT_PUBLIC_MEDIA_URL ||
     'https://api.grassflorist.com'
   ).replace(/\/+$/, '');
 
@@ -971,8 +971,8 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
   const primaryCategory = Array.isArray(item.meta_data?.categories) && item.meta_data.categories.length > 0
     ? item.meta_data.categories[0]
     : Array.isArray(item.categories) && item.categories.length > 0
-    ? item.categories[0]
-    : null;
+      ? item.categories[0]
+      : null;
 
   let rawCatAr = typeof primaryCategory?.name === 'object' ? primaryCategory?.name?.ar : primaryCategory?.name_ar;
   let rawCatEn = typeof primaryCategory?.name === 'object' ? primaryCategory?.name?.en : primaryCategory?.name_en;
@@ -1022,8 +1022,8 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
   const rawCategoryIds = Array.isArray(item.category_ids)
     ? item.category_ids
     : Array.isArray(item.category_id)
-    ? item.category_id
-    : [];
+      ? item.category_id
+      : [];
   const categoryIds: number[] = rawCategoryIds
     .map((id: any) => Number(id))
     .filter((id: number) => !isNaN(id));
@@ -1034,10 +1034,10 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
       ...rawCategorySlugs.map((s: string) => safeDecodeUri(s).toLowerCase()),
       ...(Array.isArray(item.categories)
         ? item.categories.flatMap((c: any) => [
-            safeDecodeUri(c.slug || '').toLowerCase(),
-            safeDecodeUri(c.slug_en || '').toLowerCase(),
-            safeDecodeUri(c.slug_ar || '').toLowerCase(),
-          ])
+          safeDecodeUri(c.slug || '').toLowerCase(),
+          safeDecodeUri(c.slug_en || '').toLowerCase(),
+          safeDecodeUri(c.slug_ar || '').toLowerCase(),
+        ])
         : []),
     ].filter(Boolean))
   );
@@ -1047,13 +1047,13 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
   const secondaryCategory = Array.isArray(item.meta_data?.categories) && item.meta_data.categories.length > 1
     ? item.meta_data.categories[1]
     : Array.isArray(item.categories) && item.categories.length > 1
-    ? item.categories[1]
-    : null;
+      ? item.categories[1]
+      : null;
   const subcategorySlug = secondaryCategory?.slug
     ? safeDecodeUri(secondaryCategory.slug)
     : categoriesList.length > 1
-    ? safeDecodeUri(categoriesList[1].slug)
-    : undefined;
+      ? safeDecodeUri(categoriesList[1].slug)
+      : undefined;
 
   return {
     id: String(item.id),
@@ -1162,10 +1162,10 @@ export function mapLaravelCategoryToCategory(cat: any): Category {
     Array.isArray(cat.child) && cat.child.length > 0
       ? cat.child
       : Array.isArray(cat.subcategories) && cat.subcategories.length > 0
-      ? cat.subcategories
-      : Array.isArray(cat.sub_categories) && cat.sub_categories.length > 0
-      ? cat.sub_categories
-      : [];
+        ? cat.subcategories
+        : Array.isArray(cat.sub_categories) && cat.sub_categories.length > 0
+          ? cat.sub_categories
+          : [];
 
   const subcategories: Subcategory[] = rawChildren.map((ch: any) => {
     let chRawAr = '';
@@ -1420,8 +1420,8 @@ export async function getStoreProductDetails(
         const rawRelated = Array.isArray(data.related_products)
           ? data.related_products
           : Array.isArray(data.bought_together)
-          ? data.bought_together
-          : [];
+            ? data.bought_together
+            : [];
 
         const relatedProducts = rawRelated.map((p: any) =>
           mapLaravelProductToProduct(p, activeLocale)
@@ -1583,10 +1583,10 @@ export async function getStoreCategoryBySlug(
                 Array.isArray(data.category.child) && data.category.child.length > 0
                   ? data.category.child
                   : Array.isArray(data.sub_categories) && data.sub_categories.length > 0
-                  ? data.sub_categories
-                  : Array.isArray(data.subcategories) && data.subcategories.length > 0
-                  ? data.subcategories
-                  : [],
+                    ? data.sub_categories
+                    : Array.isArray(data.subcategories) && data.subcategories.length > 0
+                      ? data.subcategories
+                      : [],
             };
             const category = mapLaravelCategoryToCategory(catPayload);
             const rawProducts = Array.isArray(data.products) ? data.products : [];
@@ -1594,8 +1594,8 @@ export async function getStoreCategoryBySlug(
             const attributes = Array.isArray(data.attributes)
               ? data.attributes
               : Array.isArray(data.filters?.attributes)
-              ? data.filters.attributes
-              : [];
+                ? data.filters.attributes
+                : [];
             return { category, products, attributes };
           }
         }
@@ -1909,18 +1909,18 @@ export async function getHomePageData(locale: Locale) {
 
       const heroSlides = Array.isArray(homeData.slider_section) && homeData.slider_section.length > 0
         ? homeData.slider_section.map((slide: any, index: number) => {
-            const rawImg = slide.image || (locale === 'ar' ? (slide.slider_image_ar || slide.slider_image_en) : (slide.slider_image_en || slide.slider_image_ar)) || slide.slider_image;
-            const linkUrl = slide.link || slide.slider_url || (locale === 'ar' ? '/products' : '/en/products');
-            return {
-              id: `admin-slide-${index + 1}`,
-              image: rawImg,
-              link: linkUrl,
-              title: {
-                ar: slide.title?.ar || 'توصيل الزهور في جدة خلال نفس اليوم',
-                en: slide.title?.en || 'Flowers delivery in Jeddah within the Same Day',
-              },
-            };
-          }).filter((s: any) => Boolean(s.image))
+          const rawImg = slide.image || (locale === 'ar' ? (slide.slider_image_ar || slide.slider_image_en) : (slide.slider_image_en || slide.slider_image_ar)) || slide.slider_image;
+          const linkUrl = slide.link || slide.slider_url || (locale === 'ar' ? '/products' : '/en/products');
+          return {
+            id: `admin-slide-${index + 1}`,
+            image: rawImg,
+            link: linkUrl,
+            title: {
+              ar: slide.title?.ar || 'توصيل الزهور في جدة خلال نفس اليوم',
+              en: slide.title?.en || 'Flowers delivery in Jeddah within the Same Day',
+            },
+          };
+        }).filter((s: any) => Boolean(s.image))
         : [];
 
       const popularSection = {
@@ -2189,7 +2189,7 @@ const fallbackContactDataEn: ContactPageData = {
   working_hours: 'Daily 9:00 AM - 11:00 PM AST',
   ateliers_title: 'BOUTIQUE ATELIERS',
   city: 'Jeddah',
-  address: '4344 Al Kayal, Al-Rawdah, 4366, Jeddah 23434, Saudi Arabia',
+  address: '4366 Al Kayyal Street, Al-Rawdah District, Jeddah 23434, Saudi Arabia',
 };
 
 const fallbackContactDataAr: ContactPageData = {
