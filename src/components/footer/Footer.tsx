@@ -175,12 +175,12 @@ export function Footer({ locale }: FooterProps) {
           <div className="absolute top-0 end-0 w-96 h-96 bg-[#8CA841]/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 start-0 w-80 h-80 bg-[#D4C4B5]/20 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="site-container relative z-10">
-          <div className="max-w-4xl mx-auto bg-white rounded-3xl p-5 sm:p-8 md:p-12 border border-[#E8DFC0]/80 shadow-[0_10px_35px_rgba(40,30,20,0.04)] text-center flex flex-col items-center">
-            {/* VIP Club Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF5EE] text-[#435849] border border-[#DDD3C6] text-[11px] font-bold uppercase tracking-wider mb-3.5 shadow-2xs">
-              <span>{locale === 'ar' ? 'نادي غراس للتميز والإهداء' : 'GRASS VIP BOTANICAL CLUB'}</span>
-            </div>
+          <div className="site-container relative z-10">
+            <div className="max-w-4xl mx-auto bg-white rounded-3xl p-5 sm:p-8 md:p-12 border border-[#E8DFC0]/80 shadow-[0_10px_35px_rgba(40,30,20,0.04)] text-center flex flex-col items-center">
+              {/* VIP Club Badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF5EE] text-[#435849] border border-[#DDD3C6] text-[11px] font-bold uppercase tracking-wider mb-3.5 shadow-2xs">
+                <span>{locale === 'ar' ? 'نادي غراس للتميز والإهداء' : 'GRASS VIP BOTANICAL CLUB'}</span>
+              </div>
 
 
               {/* Headline & Subtitle */}
@@ -330,30 +330,30 @@ export function Footer({ locale }: FooterProps) {
               <div className="space-y-2 text-xs sm:text-sm text-white/90 pt-0.5">
                 <div className="flex items-start gap-2.5">
                   <MapPin className="w-4 h-4 text-[#99C552] shrink-0 mt-0.5" />
-                  <span>
+                  <Link href="https://maps.google.com/?cid=14095245892291059500&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAMYASAF" target='blank' className="hover:text-[#99C552] transition-colors font-medium text-white">
                     {locale === 'ar'
                       ? siteConfig.locations[0].address.ar
                       : siteConfig.locations[0].address.en}
-                  </span>
+                  </Link>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Phone className="w-4 h-4 text-[#99C552] shrink-0" />
-                  <a
+                  <Link
                     href={`tel:${(globalSettings?.contact?.phone || siteConfig.contact.phone).replace(/\s+/g, '')}`}
                     className="hover:text-[#99C552] transition-colors font-medium text-white"
                     dir="ltr"
                   >
                     {globalSettings?.contact?.phone || siteConfig.contact.phone}
-                  </a>
+                  </Link>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Mail className="w-4 h-4 text-[#99C552] shrink-0" />
-                  <a
+                  <Link
                     href={`mailto:${globalSettings?.contact?.email || siteConfig.contact.email}`}
                     className="hover:text-[#99C552] transition-colors font-medium text-white"
                   >
                     {globalSettings?.contact?.email || siteConfig.contact.email}
-                  </a>
+                  </Link>
                 </div>
               </div>
 
@@ -364,7 +364,7 @@ export function Footer({ locale }: FooterProps) {
                 </span>
                 <div className="flex items-center gap-2.5 flex-wrap">
                   {/* Facebook */}
-                  <a
+                  <Link
                     href={globalSettings?.social?.facebook || siteConfig.socials.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -374,7 +374,7 @@ export function Footer({ locale }: FooterProps) {
                     <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
-                  </a>
+                  </Link>
                   {/* X (Twitter) */}
                   <a
                     href={globalSettings?.social?.twitter || siteConfig.socials.twitter}
