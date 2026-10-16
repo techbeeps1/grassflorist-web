@@ -524,10 +524,10 @@ export function SavedAddressesManager({
       )}
 
       {/* =========================================================================
-          SAVED ADDRESSES LIST (Up to 5)
+          SAVED ADDRESSES LIST (Up to 5) - Full-Width Row Layout
          ========================================================================= */}
       {isLoaded && savedAddresses.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3.5">
           {savedAddresses.map((addr, index) => {
             const fullName = [addr.recipientFirstName, addr.recipientLastName].filter(Boolean).join(' ').trim();
             const isPrimary = addr.isDefault || index === 0;
@@ -535,85 +535,87 @@ export function SavedAddressesManager({
             return (
               <div
                 key={addr.id}
-                className={`p-5 rounded-2xl border transition-all text-start relative group flex flex-col justify-between ${
+                className={`w-full p-4 sm:p-5 rounded-2xl border transition-all text-start relative group flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${
                   isPrimary
                     ? 'bg-[#FAF8F5] border-[#8fae2a] shadow-xs'
                     : 'bg-white border-[#E8DFD3] hover:border-gray-300 shadow-2xs'
                 }`}
               >
-                <div>
-                  {/* Top Badge Row */}
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-7 h-7 rounded-lg bg-[#8fae2a]/15 text-[#546e3a] flex items-center justify-center shrink-0">
-                        <MapPin className="w-4 h-4" />
-                      </span>
-                      <span className="text-xs font-bold text-gray-900 truncate">
-                        {fullName || (isAr ? 'مستلم الطلب' : 'Recipient')}
-                      </span>
-                    </div>
+                {/* Address Info */}
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="w-7 h-7 rounded-lg bg-[#8fae2a]/15 text-[#546e3a] flex items-center justify-center shrink-0">
+                      <MapPin className="w-4 h-4" />
+                    </span>
+                    <span className="text-sm font-bold text-gray-900 truncate">
+                      {fullName || (isAr ? 'مستلم الطلب' : 'Recipient')}
+                    </span>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {isPrimary && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF5EC] text-[#2D6A4F] border border-[#C8E6CF]">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>{isAr ? 'الافتراضي' : 'Default'}</span>
-                        </span>
-                      )}
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                        {addr.city || (isAr ? 'جدة' : 'Jeddah')}
+                    {isPrimary && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#EAF5EC] text-[#2D6A4F] border border-[#C8E6CF]">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{isAr ? 'العنوان الافتراضي' : 'Default Address'}</span>
                       </span>
-                    </div>
+                    )}
+
+                    <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                      {addr.city || (isAr ? 'جدة' : 'Jeddah')}
+                    </span>
                   </div>
 
                   {/* Street & Location */}
-                  <p className="text-xs text-gray-700 leading-relaxed font-medium mb-1.5">
+                  <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-medium">
                     {addr.shippingAddress}
                     {addr.district ? `, ${addr.district}` : ''}
                   </p>
 
-                  {/* Phone */}
-                  {addr.recipientPhone && (
-                    <p className="text-xs text-gray-500 font-mono mb-2" dir="ltr">
-                      {addr.recipientPhone}
-                    </p>
-                  )}
+                  {/* Meta Details: Phone & Pinned Map Link */}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500">
+                    {addr.recipientPhone && (
+                      <span className="font-mono" dir="ltr">
+                        {addr.recipientPhone}
+                      </span>
+                    )}
 
-                  {/* Pinned Maps Link */}
-                  {addr.shippingAddressLink && (
-                    <a
-                      href={addr.shippingAddressLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-[11px] text-[#546e3a] hover:text-[#8fae2a] font-semibold hover:underline mb-3"
-                    >
-                      <MapPin className="w-3 h-3 text-[#8fae2a]" />
-                      <span>{isAr ? 'موقع الخريطة المحدد' : 'Pinned Map Location'}</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
+                    {addr.shippingAddressLink && (
+                      <a
+                        href={addr.shippingAddressLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[11px] text-[#546e3a] hover:text-[#8fae2a] font-semibold hover:underline"
+                      >
+                        <MapPin className="w-3 h-3 text-[#8fae2a]" />
+                        <span>{isAr ? 'موقع الخريطة المحدد' : 'Pinned Map Location'}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 {/* Card Actions Footer */}
-                <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 mt-2">
+                <div className="flex items-center justify-between md:justify-end gap-2.5 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-gray-100">
                   <div>
-                    {!isPrimary && (
+                    {!isPrimary ? (
                       <button
                         type="button"
                         onClick={() => handleMakeDefault(addr)}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-500 hover:text-[#546e3a] transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:text-[#546e3a] hover:bg-[#8fae2a]/10 border border-gray-200 transition-colors cursor-pointer"
                       >
-                        <Star className="w-3.5 h-3.5" />
+                        <Star className="w-3.5 h-3.5 text-amber-500" />
                         <span>{isAr ? 'تعيين كافتراضي' : 'Set as Default'}</span>
                       </button>
+                    ) : (
+                      <span className="text-xs text-gray-400 italic hidden md:inline">
+                        {isAr ? 'العنوان الرئيسي للطلبات' : 'Primary for checkout'}
+                      </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => handleStartEdit(addr)}
-                      className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all cursor-pointer"
+                      className="p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200 transition-all cursor-pointer"
                       title={isAr ? 'تعديل العنوان' : 'Edit address'}
                     >
                       <Edit3 className="w-4 h-4" />
@@ -622,7 +624,7 @@ export function SavedAddressesManager({
                     <button
                       type="button"
                       onClick={() => handleDelete(addr)}
-                      className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer"
+                      className="p-2 rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50 border border-gray-200 transition-all cursor-pointer"
                       title={isAr ? 'حذف العنوان' : 'Delete address'}
                     >
                       <Trash2 className="w-4 h-4" />
