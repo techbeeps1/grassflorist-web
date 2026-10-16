@@ -49,6 +49,7 @@ export interface Product {
   availability: 'in_stock' | 'out_of_stock' | 'limited';
   seoTitle: LocalizedString;
   seoDescription: LocalizedString;
+  seoKeywords?: LocalizedString;
   attributes?: {
     stemCount?: number;
     dimensions?: string;

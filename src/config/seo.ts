@@ -61,18 +61,24 @@ export const seoConfig = {
   },
 };
 
+export function normalizeSeoPath(path: string): string {
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  const stripped = clean.replace(/^\/en(\/|$)/, '/');
+  return stripped === '' ? '/' : stripped;
+}
+
 export function getCanonicalUrl(path: string, locale: Locale): string {
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const normalized = normalizeSeoPath(path);
   if (locale === 'ar') {
-    return cleanPath === '/' ? siteConfig.url : `${siteConfig.url}${cleanPath}`;
+    return normalized === '/' ? siteConfig.url : `${siteConfig.url}${normalized}`;
   }
-  return cleanPath === '/' ? `${siteConfig.url}/en` : `${siteConfig.url}/en${cleanPath}`;
+  return normalized === '/' ? `${siteConfig.url}/en` : `${siteConfig.url}/en${normalized}`;
 }
 
 export function getHreflangUrls(path: string) {
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  const arUrl = cleanPath === '/' ? siteConfig.url : `${siteConfig.url}${cleanPath}`;
-  const enUrl = cleanPath === '/' ? `${siteConfig.url}/en` : `${siteConfig.url}/en${cleanPath}`;
+  const normalized = normalizeSeoPath(path);
+  const arUrl = normalized === '/' ? siteConfig.url : `${siteConfig.url}${normalized}`;
+  const enUrl = normalized === '/' ? `${siteConfig.url}/en` : `${siteConfig.url}/en${normalized}`;
 
   return {
     ar: arUrl,

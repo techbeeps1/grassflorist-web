@@ -32,6 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return generatePageMetadata({
     title: product.seoTitle.en,
     description: product.seoDescription.en,
+    keywords: product.seoKeywords?.en,
     path: `/en/product/${canonicalSlug}`,
     locale: 'en',
     image: product.thumbnail,

@@ -27,6 +27,7 @@ export async function generateMetadata({ params }: DynamicPageProps): Promise<Me
   return generatePageMetadata({
     title: page?.seo?.meta_title || `${page.title} | غراس فلوريست`,
     description: page?.seo?.meta_description || page.short_description || `${page.title} - غراس فلوريست`,
+    keywords: page?.seo?.meta_keywords || (page as any)?.meta_keywords,
     path: `/${slug}`,
     locale: 'ar',
   });

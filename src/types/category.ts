@@ -19,6 +19,7 @@ export interface Category {
   icon?: string;
   seoTitle: LocalizedString;
   seoDescription: LocalizedString;
+  seoKeywords?: LocalizedString;
   featured: boolean;
   itemCount: number;
   subcategories: Subcategory[];
