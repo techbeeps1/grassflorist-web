@@ -238,16 +238,60 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     setHasMounted(true);
   }, []);
 
-  // Show "Make it perfect" upsell popup automatically whenever checkout page opens
+  // Show "Make it perfect" upsell popup automatically ONLY on initial checkout, NEVER during payment callback/return
   useEffect(() => {
+    const search = typeof window !== 'undefined' ? window.location.search : '';
+    const isPaymentCallback = Boolean(
+      search && (
+        search.includes('order_number=') ||
+        search.includes('order_id=') ||
+        search.includes('gateway=') ||
+        search.includes('id=') ||
+        search.includes('checkout_id=') ||
+        search.includes('payment_success=') ||
+        search.includes('payment_id=') ||
+        search.includes('tap_id=') ||
+        search.includes('token=') ||
+        search.includes('PayerID=') ||
+        search.includes('cancelled=') ||
+        search.includes('cancel=') ||
+        search.includes('failed=') ||
+        search.includes('resourcePath=') ||
+        search.includes('subscription_id=')
+      )
+    );
+
+    if (isPaymentCallback || confirmedOrder) {
+      hasTriggeredMakeItPerfectRef.current = true;
+      setShowMakeItPerfectModal(false);
+      return;
+    }
+
     if (hasMounted && cartItems.length > 0 && !hasTriggeredMakeItPerfectRef.current) {
       hasTriggeredMakeItPerfectRef.current = true;
       const timer = setTimeout(() => {
-        setShowMakeItPerfectModal(true);
+        const latestSearch = typeof window !== 'undefined' ? window.location.search : '';
+        const stillCallback = Boolean(
+          latestSearch && (
+            latestSearch.includes('order_number=') ||
+            latestSearch.includes('order_id=') ||
+            latestSearch.includes('gateway=') ||
+            latestSearch.includes('id=') ||
+            latestSearch.includes('checkout_id=') ||
+            latestSearch.includes('payment_success=') ||
+            latestSearch.includes('token=') ||
+            latestSearch.includes('PayerID=') ||
+            latestSearch.includes('cancelled=') ||
+            latestSearch.includes('failed=')
+          )
+        );
+        if (!stillCallback && !confirmedOrder) {
+          setShowMakeItPerfectModal(true);
+        }
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [hasMounted, cartItems.length]);
+  }, [hasMounted, cartItems.length, confirmedOrder]);
 
   const clearCartCompletely = React.useCallback(() => {
     dispatch(clearCart());
@@ -659,6 +703,11 @@ export function CheckoutPageView({ locale }: CheckoutPageViewProps) {
     const token = params.get('token');
     const subId = params.get('subscription_id');
     const isPaymentReturn = Boolean(hyperpayId || token || subId || params.get('payment_success') === '1' || params.get('PayerID'));
+
+    if (orderNum || isPaymentReturn || isCancelled || isFailed || params.get('gateway')) {
+      hasTriggeredMakeItPerfectRef.current = true;
+      setShowMakeItPerfectModal(false);
+    }
 
     if (orderNum) {
       // 🌸 If this is a subscription order, forward immediately to the subscription checkout page
