@@ -27,6 +27,7 @@ export async function generateMetadata({ params }: DynamicPageProps): Promise<Me
   return generatePageMetadata({
     title: page?.seo?.meta_title || `${page.title} | Grass Florist`,
     description: page?.seo?.meta_description || page.short_description || `${page.title} - Grass Florist`,
+    keywords: page?.seo?.meta_keywords || (page as any)?.meta_keywords,
     path: `/${slug}`,
     locale: 'en',
   });

@@ -32,6 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return generatePageMetadata({
     title: product.seoTitle.ar,
     description: product.seoDescription.ar,
+    keywords: product.seoKeywords?.ar,
     path: `/product/${canonicalSlug}`,
     locale: 'ar',
     image: product.thumbnail,

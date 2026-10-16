@@ -19,4 +19,5 @@ export interface BlogPost {
   tags: string[];
   seoTitle: LocalizedString;
   seoDescription: LocalizedString;
+  seoKeywords?: LocalizedString;
 }

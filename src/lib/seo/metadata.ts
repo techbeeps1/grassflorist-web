@@ -5,6 +5,7 @@ import { seoConfig, getCanonicalUrl, getHreflangUrls } from '@/config/seo';
 interface GenerateMetadataOptions {
   title?: string;
   description?: string;
+  keywords?: string | string[];
   path: string;
   locale: Locale;
   image?: string;
@@ -14,13 +15,15 @@ interface GenerateMetadataOptions {
 export function generatePageMetadata({
   title,
   description,
+  keywords,
   path,
   locale,
   image,
   noIndex = false,
 }: GenerateMetadataOptions): Metadata {
+  const shortName = siteConfig.shortName[locale];
   const pageTitle = title
-    ? `${title} | ${siteConfig.shortName[locale]}`
+    ? (title.includes(shortName) || title.includes('|') ? title : `${title} | ${shortName}`)
     : seoConfig.defaultTitle[locale];
 
   const pageDescription = description || seoConfig.defaultDescription[locale];
@@ -28,10 +31,14 @@ export function generatePageMetadata({
   const alternates = getHreflangUrls(path);
   const ogImage = image || seoConfig.openGraph.images[0].url;
 
+  const pageKeywords = keywords
+    ? (Array.isArray(keywords) ? keywords : keywords.split(',').map((s) => s.trim()).filter(Boolean))
+    : seoConfig.keywords[locale];
+
   return {
     title: pageTitle,
     description: pageDescription,
-    keywords: seoConfig.keywords[locale],
+    keywords: pageKeywords,
     alternates: {
       canonical,
       languages: {
