@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { type Locale } from '@/config/site';
 import { useGetSubscriptionDealBySlugQuery } from '@/store/api/subscriptionApi';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
@@ -81,19 +81,7 @@ export function SubscriptionProductDetailView({ slug, locale }: SubscriptionProd
   }
 
   if (!deal) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 bg-surface text-center">
-        <h2 className="text-2xl font-bold mb-3 text-text-main">
-          {isAr ? 'الباقة غير موجودة' : 'Plan Not Found'}
-        </h2>
-        <button
-          onClick={() => router.push(isAr ? '/flowers-subscription-deals' : '/en/flowers-subscription-deals')}
-          className="px-6 py-2.5 rounded-full bg-primary text-white font-bold"
-        >
-          {isAr ? 'العودة لباقات الاشتراكات' : 'Back to Subscriptions'}
-        </button>
-      </div>
-    );
+    notFound();
   }
 
   return (

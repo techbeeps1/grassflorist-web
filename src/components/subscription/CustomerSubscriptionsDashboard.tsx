@@ -169,6 +169,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
 
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
@@ -180,6 +181,8 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
   const [rescheduleDelivery, setRescheduleDelivery] = useState<any | null>(null);
   const [newRescheduleDate, setNewRescheduleDate] = useState('');
   const [newRescheduleSlot, setNewRescheduleSlot] = useState('');
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Address Modal matching Checkout Page Exactly
   const [addressModalSub, setAddressModalSub] = useState<any | null>(null);
@@ -231,8 +234,12 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
     setTimeout(() => setMessageToast(null), 4000);
   };
 
-  const fetchSubscriptions = async () => {
-    setIsLoading(true);
+  const fetchSubscriptions = async (silent = false) => {
+    if (!silent && subscriptions.length === 0) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
     try {
       const userParam = userId ? `&user_id=${userId}` : '';
       const statusParam = statusFilter !== 'all' ? `status=${statusFilter}` : 'status=all';
@@ -249,11 +256,12 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       console.error('Failed to fetch subscriptions', e);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    fetchSubscriptions();
+    fetchSubscriptions(false);
   }, [statusFilter, userId]);
 
   const fetchSubDetails = async (id: number) => {
@@ -285,7 +293,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(isAr ? 'تم إيقاف الاشتراك مؤقتاً بنجاح.' : 'Subscription paused successfully.');
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === id) fetchSubDetails(id);
       } else {
         showToast(data.message || 'Failed to pause', 'error');
@@ -309,7 +317,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(isAr ? 'تم استئناف الاشتراك بنجاح.' : 'Subscription resumed successfully.');
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === id) fetchSubDetails(id);
       } else {
         showToast(data.message || 'Failed to resume', 'error');
@@ -333,7 +341,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(isAr ? 'تم تخطي موعد التوصيل القادم بنجاح.' : 'Next delivery skipped successfully.');
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === id) fetchSubDetails(id);
       } else {
         showToast(data.message || 'Failed to skip', 'error');
@@ -350,6 +358,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
     e.preventDefault();
     if (!rescheduleDelivery || !selectedSub) return;
 
+    setIsRescheduling(true);
     try {
       const res = await fetch(
         getApiUrl(`my-account/subscriptions/${selectedSub.id}/deliveries/${rescheduleDelivery.id}/reschedule${userId ? `?user_id=${userId}` : ''}`),
@@ -358,7 +367,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
           headers: getAuthHeaders(),
           body: JSON.stringify({
             new_date: newRescheduleDate,
-            new_time_slot: newRescheduleSlot || rescheduleDelivery.time_slot,
+            new_time_slot: newRescheduleSlot || rescheduleDelivery.time_slot || 'Morning (09:00 AM - 01:00 PM)',
             user_id: userId,
           }),
         }
@@ -368,12 +377,14 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
         showToast(isAr ? 'تم إعادة جدولة موعد التوصيل بنجاح.' : 'Delivery rescheduled successfully.');
         setRescheduleDelivery(null);
         fetchSubDetails(selectedSub.id);
-        fetchSubscriptions();
+        fetchSubscriptions(true);
       } else {
         showToast(data.message || 'Failed to reschedule', 'error');
       }
     } catch (e: any) {
       showToast(e.message, 'error');
+    } finally {
+      setIsRescheduling(false);
     }
   };
 
@@ -404,7 +415,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       if (res.ok && data.success) {
         showToast(isAr ? 'تم تحديث عنوان التوصيل بنجاح.' : 'Delivery address updated successfully.');
         setAddressModalSub(null);
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === addressModalSub.id) fetchSubDetails(addressModalSub.id);
       } else {
         showToast(data.message || 'Failed to update address', 'error');
@@ -419,6 +430,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
     e.preventDefault();
     if (!cancelModalSub) return;
 
+    setIsCancelling(true);
     try {
       const res = await fetch(getApiUrl(`my-account/subscriptions/${cancelModalSub.id}/cancel${userId ? `?user_id=${userId}` : ''}`), {
         method: 'POST',
@@ -429,13 +441,15 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       if (res.ok && data.success) {
         showToast(isAr ? 'تم إلغاء الاشتراك بنجاح.' : 'Subscription cancelled successfully.');
         setCancelModalSub(null);
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === cancelModalSub.id) fetchSubDetails(cancelModalSub.id);
       } else {
         showToast(data.message || 'Failed to cancel', 'error');
       }
     } catch (e: any) {
       showToast(e.message, 'error');
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -451,7 +465,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(isAr ? 'نجحت إعادة محاولة الدفع وتم تأكيد التوصيل!' : 'Payment retry succeeded! Delivery confirmed.');
-        fetchSubscriptions();
+        fetchSubscriptions(true);
         if (selectedSub?.id === id) fetchSubDetails(id);
       } else {
         showToast(data.message || 'Payment retry declined', 'error');
@@ -559,7 +573,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
       </div>
 
       {/* Subscriptions List */}
-      {isLoading ? (
+      {isLoading && subscriptions.length === 0 ? (
         <div className="py-16 text-center space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-[#435849] mx-auto" />
           <p className="text-xs sm:text-sm text-[#7A6E65]">
@@ -583,7 +597,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className={`grid grid-cols-1 gap-4 transition-opacity duration-200 ${isRefreshing ? 'opacity-70' : 'opacity-100'}`}>
           {subscriptions.map((sub) => {
             const prod = sub.product;
             const prodName = isAr
@@ -837,7 +851,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
                             onClick={() => {
                               setRescheduleDelivery(del);
                               setNewRescheduleDate(del.scheduled_date ? String(del.scheduled_date).split('T')[0] : '');
-                              setNewRescheduleSlot(del.time_slot || '');
+                              setNewRescheduleSlot(del.time_slot || 'Morning (09:00 AM - 01:00 PM)');
                             }}
                             className="px-2.5 py-1 rounded-lg border border-[#DDD3C4] bg-white hover:bg-[#FAF7F2] text-xs font-bold text-[#2C382F] flex items-center gap-1 cursor-pointer"
                           >
@@ -857,13 +871,13 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
 
       {/* Reschedule Modal */}
       {rescheduleDelivery && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
           <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-[#E4D8CB] space-y-4 text-start">
             <div className="flex items-center justify-between border-b border-[#E4D8CB] pb-3">
               <h3 className="font-bold text-sm sm:text-base text-[#2C382F]">
                 {isAr ? 'إعادة جدولة موعد التوصيل' : 'Reschedule Delivery Cycle'}
               </h3>
-              <button type="button" onClick={() => setRescheduleDelivery(null)}>
+              <button type="button" onClick={() => !isRescheduling && setRescheduleDelivery(null)}>
                 <X className="w-5 h-5 text-[#7A6E65]" />
               </button>
             </div>
@@ -902,16 +916,19 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
               <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
+                  disabled={isRescheduling}
                   onClick={() => setRescheduleDelivery(null)}
-                  className="px-4 py-2 rounded-xl border border-[#DDD3C4] text-[#7A6E65] font-bold"
+                  className="px-4 py-2 rounded-xl border border-[#DDD3C4] text-[#7A6E65] font-bold disabled:opacity-50"
                 >
                   {isAr ? 'إلغاء' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold"
+                  disabled={isRescheduling}
+                  className="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold flex items-center gap-2 disabled:opacity-50"
                 >
-                  {isAr ? 'حفظ الموعد الجديد' : 'Save Reschedule'}
+                  {isRescheduling && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{isAr ? 'حفظ الموعد الجديد' : 'Save Reschedule'}</span>
                 </button>
               </div>
             </form>
@@ -921,7 +938,7 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
 
       {/* 📍 Address Update Modal matching Checkout Page Exactly */}
       {addressModalSub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-2xl bg-white rounded-3xl p-5 sm:p-7 shadow-2xl border border-[#E4D8CB] space-y-5 text-start my-auto max-h-[92vh] flex flex-col">
             <div className="flex items-center justify-between border-b border-[#E4D8CB] pb-4">
               <div>
@@ -1103,14 +1120,14 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
 
       {/* Cancel Modal */}
       {cancelModalSub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
           <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-rose-200 space-y-4 text-start">
             <div className="flex items-center justify-between border-b border-[#E4D8CB] pb-3">
               <h3 className="font-bold text-sm sm:text-base text-rose-700 flex items-center gap-1.5">
                 <ShieldAlert className="w-5 h-5" />
                 <span>{isAr ? 'إلغاء خطة الاشتراك' : 'Cancel Subscription Plan'}</span>
               </h3>
-              <button type="button" onClick={() => setCancelModalSub(null)}>
+              <button type="button" onClick={() => !isCancelling && setCancelModalSub(null)}>
                 <X className="w-5 h-5 text-[#7A6E65]" />
               </button>
             </div>
@@ -1138,16 +1155,19 @@ export function CustomerSubscriptionsDashboard({ locale }: CustomerSubscriptions
               <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
+                  disabled={isCancelling}
                   onClick={() => setCancelModalSub(null)}
-                  className="px-4 py-2 rounded-xl border border-[#DDD3C4] text-[#7A6E65] font-bold"
+                  className="px-4 py-2 rounded-xl border border-[#DDD3C4] text-[#7A6E65] font-bold disabled:opacity-50"
                 >
                   {isAr ? 'تراجع' : 'Keep Subscription'}
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold"
+                  disabled={isCancelling}
+                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold flex items-center gap-2 disabled:opacity-50"
                 >
-                  {isAr ? 'تأكيد الإلغاء' : 'Confirm Cancel'}
+                  {isCancelling && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{isAr ? 'تأكيد الإلغاء' : 'Confirm Cancel'}</span>
                 </button>
               </div>
             </form>

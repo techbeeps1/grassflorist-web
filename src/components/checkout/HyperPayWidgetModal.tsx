@@ -84,13 +84,13 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-4 animate-in fade-in duration-200">
       <div
-        className="bg-white rounded-2xl shadow-2xl max-w-2xl sm:max-w-3xl md:max-w-[800px] w-full overflow-hidden border border-gray-100 flex flex-col max-h-[92vh]"
+        className="bg-white rounded-2xl shadow-2xl max-w-full sm:max-w-2xl md:max-w-[760px] lg:max-w-[800px] w-full overflow-hidden border border-gray-100 flex flex-col max-h-[94vh] sm:max-h-[92vh]"
         dir={locale === 'ar' ? 'rtl' : 'ltr'}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-[#FAFAFA] shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-gray-100 bg-[#FAFAFA] shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-full bg-[#8fae2a]/10 text-[#8fae2a] flex items-center justify-center shrink-0">
               <Lock className="w-4 h-4" />
@@ -115,7 +115,7 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
         </div>
 
         {/* Amount Summary */}
-        <div className="px-6 py-3 bg-emerald-50/50 border-b border-emerald-100/60 flex items-center justify-between text-xs shrink-0">
+        <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-emerald-50/50 border-b border-emerald-100/60 flex items-center justify-between text-xs shrink-0">
           <div>
             <span className="font-semibold text-gray-700 block">
               {locale === 'ar' ? 'المبلغ المطلوب سداده:' : 'Amount to Pay:'}
@@ -141,24 +141,98 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
           </div>
         </div>
 
-        {/* Style override strictly for 3DS response/approve iframe without touching card input fields */}
+        {/* Responsive style overrides for HyperPay payment form and 3DS challenge */}
         <style dangerouslySetInnerHTML={{ __html: `
-          iframe.wpwl-target {
+          form.paymentWidgets,
+          form.wpwl-form,
+          .wpwl-container,
+          .wpwl-form-card {
             width: 100% !important;
-            min-width: 520px !important;
-            max-width: 650px !important;
-            min-height: 500px !important;
+            max-width: 520px !important;
+            min-width: 0 !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            box-sizing: border-box !important;
+          }
+
+          @media (max-width: 639px) {
+            form.paymentWidgets,
+            form.wpwl-form,
+            .wpwl-container,
+            .wpwl-form-card {
+              width: 100% !important;
+              max-width: 100% !important;
+              min-width: 0 !important;
+              margin: 0 auto !important;
+              padding: 0 !important;
+            }
+
+            .wpwl-group {
+              width: 100% !important;
+              max-width: 100% !important;
+              box-sizing: border-box !important;
+              margin-left: 0 !important;
+              margin-right: 0 !important;
+              float: none !important;
+            }
+
+            .wpwl-wrapper {
+              width: 100% !important;
+              max-width: 100% !important;
+              box-sizing: border-box !important;
+              float: none !important;
+            }
+
+            .wpwl-control,
+            .wpwl-control-iframe {
+              width: 100% !important;
+              max-width: 100% !important;
+              box-sizing: border-box !important;
+              min-width: 0 !important;
+            }
+
+            .wpwl-label {
+              width: 100% !important;
+              max-width: 100% !important;
+              box-sizing: border-box !important;
+              float: none !important;
+            }
+
+            .wpwl-button-pay {
+              width: 100% !important;
+              max-width: 100% !important;
+              box-sizing: border-box !important;
+              float: none !important;
+              margin-top: 14px !important;
+            }
+          }
+
+          iframe.wpwl-target,
+          .wpwl-target {
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            min-height: 480px !important;
             border: none !important;
             margin: 0 auto !important;
             display: block !important;
+            box-sizing: border-box !important;
+          }
+
+          @media (min-width: 640px) {
+            iframe.wpwl-target,
+            .wpwl-target {
+              max-width: 620px !important;
+              min-height: 520px !important;
+            }
           }
         `}} />
 
         {/* HyperPay Widget Form Container (Without visible scrollbar track) */}
-        <div className="p-4 sm:p-6 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-1 min-h-[440px] flex flex-col justify-start items-center">
-          <div ref={containerRef} className="w-full flex justify-center min-h-[400px]" />
-          <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1 shrink-0">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 inline" />
+        <div className="p-3 sm:p-6 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-1 min-h-[420px] flex flex-col justify-start items-center w-full">
+          <div ref={containerRef} className="w-full max-w-full flex justify-center min-h-[380px] overflow-hidden" />
+          <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1 shrink-0 text-center">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 inline shrink-0" />
             <span>
               {locale === 'ar'
                 ? 'معاملة مشفرة ومحمية بمعايير الأمان العالمية 3D Secure'
@@ -168,7 +242,7 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs shrink-0">
+        <div className="px-4 sm:px-6 py-3 bg-gray-50 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
           <button
             type="button"
             onClick={onClose}
@@ -176,7 +250,7 @@ export const HyperPayWidgetModal: React.FC<HyperPayWidgetModalProps> = ({
           >
             {locale === 'ar' ? 'إلغاء واختيار وسيلة دفع أخرى' : 'Cancel & choose another payment method'}
           </button>
-          <div className="flex items-center gap-1.5 opacity-80">
+          <div className="flex items-center gap-1.5 opacity-80 shrink-0">
             <img src="/payments/mada-logo.svg" alt="mada" className="h-3 object-contain" />
             <img src="/payments/visa.svg" alt="visa" className="h-3 object-contain" />
             <img src="/payments/mastercard.svg" alt="mastercard" className="h-3 object-contain" />

@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { type Locale } from '@/config/site';
 import { useGetSubscriptionDealBySlugQuery } from '@/store/api/subscriptionApi';
 import { useGetShippingMethodsQuery } from '@/store/api/checkoutApi';
@@ -334,22 +334,12 @@ export function SubscriptionFrequencyConfigView({ slug, locale }: SubscriptionFr
     router.push(isAr ? '/subscribe-checkout' : '/en/subscribe-checkout');
   };
 
-  if (isLoading || !deal) {
+  if (isLoading) {
     return <SubscriptionFrequencySkeleton locale={locale} />;
   }
 
   if (!deal) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 bg-[#FAF7F2] text-center">
-        <h2 className="text-2xl font-bold mb-3">{isAr ? 'الباقة غير موجودة' : 'Plan Not Found'}</h2>
-        <button
-          onClick={() => router.push(isAr ? '/flowers-subscription-deals' : '/en/flowers-subscription-deals')}
-          className="px-6 py-2.5 rounded-full bg-[#2D3F33] text-white font-bold"
-        >
-          {isAr ? 'العودة لباقات الاشتراكات' : 'Back to Subscriptions'}
-        </button>
-      </div>
-    );
+    notFound();
   }
 
   return (

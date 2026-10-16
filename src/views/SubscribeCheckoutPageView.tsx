@@ -96,6 +96,31 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
           console.error('Failed to parse subscription data', e);
         }
       }
+
+      // Restore form fields if saved before 3DS redirect
+      try {
+        const savedFormRaw = sessionStorage.getItem('grass_subscribe_form_state');
+        if (savedFormRaw) {
+          const sf = JSON.parse(savedFormRaw);
+          if (sf.senderFirstName) setSenderFirstName(sf.senderFirstName);
+          if (sf.senderLastName) setSenderLastName(sf.senderLastName);
+          if (sf.senderEmail) setSenderEmail(sf.senderEmail);
+          if (sf.senderPhoneCode) setSenderPhoneCode(sf.senderPhoneCode);
+          if (sf.senderPhone) setSenderPhone(sf.senderPhone);
+          if (sf.recipientFirstName) setRecipientFirstName(sf.recipientFirstName);
+          if (sf.recipientLastName) setRecipientLastName(sf.recipientLastName);
+          if (sf.recipientCountryCode) setRecipientCountryCode(sf.recipientCountryCode);
+          if (sf.recipientPhone) setRecipientPhone(sf.recipientPhone);
+          if (sf.shippingAddress) setShippingAddress(sf.shippingAddress);
+          if (sf.shippingAddressLink) setShippingAddressLink(sf.shippingAddressLink);
+          if (sf.latitude !== undefined) setLatitude(sf.latitude);
+          if (sf.longitude !== undefined) setLongitude(sf.longitude);
+          if (sf.paymentMethod) setPaymentMethod(sf.paymentMethod);
+        }
+      } catch (e) {
+        console.error('Failed to parse saved subscribe form state', e);
+      }
+
       setIsDataLoaded(true);
     }
   }, []);
@@ -416,27 +441,39 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
     const hyperpayId = params.get('id');
     const token = params.get('token');
     const resourcePath = params.get('resourcePath') || params.get('resource_path');
-    const isCancelled = params.get('cancelled') === '1';
-    const isFailed = params.get('failed') === '1';
+    const isCancelled = params.get('cancelled') === '1' || params.get('cancel') === '1' || params.get('status') === 'cancelled';
+    const isFailed = params.get('failed') === '1' || params.get('status') === 'failed';
     const gateway = params.get('gateway') || 'hyperpay';
     const brand = params.get('brand') || undefined;
     const isPaymentReturn = Boolean(resourcePath || hyperpayId || token || params.get('payment_success') === '1');
 
+    const cleanReturnUrl = () => {
+      if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+
     if (isCancelled) {
+      cleanReturnUrl();
+      setCreatedSubscription(null);
       setFormError(
         isAr
-          ? 'تم إلغاء عملية الدفع. يمكنك إعادة المحاولة أو اختيار وسيلة دفع أخرى.'
-          : 'Payment was cancelled. You can try again or choose another payment method.'
+          ? 'تم إلغاء عملية الدفع. بياناتك وتفاصيل اشتراكك محفوظة، يمكنك اختيار وسيلة دفع أخرى أو إعادة المحاولة.'
+          : 'Payment was cancelled. Your details are saved, you can choose another payment method or try again.'
       );
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    if (isFailed) {
+    if (isFailed && !isPaymentReturn) {
+      cleanReturnUrl();
+      setCreatedSubscription(null);
       setFormError(
         isAr
-          ? 'فشلت عملية الدفع. يرجى التحقق من بيانات البطاقة أو المحاولة مرة أخرى.'
-          : 'Payment failed. Please check your card details and try again.'
+          ? 'فشلت عملية الدفع أو تم رفض البطاقة. يرجى التحقق من بيانات البطاقة أو المحاولة مرة أخرى.'
+          : 'Payment failed or was declined. Please check your card details and try again.'
       );
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -445,12 +482,6 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
       hasVerifiedPaymentRef.current = true;
 
       setIsVerifyingPayment(true);
-
-      const cleanReturnUrl = () => {
-        if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      };
 
       verifyPayment({
         orderId: orderNum || hyperpayId || token!,
@@ -464,10 +495,16 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
           setIsVerifyingPayment(false);
           cleanReturnUrl();
 
-          const isPaid = Boolean(res?.verification?.is_paid || res?.payment_status === 'paid' || res?.status === 'success');
+          const isPaid = Boolean(
+            (res?.verification?.is_paid === true || res?.is_paid === true || res?.payment_status === 'paid') &&
+            res?.status !== 'failed' &&
+            res?.payment_status !== 'failed'
+          );
+
           if (isPaid) {
             if (typeof window !== 'undefined') {
               sessionStorage.removeItem('grass_direct_subscription');
+              sessionStorage.removeItem('grass_subscribe_form_state');
             }
             setCreatedSubscription({
               subscription_number: res?.order?.subscription?.subscription_number || res?.subscription?.subscription_number || `SUB-${(orderNum || 'ACTIVE').replace(/^SUB-(?:OR-)?/, '')}`,
@@ -475,21 +512,28 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else {
-            setFormError(
+            setCreatedSubscription(null);
+            const declineReason =
               res?.verification?.result_description ||
               res?.verification?.message ||
-              (isAr ? 'لم تكتمل عملية الدفع أو تم رفض البطاقة. يرجى المحاولة مرة أخرى.' : 'Payment was declined or cancelled. Please try again.')
-            );
+              res?.message ||
+              (isAr
+                ? 'تم رفض عملية الدفع أو تعذر إكمالها من قبل البنك. يرجى التأكد من رصيد البطاقة أو المحاولة بوسيلة دفع أخرى.'
+                : 'Payment was declined or cancelled. Please verify your card details or select another payment method.');
+            setFormError(declineReason);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         })
         .catch((err: any) => {
           setIsVerifyingPayment(false);
           cleanReturnUrl();
+          setCreatedSubscription(null);
           setFormError(
             err?.data?.message ||
             err?.message ||
-            (isAr ? 'تعذر التحقق من الدفع، يرجى المحاولة مرة أخرى.' : 'Could not verify payment status. Please try again.')
+            (isAr ? 'تعذر إتمام الدفع أو تم رفضه. يرجى المحاولة مرة أخرى.' : 'Payment could not be verified or was declined. Please try again.')
           );
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }
   }, [isAr, verifyPayment]);
@@ -647,8 +691,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
       const combinedCardMessage = subscriptionData?.sender_name_on_card
         ? (subscriptionData?.gift_message
-            ? `${subscriptionData.gift_message}\n(Sender / المرسل: ${subscriptionData.sender_name_on_card})`
-            : `(Sender / المرسل: ${subscriptionData.sender_name_on_card})`)
+          ? `${subscriptionData.gift_message}\n(Sender / المرسل: ${subscriptionData.sender_name_on_card})`
+          : `(Sender / المرسل: ${subscriptionData.sender_name_on_card})`)
         : (subscriptionData?.gift_message || undefined);
 
       const payload = {
@@ -688,6 +732,27 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
         // Online Gateway Handling
         if (gatewayKey === 'hyperpay' && res?.data?.payment?.checkout_id) {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem(
+              'grass_subscribe_form_state',
+              JSON.stringify({
+                senderFirstName,
+                senderLastName,
+                senderEmail,
+                senderPhoneCode,
+                senderPhone,
+                recipientFirstName,
+                recipientLastName,
+                recipientCountryCode,
+                recipientPhone,
+                shippingAddress,
+                shippingAddressLink,
+                latitude,
+                longitude,
+                paymentMethod,
+              })
+            );
+          }
           setHyperPayConfig({
             checkoutId: res.data.payment.checkout_id,
             scriptUrl: res.data.payment.script_url,
@@ -757,7 +822,7 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
           <div className="space-y-2">
             <h2 className="text-2xl sm:text-3xl font-black text-gray-900">
-              {isAr ? 'تم تفعيل اشتراكك بنجاح! 🌸' : 'Subscription Confirmed! 🌸'}
+              {isAr ? 'تم تفعيل اشتراكك بنجاح! ' : 'Subscription Confirmed! '}
             </h2>
             <p className="text-sm text-gray-600 max-w-md mx-auto">
               {isAr
@@ -838,9 +903,24 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
 
         {/* Global Error Banner */}
         {formError && (
-          <div className="mb-6 p-4 rounded-xl border bg-red-50 border-red-200 text-red-800 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-600" />
-            <div className="text-xs font-semibold">{formError}</div>
+          <div className="mb-6 p-4 rounded-xl border bg-red-50 border-red-200 text-red-800 flex items-start justify-between gap-3 shadow-xs animate-in fade-in">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-600" />
+              <div className="space-y-0.5">
+                <h4 className="text-xs font-bold text-red-900">
+                  {isAr ? 'تنبيه بخصوص الدفع' : 'Payment Notification'}
+                </h4>
+                <div className="text-xs font-medium text-red-700 leading-relaxed">{formError}</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFormError(null)}
+              className="text-red-400 hover:text-red-600 text-sm font-bold px-2 py-0.5 cursor-pointer rounded"
+              title={isAr ? 'إغلاق التنبيه' : 'Dismiss'}
+            >
+              &times;
+            </button>
           </div>
         )}
 
@@ -865,9 +945,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                       value={senderFirstName}
                       onChange={(e) => setSenderFirstName(e.target.value)}
                       placeholder={isAr ? 'الاسم الأول' : 'First name'}
-                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                        errors.senderFirstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                      }`}
+                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.senderFirstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                        }`}
                     />
                     {errors.senderFirstName && (
                       <p className="text-[11px] text-red-500 mt-1">{errors.senderFirstName}</p>
@@ -899,9 +978,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                       value={senderEmail}
                       onChange={(e) => setSenderEmail(e.target.value)}
                       placeholder="your@email.com"
-                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                        errors.senderEmail ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                      }`}
+                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.senderEmail ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                        }`}
                     />
                     {errors.senderEmail && (
                       <p className="text-[11px] text-red-500 mt-1">{errors.senderEmail}</p>
@@ -923,9 +1001,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                         value={senderPhone}
                         onChange={(e) => setSenderPhone(e.target.value)}
                         placeholder="5XXXXXXXX"
-                        className={`flex-1 min-w-0 h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                          errors.senderPhone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                        }`}
+                        className={`flex-1 min-w-0 h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.senderPhone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
                       />
                     </div>
                     {errors.senderPhone && (
@@ -990,11 +1067,10 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                     <button
                       type="button"
                       onClick={() => setIsAddressDropdownOpen((prev) => !prev)}
-                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-xl flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-2xs ${
-                        isAddressDropdownOpen
+                      className={`w-full h-11 px-3.5 text-xs bg-white border rounded-xl flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-2xs ${isAddressDropdownOpen
                           ? 'border-[#8fae2a] ring-2 ring-[#8fae2a]/20 text-gray-900 font-semibold'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700 font-medium'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         <MapPin className="w-4 h-4 text-[#546e3a] shrink-0" />
@@ -1005,9 +1081,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 text-gray-400">
                         <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-200 ${
-                            isAddressDropdownOpen ? 'rotate-180 text-[#546e3a]' : ''
-                          }`}
+                          className={`w-4 h-4 transition-transform duration-200 ${isAddressDropdownOpen ? 'rotate-180 text-[#546e3a]' : ''
+                            }`}
                         />
                       </div>
                     </button>
@@ -1021,11 +1096,10 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                             handleSelectSavedAddress('');
                             setIsAddressDropdownOpen(false);
                           }}
-                          className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between transition-colors ${
-                            !selectedSavedAddress
+                          className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between transition-colors ${!selectedSavedAddress
                               ? 'bg-[#8fae2a]/10 text-[#546e3a] font-bold'
                               : 'hover:bg-gray-50 text-gray-500'
-                          }`}
+                            }`}
                         >
                           <span className="italic">
                             {isAr ? 'اختر من العناوين المحفوظة...' : 'Select from Addresses...'}
@@ -1042,17 +1116,15 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                                 handleSelectSavedAddress(addr.id);
                                 setIsAddressDropdownOpen(false);
                               }}
-                              className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between gap-3 group transition-colors ${
-                                isSelected
+                              className={`px-3.5 py-2.5 text-xs cursor-pointer flex items-center justify-between gap-3 group transition-colors ${isSelected
                                   ? 'bg-[#8fae2a]/10 text-gray-900 font-bold'
                                   : 'hover:bg-gray-50 text-gray-700'
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2.5 min-w-0 flex-1">
                                 <MapPin
-                                  className={`w-4 h-4 shrink-0 ${
-                                    isSelected ? 'text-[#546e3a]' : 'text-gray-400 group-hover:text-gray-600'
-                                  }`}
+                                  className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#546e3a]' : 'text-gray-400 group-hover:text-gray-600'
+                                    }`}
                                 />
                                 <span className="truncate block leading-snug">
                                   {addr.label}
@@ -1109,9 +1181,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                         value={shippingAddress}
                         onChange={(e) => setShippingAddress(e.target.value)}
                         placeholder={isAr ? 'اسم الحي، الشارع، أو رقم المبنى' : 'District, Street, Landmark'}
-                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                          errors.shippingAddress ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                        }`}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.shippingAddress ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
                       />
                       {errors.shippingAddress && (
                         <p className="text-[11px] text-red-500 mt-1">{errors.shippingAddress}</p>
@@ -1134,11 +1205,10 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                           readOnly={Boolean(shippingAddressLink)}
                           onChange={(e) => setShippingAddressLink(e.target.value)}
                           placeholder="https://maps.google.com/..."
-                          className={`w-full h-11 px-3.5 pe-9 text-xs border rounded-lg focus:outline-none transition-all ${
-                            shippingAddressLink
+                          className={`w-full h-11 px-3.5 pe-9 text-xs border rounded-lg focus:outline-none transition-all ${shippingAddressLink
                               ? 'bg-gray-100/90 border-gray-200 text-gray-600 cursor-not-allowed select-all font-mono text-[11px]'
                               : 'bg-white border-gray-200 focus:border-[#8fae2a]'
-                          }`}
+                            }`}
                         />
                         {shippingAddressLink && (
                           <a
@@ -1166,9 +1236,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                         value={recipientFirstName}
                         onChange={(e) => setRecipientFirstName(e.target.value)}
                         placeholder={isAr ? 'اسم المستلم الأول' : 'Recipient first name'}
-                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                          errors.recipientFirstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                        }`}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.recipientFirstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
                       />
                       {errors.recipientFirstName && (
                         <p className="text-[11px] text-red-500 mt-1">{errors.recipientFirstName}</p>
@@ -1184,9 +1253,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                         value={recipientLastName}
                         onChange={(e) => setRecipientLastName(e.target.value)}
                         placeholder={isAr ? 'اسم العائلة' : 'Recipient last name'}
-                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                          errors.recipientLastName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                        }`}
+                        className={`w-full h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.recipientLastName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                          }`}
                       />
                       {errors.recipientLastName && (
                         <p className="text-[11px] text-red-500 mt-1">{errors.recipientLastName}</p>
@@ -1212,9 +1280,8 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
                           value={recipientPhone}
                           onChange={(e) => setRecipientPhone(e.target.value)}
                           placeholder="5XXXXXXXX"
-                          className={`flex-1 min-w-0 h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${
-                            errors.recipientPhone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
-                          }`}
+                          className={`flex-1 min-w-0 h-11 px-3.5 text-xs bg-white border rounded-lg focus:outline-none transition-all ${errors.recipientPhone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#8fae2a]'
+                            }`}
                         />
                       </div>
                       {errors.recipientPhone && (
@@ -1574,7 +1641,14 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
               ? `${window.location.origin}${locale === 'ar' ? '/subscribe-checkout' : '/en/subscribe-checkout'}?order_number=${encodeURIComponent(hyperPayConfig.orderNumber)}&gateway=hyperpay`
               : undefined
           }
-          onClose={() => setHyperPayModalOpen(false)}
+          onClose={() => {
+            setHyperPayModalOpen(false);
+            setFormError(
+              isAr
+                ? 'تم إغلاق نافذة الدفع. يمكنك إعادة المحاولة أو اختيار وسيلة دفع أخرى.'
+                : 'Payment window was closed. You can try again or choose another payment method.'
+            );
+          }}
         />
       )}
 

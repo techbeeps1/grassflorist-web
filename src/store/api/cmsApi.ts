@@ -108,6 +108,7 @@ export interface ContactFormPayload {
   phone?: string;
   subject?: string;
   message: string;
+  locale?: 'en' | 'ar' | string;
 }
 
 export interface GoogleReviewItem {

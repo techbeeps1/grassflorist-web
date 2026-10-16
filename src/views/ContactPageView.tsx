@@ -97,6 +97,7 @@ export function ContactPageView({ locale, contactData }: ContactPageViewProps) {
         phone,
         message,
         subject: `Inquiry from ${name}`,
+        locale,
       });
 
       setSubmitted(true);
