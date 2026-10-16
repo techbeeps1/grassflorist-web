@@ -1055,6 +1055,11 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
       ? safeDecodeUri(categoriesList[1].slug)
       : undefined;
 
+  const itemMetaTitle = typeof item.meta_title === 'string' ? item.meta_title.trim() : '';
+  const itemMetaDesc = typeof item.meta_description === 'string' ? item.meta_description.trim() : '';
+  const itemMetaKeywords = typeof item.meta_keywords === 'string' ? item.meta_keywords.trim() : '';
+  const isArMeta = hasArabicText(itemMetaTitle);
+
   return {
     id: String(item.id),
     name: {
@@ -1079,68 +1084,44 @@ export function mapLaravelProductToProduct(item: any, activeLocale?: Locale): Pr
     discount,
     images: rawImages,
     thumbnail,
-    category: {
-      ar: catNameAr,
-      en: catNameEn,
-    },
-    categorySlug: catSlug,
-    subcategorySlug,
-    categoryIds,
-    categorySlugs,
-    categoriesList,
-    rating: 4.9,
-    reviewCount: 15,
-    stock: typeof item.quantity === 'number' ? item.quantity : 10,
-    sku: item.sku || `GF-${item.id}`,
-    tags: Array.isArray(item.meta_data?.tags) ? item.meta_data.tags.map((t: any) => t.name || t) : [],
-    featured: Boolean(item.meta_data?.featured || item.is_visible),
-    bestseller: true,
-    newArrival: true,
-    availability: (item.quantity === undefined || item.quantity > 0) ? 'in_stock' : 'out_of_stock',
-    productAttributes: Array.isArray(item.attributes) ? item.attributes : [],
-    is_subscription_enabled: Boolean(item.is_subscription_enabled),
+      category: {
+        ar: catNameAr,
+        en: catNameEn,
+      },
+      categorySlug: catSlug,
+      subcategorySlug,
+      categoryIds,
+      categorySlugs,
+      categoriesList,
+      rating: 4.9,
+      reviewCount: 15,
+      stock: typeof item.quantity === 'number' ? item.quantity : 10,
+      sku: item.sku || `GF-${item.id}`,
+      tags: Array.isArray(item.meta_data?.tags) ? item.meta_data.tags.map((t: any) => t.name || t) : [],
+      featured: Boolean(item.meta_data?.featured || item.is_visible),
+      bestseller: true,
+      newArrival: true,
+      availability: (item.quantity === undefined || item.quantity > 0) ? 'in_stock' : 'out_of_stock',
+      productAttributes: Array.isArray(item.attributes) ? item.attributes : [],
+      is_subscription_enabled: Boolean(item.is_subscription_enabled),
 
-    subscription_discount_percentage: Number(item.subscription_discount_percentage || 10),
-    subscription_frequencies: Array.isArray(item.subscription_frequencies) ? item.subscription_frequencies : ['weekly', 'biweekly', 'monthly'],
-    subscription_durations: Array.isArray(item.subscription_durations) ? item.subscription_durations : ['3_months', '6_months', '12_months', 'until_cancelled'],
-    subscription_min_duration: item.subscription_min_duration || '3_months',
-    seoTitle: {
-      ar:
-        (typeof item.seo?.title === 'object' && item.seo?.title?.ar) ||
-        (typeof item.meta_tag_title === 'object' && item.meta_tag_title?.ar) ||
-        (typeof item.meta_title === 'string' && hasArabicText(item.meta_title) ? item.meta_title : '') ||
-        `${nameAr} | غراس فلوريست للورود والهدايا`,
-      en:
-        (typeof item.seo?.title === 'object' && item.seo?.title?.en) ||
-        (typeof item.meta_tag_title === 'object' && item.meta_tag_title?.en) ||
-        (typeof item.meta_title === 'string' && !hasArabicText(item.meta_title) ? item.meta_title : '') ||
-        `${nameEn} | Grass Florist Saudi Arabia`,
-    },
-    seoDescription: {
-      ar:
-        (typeof item.seo?.description === 'object' && item.seo?.description?.ar) ||
-        (typeof item.meta_tag_description === 'object' && item.meta_tag_description?.ar) ||
-        (typeof item.meta_description === 'string' && hasArabicText(item.meta_description) ? item.meta_description : '') ||
-        (shortDescAr || `اطلب ${nameAr} من غراس فلوريست مع توصيل سريع في المملكة.`),
-      en:
-        (typeof item.seo?.description === 'object' && item.seo?.description?.en) ||
-        (typeof item.meta_tag_description === 'object' && item.meta_tag_description?.en) ||
-        (typeof item.meta_description === 'string' && !hasArabicText(item.meta_description) ? item.meta_description : '') ||
-        (shortDescEn || `Order ${nameEn} from Grass Florist with express delivery across Saudi Arabia.`),
-    },
-    seoKeywords: {
-      ar:
-        (typeof item.seo?.keywords === 'object' && item.seo?.keywords?.ar) ||
-        (typeof item.meta_tag_keywords === 'object' && item.meta_tag_keywords?.ar) ||
-        (typeof item.meta_keywords === 'string' && hasArabicText(item.meta_keywords) ? item.meta_keywords : '') ||
-        '',
-      en:
-        (typeof item.seo?.keywords === 'object' && item.seo?.keywords?.en) ||
-        (typeof item.meta_tag_keywords === 'object' && item.meta_tag_keywords?.en) ||
-        (typeof item.meta_keywords === 'string' && !hasArabicText(item.meta_keywords) ? item.meta_keywords : '') ||
-        '',
-    },
-  };
+      subscription_discount_percentage: Number(item.subscription_discount_percentage || 10),
+      subscription_frequencies: Array.isArray(item.subscription_frequencies) ? item.subscription_frequencies : ['weekly', 'biweekly', 'monthly'],
+      subscription_durations: Array.isArray(item.subscription_durations) ? item.subscription_durations : ['3_months', '6_months', '12_months', 'until_cancelled'],
+      subscription_min_duration: item.subscription_min_duration || '3_months',
+      seoTitle: {
+        ar: (isArMeta && itemMetaTitle ? itemMetaTitle : '') || (typeof item.meta_tag_title === 'object' && item.meta_tag_title?.ar) || `${nameAr} | غراس فلوريست للورود والهدايا`,
+        en: (!isArMeta && itemMetaTitle ? itemMetaTitle : '') || (typeof item.meta_tag_title === 'object' && item.meta_tag_title?.en) || `${nameEn} | Grass Florist Saudi Arabia`,
+      },
+      seoDescription: {
+        ar: (hasArabicText(itemMetaDesc) && itemMetaDesc ? itemMetaDesc : '') || (typeof item.meta_tag_description === 'object' && item.meta_tag_description?.ar) || (shortDescAr || `اطلب ${nameAr} من غراس فلوريست مع توصيل سريع في المملكة.`),
+        en: (!hasArabicText(itemMetaDesc) && itemMetaDesc ? itemMetaDesc : '') || (typeof item.meta_tag_description === 'object' && item.meta_tag_description?.en) || (shortDescEn || `Order ${nameEn} from Grass Florist with express delivery across Saudi Arabia.`),
+      },
+      seoKeywords: {
+        ar: (hasArabicText(itemMetaKeywords) ? itemMetaKeywords : '') || (typeof item.meta_tag_keywords === 'object' && item.meta_tag_keywords?.ar) || '',
+        en: (!hasArabicText(itemMetaKeywords) ? itemMetaKeywords : '') || (typeof item.meta_tag_keywords === 'object' && item.meta_tag_keywords?.en) || '',
+      },
+    };
 }
 
 /**
@@ -1255,6 +1236,11 @@ export function mapLaravelCategoryToCategory(cat: any): Category {
     image: cat.parent.image,
   } : null;
 
+  const catMetaTitle = typeof cat.meta_title === 'string' ? cat.meta_title.trim() : '';
+  const catMetaDesc = typeof cat.meta_description === 'string' ? cat.meta_description.trim() : '';
+  const catMetaKeywords = typeof cat.meta_keywords === 'string' ? cat.meta_keywords.trim() : '';
+  const isArCatMeta = hasArabicText(catMetaTitle);
+
   return {
     id: String(cat.id),
     name: {
@@ -1270,40 +1256,16 @@ export function mapLaravelCategoryToCategory(cat: any): Category {
     },
     image,
     seoTitle: {
-      ar:
-        (typeof cat.seo?.title === 'object' && cat.seo?.title?.ar) ||
-        (typeof cat.meta_tag_title === 'object' && cat.meta_tag_title?.ar) ||
-        (typeof cat.meta_title === 'string' && hasArabicText(cat.meta_title) ? cat.meta_title : '') ||
-        `${nameAr} | غراس فلوريست`,
-      en:
-        (typeof cat.seo?.title === 'object' && cat.seo?.title?.en) ||
-        (typeof cat.meta_tag_title === 'object' && cat.meta_tag_title?.en) ||
-        (typeof cat.meta_title === 'string' && !hasArabicText(cat.meta_title) ? cat.meta_title : '') ||
-        `${nameEn} | Grass Florist`,
+      ar: (isArCatMeta && catMetaTitle ? catMetaTitle : '') || (typeof cat.meta_tag_title === 'object' && cat.meta_tag_title?.ar) || `${nameAr} | غراس فلوريست`,
+      en: (!isArCatMeta && catMetaTitle ? catMetaTitle : '') || (typeof cat.meta_tag_title === 'object' && cat.meta_tag_title?.en) || `${nameEn} | Grass Florist`,
     },
     seoDescription: {
-      ar:
-        (typeof cat.seo?.description === 'object' && cat.seo?.description?.ar) ||
-        (typeof cat.meta_tag_description === 'object' && cat.meta_tag_description?.ar) ||
-        (typeof cat.meta_description === 'string' && hasArabicText(cat.meta_description) ? cat.meta_description : '') ||
-        `تسوق تشكيلة ${nameAr} الفاخرة من غراس فلوريست.`,
-      en:
-        (typeof cat.seo?.description === 'object' && cat.seo?.description?.en) ||
-        (typeof cat.meta_tag_description === 'object' && cat.meta_tag_description?.en) ||
-        (typeof cat.meta_description === 'string' && !hasArabicText(cat.meta_description) ? cat.meta_description : '') ||
-        `Shop luxury ${nameEn} from Grass Florist.`,
+      ar: (hasArabicText(catMetaDesc) && catMetaDesc ? catMetaDesc : '') || (typeof cat.meta_tag_description === 'object' && cat.meta_tag_description?.ar) || `تسوق تشكيلة ${nameAr} الفاخرة من غراس فلوريست.`,
+      en: (!hasArabicText(catMetaDesc) && catMetaDesc ? catMetaDesc : '') || (typeof cat.meta_tag_description === 'object' && cat.meta_tag_description?.en) || `Shop luxury ${nameEn} from Grass Florist.`,
     },
     seoKeywords: {
-      ar:
-        (typeof cat.seo?.keywords === 'object' && cat.seo?.keywords?.ar) ||
-        (typeof cat.meta_tag_keywords === 'object' && cat.meta_tag_keywords?.ar) ||
-        (typeof cat.meta_keywords === 'string' && hasArabicText(cat.meta_keywords) ? cat.meta_keywords : '') ||
-        '',
-      en:
-        (typeof cat.seo?.keywords === 'object' && cat.seo?.keywords?.en) ||
-        (typeof cat.meta_tag_keywords === 'object' && cat.meta_tag_keywords?.en) ||
-        (typeof cat.meta_keywords === 'string' && !hasArabicText(cat.meta_keywords) ? cat.meta_keywords : '') ||
-        '',
+      ar: (hasArabicText(catMetaKeywords) ? catMetaKeywords : '') || (typeof cat.meta_tag_keywords === 'object' && cat.meta_tag_keywords?.ar) || '',
+      en: (!hasArabicText(catMetaKeywords) ? catMetaKeywords : '') || (typeof cat.meta_tag_keywords === 'object' && cat.meta_tag_keywords?.en) || '',
     },
     featured: Boolean(cat.is_visible),
     itemCount: cat.meta_data?.count || 12,

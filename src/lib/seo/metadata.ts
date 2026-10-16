@@ -36,7 +36,9 @@ export function generatePageMetadata({
     : seoConfig.keywords[locale];
 
   return {
-    title: pageTitle,
+    title: {
+      absolute: pageTitle,
+    },
     description: pageDescription,
     keywords: pageKeywords,
     alternates: {
