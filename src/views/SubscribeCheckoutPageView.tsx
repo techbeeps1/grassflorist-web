@@ -192,33 +192,48 @@ export function SubscribeCheckoutPageView({ locale }: SubscribeCheckoutPageViewP
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Load localStorage saved addresses & deleted keys once when userId changes
+  // Load localStorage saved addresses & deleted keys when userId changes or when updated in My Account
   useEffect(() => {
     if (!userId) {
       setLocalAddresses([]);
       setDeletedAddressKeys([]);
       return;
     }
-    try {
-      const storageKey = `grass_saved_addresses_${userId}`;
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const parsed: SavedAddressOption[] = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          setLocalAddresses(parsed.slice(0, 5));
+
+    const loadLocal = () => {
+      try {
+        const storageKey = `grass_saved_addresses_${userId}`;
+        const raw = localStorage.getItem(storageKey);
+        if (raw) {
+          const parsed: SavedAddressOption[] = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            setLocalAddresses(parsed.slice(0, 5));
+          }
+        } else {
+          setLocalAddresses([]);
         }
-      }
-      const delKey = `grass_deleted_address_keys_${userId}`;
-      const rawDel = localStorage.getItem(delKey);
-      if (rawDel) {
-        const parsedDel = JSON.parse(rawDel);
-        if (Array.isArray(parsedDel)) {
-          setDeletedAddressKeys(parsedDel);
+        const delKey = `grass_deleted_address_keys_${userId}`;
+        const rawDel = localStorage.getItem(delKey);
+        if (rawDel) {
+          const parsedDel = JSON.parse(rawDel);
+          if (Array.isArray(parsedDel)) {
+            setDeletedAddressKeys(parsedDel);
+          }
+        } else {
+          setDeletedAddressKeys([]);
         }
+      } catch {
+        // Ignore
       }
-    } catch {
-      // Ignore
-    }
+    };
+
+    loadLocal();
+    window.addEventListener('grass_addresses_updated', loadLocal);
+    window.addEventListener('storage', loadLocal);
+    return () => {
+      window.removeEventListener('grass_addresses_updated', loadLocal);
+      window.removeEventListener('storage', loadLocal);
+    };
   }, [userId]);
 
   // Purely computed saved addresses: MAX 5 recent addresses, ignoring deleted ones

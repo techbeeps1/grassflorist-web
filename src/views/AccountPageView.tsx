@@ -57,6 +57,7 @@ import {
   RotateCw,
 } from 'lucide-react';
 import { CustomerSubscriptionsDashboard } from '@/components/subscription/CustomerSubscriptionsDashboard';
+import { SavedAddressesManager } from '@/components/account/SavedAddressesManager';
 
 interface AccountPageViewProps {
   locale: Locale;
@@ -1248,88 +1249,14 @@ function AccountPageContent({ locale }: AccountPageViewProps) {
               <CustomerSubscriptionsDashboard locale={locale} />
             )}
 
-            {/* TAB 3: SAVED ADDRESSES */}
+            {/* TAB 3: SAVED ADDRESSES (Managed top 5 addresses with Map & Receiver Details) */}
             {activeTab === 'addresses' && (
-              <div>
-                <div className="flex items-center justify-between pb-5 border-b border-[#E8DFD3] mb-6">
-                  <div>
-                    <h2 className="text-xl font-bold text-[#1E1915] tracking-tight">
-                      {dict.account.addressesTab}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-[#7D7065] mt-1">
-                      {locale === 'ar'
-                        ? 'العناوين المحفوظة لتسهيل وتنسيق سرعة التوصيل'
-                        : 'Manage your saved delivery addresses for faster checkout'}
-                    </p>
-                  </div>
-                  {hasSavedAddress && (
-                    <button
-                      onClick={() => {
-                        handleTabChange('profile');
-                        setIsEditing(true);
-                      }}
-                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#EBF1ED] text-[#435849] text-xs font-bold border border-[#D5C6B5] transition-colors cursor-pointer"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>{dict.account.editProfile}</span>
-                    </button>
-                  )}
-                </div>
-
-                {hasSavedAddress ? (
-                  <div className="p-5 rounded-2xl border border-[#2D3F33]/20 bg-[#FDFBF7] relative space-y-2 text-start">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-[#2D3F33] flex items-center gap-1.5">
-                        <MapPin className="w-4 h-4" />
-                        <span>
-                          {currentUser.city
-                            ? `${locale === 'ar' ? 'العنوان الافتراضي' : 'Primary Address'} (${currentUser.city})`
-                            : (locale === 'ar' ? 'العنوان الافتراضي' : 'Primary Address')}
-                        </span>
-                      </span>
-                      <span className="px-2.5 py-0.5 bg-[#EAF5EC] text-[#2D6A4F] text-[10px] font-bold rounded-full border border-[#C8E6CF]">
-                        {locale === 'ar' ? 'افتراضي' : 'Default'}
-                      </span>
-                    </div>
-
-                    <p className="text-xs sm:text-sm font-semibold text-[#1E1915]">
-                      {currentUser.name}
-                    </p>
-                    <p className="text-xs text-[#7D7065] leading-relaxed">
-                      {[currentUser.street, currentUser.district, currentUser.city, currentUser.country || (locale === 'ar' ? 'المملكة العربية السعودية' : 'Saudi Arabia')].filter(Boolean).join(', ')}
-                    </p>
-                    {currentUser.phone && (
-                      <p className="text-xs text-[#8C8075]" dir="ltr">
-                        {currentUser.phone}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="py-12 px-6 rounded-2xl border border-dashed border-[#D5C6B5] bg-[#FAF8F5]/60 text-center space-y-3">
-                    <div className="w-12 h-12 rounded-full bg-[#EBF1ED] text-[#435849] flex items-center justify-center mx-auto">
-                      <MapPin className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-sm font-bold text-[#201B18]">
-                      {locale === 'ar' ? 'لا توجد عناوين محفوظة حتى الآن' : 'No saved addresses yet'}
-                    </h3>
-                    <p className="text-xs text-[#7D7065] max-w-sm mx-auto">
-                      {locale === 'ar'
-                        ? 'لم تقم بحفظ أي عنوان توصيل بعد. يمكنك إضافة عنوانك لتسهيل عملية الشراء.'
-                        : "You haven't saved any delivery address yet. Add one to make checkout faster."}
-                    </p>
-                    <button
-                      onClick={() => {
-                        handleTabChange('profile');
-                        setIsEditing(true);
-                      }}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#435849] text-white hover:bg-[#344539] text-xs font-bold transition-all shadow-xs cursor-pointer"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>{locale === 'ar' ? 'إضافة عنوان جديد' : 'Add Delivery Address'}</span>
-                    </button>
-                  </div>
-                )}
-              </div>
+              <SavedAddressesManager
+                user={currentUser}
+                locale={locale}
+                userOrders={userOrders}
+                profileUser={profileUser}
+              />
             )}
 
             {/* TAB 4: PASSWORD & SECURITY */}
